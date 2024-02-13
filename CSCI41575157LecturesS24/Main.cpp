@@ -226,20 +226,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
     unsigned int worldLoc = glGetUniformLocation(shaderProgram, "world");
 
-    VertexData vertexData[6]{};
+    VertexData vertexData[4]{};
     vertexData[0] = { {-5.0f, 5.0f, 0.0f}, {1.0f, 0.0f, 0.0f} };
     vertexData[1] = { {-5.0f,-5.0f, 0.0f}, {1.0f, 0.0f, 0.0f} };
     vertexData[2] = { { 5.0f,-5.0f, 0.0f}, {1.0f, 0.0f, 0.0f} };
-    vertexData[3] = { {-5.0f, 5.0f, 0.0f}, {0.0f, 0.0f, 1.0f} };
-    vertexData[4] = { { 5.0f,-5.0f, 0.0f}, {0.0f, 0.0f, 1.0f} };
-    vertexData[5] = { { 5.0f, 5.0f, 0.0f}, {0.0f, 0.0f, 1.0f} };
+    vertexData[3] = { { 5.0f, 5.0f, 0.0f}, {0.0f, 0.0f, 1.0f} };
 
-    unsigned int vaoId, vboId;
+    unsigned short indexData[6] = { 0, 1, 2, 0, 2, 3 };
+
+    unsigned int vaoId, vboId, iboId;
     glGenVertexArrays(1, &vaoId);
     glBindVertexArray(vaoId);
     glGenBuffers(1, &vboId);
     glBindBuffer(GL_ARRAY_BUFFER, vboId);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+    glGenBuffers(1, &iboId);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboId);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
@@ -296,7 +300,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             EnableAttribute(0, 3, sizeof(VertexData), (void*)0);
             // Colors
             EnableAttribute(1, 3, sizeof(VertexData), (void*)sizeof(glm::vec3));
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboId);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
             glDisableVertexAttribArray(0);
             glDisableVertexAttribArray(1);
             glUseProgram(0);
