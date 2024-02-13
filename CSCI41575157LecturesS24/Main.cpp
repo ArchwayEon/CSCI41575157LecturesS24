@@ -239,7 +239,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glBindVertexArray(vaoId);
     glGenBuffers(1, &vboId);
     glBindBuffer(GL_ARRAY_BUFFER, vboId);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), nullptr, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
@@ -258,6 +258,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glm::mat4 projection;
     glm::mat4 referenceFrame(1.0f);
     glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
+    glm::vec3 vColor = { 0.0f, 0.3f, 0.0f };
 
     while (!glfwWindowShouldClose(window)) {
         ProcessInput(window);
@@ -282,6 +283,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             projection = glm::ortho(
                 left, right, bottom * aspectRatio, top * aspectRatio, -1.0f, 1.0f);
         }
+        vertexData[1].color = vColor;
+        vertexData[5].color = vColor;
 
         // Render the object
         if (result.isSuccess)
@@ -292,6 +295,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
             glBindVertexArray(vaoId);
             glBindBuffer(GL_ARRAY_BUFFER, vboId);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexData), vertexData);
             // Positions
             EnableAttribute(0, 3, sizeof(VertexData), (void*)0);
             // Colors
@@ -311,6 +315,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
             1000.0f / io.Framerate, io.Framerate);
         ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
+        ImGui::ColorEdit3("Vertex color", (float*)&vColor.r);
         ImGui::SliderFloat("Angle", &angle, 0, 360);
         ImGui::SliderFloat("Camera X", &cameraX, left, right);
         ImGui::SliderFloat("Camera Y", &cameraY, bottom, top);
