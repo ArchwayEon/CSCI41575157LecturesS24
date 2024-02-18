@@ -12,16 +12,30 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "Timer.h"
 
 void OnWindowSizeChanged(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-void ProcessInput(GLFWwindow* window)
+void ProcessInput(GLFWwindow* window, glm::vec3& axis)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+        return;
+    }
+    if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
+        axis = glm::vec3(0.0f, 1.0f, 0.0f);
+        return;
+    }
+    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
+        axis = glm::vec3(1.0f, 0.0f, 0.0f);
+        return;
+    }
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+        axis = glm::vec3(0.0f, 0.0f, 1.0f);
+        return;
     }
 }
 
@@ -338,7 +352,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     float aspectRatio;
     float nearPlane = 1.0f;
-    float farPlane = 50.0f;
+    float farPlane = 100.0f;
     float fieldOfView = 60;
 
     glm::vec3 cameraPosition(15.0f, 15.0f, 20.0f);
@@ -350,17 +364,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glm::mat4 referenceFrame(1.0f);
     glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
 
+    glm::vec3 axis(0.0f, 1.0f, 0.0f);
+    float speed = 90.0f;
+    double elapsedSeconds;
+    float deltaAngle;
+    Timer timer;
     while (!glfwWindowShouldClose(window)) {
-        ProcessInput(window);
+        elapsedSeconds = timer.GetElapsedTimeInSeconds();
+        ProcessInput(window, axis);
         glfwGetWindowSize(window, &width, &height);
 
         glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        referenceFrame = glm::rotate(glm::mat4(1.0f), glm::radians(cubeYAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-        referenceFrame = glm::rotate(referenceFrame, glm::radians(cubeXAngle), glm::vec3(1.0f, 0.0f, 0.0f));
-        referenceFrame = glm::rotate(referenceFrame, glm::radians(cubeZAngle), glm::vec3(0.0f, 0.0f, 1.0f));
-       
+        deltaAngle = static_cast<float>(speed * elapsedSeconds);
+        referenceFrame = glm::rotate(referenceFrame, glm::radians(deltaAngle), axis);
+
         view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
         
         if (width >= height) {
@@ -403,10 +422,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::Text(message.c_str());
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
             1000.0f / io.Framerate, io.Framerate);
+        ImGui::Text("Elapsed seconds: %.3f", elapsedSeconds);
         ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
-        ImGui::SliderFloat("X Angle", &cubeXAngle, 0, 360);
-        ImGui::SliderFloat("Y Angle", &cubeYAngle, 0, 360);
-        ImGui::SliderFloat("Z Angle", &cubeZAngle, 0, 360);
+        ImGui::SliderFloat("Speed", &speed, 0, 360);
         ImGui::SliderFloat("Camera X", &cameraPosition.x, left, right);
         ImGui::SliderFloat("Camera Y", &cameraPosition.y, bottom, top);
         ImGui::SliderFloat("Camera Z", &cameraPosition.z, 20, 50);
