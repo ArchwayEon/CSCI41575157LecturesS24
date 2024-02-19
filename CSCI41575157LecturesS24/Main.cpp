@@ -19,7 +19,7 @@ void OnWindowSizeChanged(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void ProcessInput(GLFWwindow* window, glm::vec3& axis)
+void ProcessInput(GLFWwindow* window, double elapsedSeconds, glm::vec3& axis, glm::mat4& cameraFrame)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
@@ -35,6 +35,51 @@ void ProcessInput(GLFWwindow* window, glm::vec3& axis)
     }
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
         axis = glm::vec3(0.0f, 0.0f, 1.0f);
+        return;
+    }
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        glm::vec3 forward = -cameraFrame[2];
+        glm::vec3 position = cameraFrame[3];
+        forward = forward * static_cast<float>(10.0f * elapsedSeconds);
+        position = position + forward;
+        cameraFrame[3] = glm::vec4(position, 1.0f);
+        return;
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        glm::vec3 toLeft = -cameraFrame[0];
+        glm::vec3 position = cameraFrame[3];
+        toLeft = toLeft * static_cast<float>(10.0f * elapsedSeconds);        
+        position = position + toLeft;
+        cameraFrame[3] = glm::vec4(position, 1.0f);
+        return;
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        glm::vec3 backward = cameraFrame[2];
+        glm::vec3 position = cameraFrame[3];
+        backward = backward * static_cast<float>(10.0f * elapsedSeconds);
+        position = position + backward;
+        cameraFrame[3] = glm::vec4(position, 1.0f);
+        return;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        glm::vec3 toRight = cameraFrame[0];
+        glm::vec3 position = cameraFrame[3];
+        toRight = toRight * static_cast<float>(10.0f * elapsedSeconds);
+        position = position + toRight;
+        cameraFrame[3] = glm::vec4(position, 1.0f);
+        return;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        glm::vec3 yAxis = cameraFrame[1];
+        float turnDelta = static_cast<float>(-90.0f * elapsedSeconds);
+        cameraFrame = glm::rotate(cameraFrame, glm::radians(turnDelta), yAxis);
+        return;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+        glm::vec3 yAxis = cameraFrame[1];
+        float turnDelta = static_cast<float>(90.0f * elapsedSeconds);
+        cameraFrame = glm::rotate(cameraFrame, glm::radians(turnDelta), yAxis);
         return;
     }
 }
@@ -355,7 +400,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     float farPlane = 100.0f;
     float fieldOfView = 60;
 
-    glm::vec3 cameraPosition(15.0f, 15.0f, 20.0f);
+    glm::vec3 cameraPosition;
     glm::vec3 cameraTarget(0.0f, 0.0f, 0.0f);
     glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
 
@@ -364,6 +409,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glm::mat4 referenceFrame(1.0f);
     glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
 
+    glm::mat4 cameraFrame(1.0f);
+    cameraFrame[3] = glm::vec4(0.0f, 3.0f, 20.0f, 1.0f);
+    glm::vec3 cameraForward;
     glm::vec3 axis(0.0f, 1.0f, 0.0f);
     float speed = 90.0f;
     double elapsedSeconds;
@@ -371,7 +419,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     Timer timer;
     while (!glfwWindowShouldClose(window)) {
         elapsedSeconds = timer.GetElapsedTimeInSeconds();
-        ProcessInput(window, axis);
+        ProcessInput(window, elapsedSeconds, axis, cameraFrame);
         glfwGetWindowSize(window, &width, &height);
 
         glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
@@ -380,6 +428,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         deltaAngle = static_cast<float>(speed * elapsedSeconds);
         referenceFrame = glm::rotate(referenceFrame, glm::radians(deltaAngle), axis);
 
+        cameraPosition = cameraFrame[3];
+        cameraForward = cameraFrame[2];
+        cameraForward = -cameraForward;
+        cameraTarget = cameraPosition + cameraForward;
+        cameraUp = cameraFrame[1];
         view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
         
         if (width >= height) {
