@@ -15,17 +15,16 @@
 #include "Timer.h"
 
 struct SphericalCoordinate {
-    float phi = 0.0f, theta = 0.0f, rho = 0.0f;
+    float phi = 0.0f, theta = 0.0f, rho = 1.0f;
 
     glm::mat4 ToMat4() {
         float thetaRadians = glm::radians(theta);
         float phiRadians = glm::radians(phi);
         float sinPhi = sin(phiRadians);
         glm::vec3 zAxis{};
-        zAxis.x = cos(thetaRadians) * sinPhi;
-        zAxis.y = sin(thetaRadians) * sinPhi;
-        zAxis.z = cos(phiRadians);
-        
+        zAxis.x = rho * sin(thetaRadians) * sinPhi;
+        zAxis.y = rho * cos(phiRadians);
+        zAxis.z = rho * cos(thetaRadians) * sinPhi;
 
         glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
         glm::vec3 xAxis = glm::normalize(glm::cross(up, zAxis));
@@ -38,54 +37,40 @@ struct SphericalCoordinate {
     }
 };
 
-struct MouseParams {
-    SphericalCoordinate spherical{};
-    double x, y;
-    double lastX = 0, lastY = 0;
-    bool firstTime = true;
-    int width, height;
-};
-
 static void OnWindowSizeChanged(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-// Ugh! A global!
+struct MouseParams {
+    SphericalCoordinate spherical{};
+    double x = 0, y = 0;
+    double windowX = 0, windowY = 0;
+    int windowWidth = 0, windowHeight = 0;
+    float fieldOfView = 60.0f;
+};
+
+// Eek! A global mouse!
 MouseParams mouse;
 
 static void OnMouse(GLFWwindow* window, double mouseX, double mouseY)
 {
-    if (mouse.firstTime) {
-        mouse.lastX = mouseX;
-        mouse.lastY = mouseY;
-        mouse.firstTime = false;
-    }
     mouse.x = mouseX;
     mouse.y = mouseY;
 
-    double xoffset = mouse.lastX - mouseX;
-    double yoffset = mouse.lastY - mouseY;
-    mouse.lastX = mouseX;
-    mouse.lastY = mouseY;
+    float xPercent = static_cast<float>(mouse.x / mouse.windowWidth);
+    float yPercent = static_cast<float>(mouse.y / mouse.windowHeight);
 
-    double sensitivity = 0.05; // smaller is less sensitive
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    float total = 90;
-    float xPercent = static_cast<float>(mouse.x / mouse.width);
-    float yPercent = static_cast<float>(mouse.y / mouse.height);
-
-    //mouse.spherical.theta -= static_cast<float>(xoffset); // Look left/right
-    //mouse.spherical.phi -= static_cast<float>(yoffset); // Look up/down
-    mouse.spherical.theta = (xPercent * 90) - 45;
-    mouse.spherical.phi = (yPercent * 90) - 45;
-
-    if (mouse.spherical.phi > 179.0f) mouse.spherical.phi = 179.0f;
-    if (mouse.spherical.phi < 1.0f) mouse.spherical.phi = 1.0f;
+    mouse.spherical.theta = 90.0f - (xPercent * 180); // left/right
+    mouse.spherical.phi = 180.0f - (yPercent * 180); // up/down
 }
 
+static void OnScroll(GLFWwindow* window, double xoffset, double yoffset)
+{
+    mouse.fieldOfView -= static_cast<float>(yoffset * 2);
+    if (mouse.fieldOfView < 1.0f) mouse.fieldOfView = 1.0f;
+    if (mouse.fieldOfView > 60.0f) mouse.fieldOfView = 60.0f;
+}
 
 static void ProcessInput(GLFWwindow* window, double elapsedSeconds, glm::vec3& axis, glm::mat4& cameraFrame)
 {
@@ -315,8 +300,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glViewport(0, 0, 1200, 800);
     glfwSetFramebufferSizeCallback(window, OnWindowSizeChanged);
     glfwSetCursorPosCallback(window, OnMouse);
+    glfwSetScrollCallback(window, OnScroll);
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    //glfwMaximizeWindow(window);
+    glfwMaximizeWindow(window);
 
     // Cull back faces and use counter-clockwise winding of front faces
     glEnable(GL_CULL_FACE);
@@ -488,15 +474,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     double elapsedSeconds;
     float deltaAngle;
     Timer timer;
-    glfwGetWindowSize(window, &width, &height);
-    mouse.lastX = width / 2.0f;
-    mouse.lastY = height / 2.0f;
     while (!glfwWindowShouldClose(window)) {
         elapsedSeconds = timer.GetElapsedTimeInSeconds();
         ProcessInput(window, elapsedSeconds, axis, cameraFrame);
         glfwGetWindowSize(window, &width, &height);
-        mouse.width = width;
-        mouse.height = height;
+        mouse.windowWidth = width;
+        mouse.windowHeight = height;
 
         glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -522,7 +505,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             aspectRatio = height / (width * 1.0f);
         }
         projection = glm::perspective(
-            glm::radians(fieldOfView), aspectRatio, nearPlane, farPlane);
+            glm::radians(mouse.fieldOfView), aspectRatio, nearPlane, farPlane);
 
         // Render the object
         if (result.isSuccess)
@@ -557,6 +540,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             1000.0f / io.Framerate, io.Framerate);
         ImGui::Text("Elapsed seconds: %.3f", elapsedSeconds);
         ImGui::Text("Mouse: (%.0f, %.0f)", mouse.x, mouse.y);
+        ImGui::Text("Field of View: %.0f", mouse.fieldOfView);
+        ImGui::Text("Theta:%.1f, Phi:%.1f)", 
+            mouse.spherical.theta, mouse.spherical.phi);
         ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
         ImGui::SliderFloat("Speed", &speed, 0, 360);
         ImGui::SliderFloat("Camera X", &cameraPosition.x, left, right);
