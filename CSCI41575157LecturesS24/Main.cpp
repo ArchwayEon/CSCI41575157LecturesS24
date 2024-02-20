@@ -14,12 +14,80 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Timer.h"
 
-void OnWindowSizeChanged(GLFWwindow* window, int width, int height)
+struct SphericalCoordinate {
+    float phi = 0.0f, theta = 0.0f, rho = 0.0f;
+
+    glm::mat4 ToMat4() {
+        float thetaRadians = glm::radians(theta);
+        float phiRadians = glm::radians(phi);
+        float sinPhi = sin(phiRadians);
+        glm::vec3 zAxis{};
+        zAxis.x = cos(thetaRadians) * sinPhi;
+        zAxis.y = sin(thetaRadians) * sinPhi;
+        zAxis.z = cos(phiRadians);
+        
+
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+        glm::vec3 xAxis = glm::normalize(glm::cross(up, zAxis));
+        glm::vec3 yAxis = glm::cross(zAxis, xAxis);
+        glm::mat4 orientation(1.0f);
+        orientation[0] = glm::vec4(xAxis, 0.0f);
+        orientation[1] = glm::vec4(yAxis, 0.0f);
+        orientation[2] = glm::vec4(zAxis, 0.0f);
+        return orientation;
+    }
+};
+
+struct MouseParams {
+    SphericalCoordinate spherical{};
+    double x, y;
+    double lastX = 0, lastY = 0;
+    bool firstTime = true;
+    int width, height;
+};
+
+static void OnWindowSizeChanged(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-void ProcessInput(GLFWwindow* window, double elapsedSeconds, glm::vec3& axis, glm::mat4& cameraFrame)
+// Ugh! A global!
+MouseParams mouse;
+
+static void OnMouse(GLFWwindow* window, double mouseX, double mouseY)
+{
+    if (mouse.firstTime) {
+        mouse.lastX = mouseX;
+        mouse.lastY = mouseY;
+        mouse.firstTime = false;
+    }
+    mouse.x = mouseX;
+    mouse.y = mouseY;
+
+    double xoffset = mouse.lastX - mouseX;
+    double yoffset = mouse.lastY - mouseY;
+    mouse.lastX = mouseX;
+    mouse.lastY = mouseY;
+
+    double sensitivity = 0.05; // smaller is less sensitive
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    float total = 90;
+    float xPercent = static_cast<float>(mouse.x / mouse.width);
+    float yPercent = static_cast<float>(mouse.y / mouse.height);
+
+    //mouse.spherical.theta -= static_cast<float>(xoffset); // Look left/right
+    //mouse.spherical.phi -= static_cast<float>(yoffset); // Look up/down
+    mouse.spherical.theta = (xPercent * 90) - 45;
+    mouse.spherical.phi = (yPercent * 90) - 45;
+
+    if (mouse.spherical.phi > 179.0f) mouse.spherical.phi = 179.0f;
+    if (mouse.spherical.phi < 1.0f) mouse.spherical.phi = 1.0f;
+}
+
+
+static void ProcessInput(GLFWwindow* window, double elapsedSeconds, glm::vec3& axis, glm::mat4& cameraFrame)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
@@ -246,6 +314,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     glViewport(0, 0, 1200, 800);
     glfwSetFramebufferSizeCallback(window, OnWindowSizeChanged);
+    glfwSetCursorPosCallback(window, OnMouse);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     //glfwMaximizeWindow(window);
 
     // Cull back faces and use counter-clockwise winding of front faces
@@ -409,6 +479,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glm::mat4 referenceFrame(1.0f);
     glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
 
+    glm::mat4 lookFrame(1.0f);
     glm::mat4 cameraFrame(1.0f);
     cameraFrame[3] = glm::vec4(0.0f, 3.0f, 20.0f, 1.0f);
     glm::vec3 cameraForward;
@@ -417,10 +488,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     double elapsedSeconds;
     float deltaAngle;
     Timer timer;
+    glfwGetWindowSize(window, &width, &height);
+    mouse.lastX = width / 2.0f;
+    mouse.lastY = height / 2.0f;
     while (!glfwWindowShouldClose(window)) {
         elapsedSeconds = timer.GetElapsedTimeInSeconds();
         ProcessInput(window, elapsedSeconds, axis, cameraFrame);
         glfwGetWindowSize(window, &width, &height);
+        mouse.width = width;
+        mouse.height = height;
 
         glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -428,9 +504,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         deltaAngle = static_cast<float>(speed * elapsedSeconds);
         referenceFrame = glm::rotate(referenceFrame, glm::radians(deltaAngle), axis);
 
+        lookFrame = mouse.spherical.ToMat4();
+        cameraFrame[0] = lookFrame[0];
+        cameraFrame[1] = lookFrame[1];
+        cameraFrame[2] = lookFrame[2];
+
         cameraPosition = cameraFrame[3];
-        cameraForward = cameraFrame[2];
-        cameraForward = -cameraForward;
+        cameraForward = -cameraFrame[2];
         cameraTarget = cameraPosition + cameraForward;
         cameraUp = cameraFrame[1];
         view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
@@ -476,6 +556,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
             1000.0f / io.Framerate, io.Framerate);
         ImGui::Text("Elapsed seconds: %.3f", elapsedSeconds);
+        ImGui::Text("Mouse: (%.0f, %.0f)", mouse.x, mouse.y);
         ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
         ImGui::SliderFloat("Speed", &speed, 0, 360);
         ImGui::SliderFloat("Camera X", &cameraPosition.x, left, right);
