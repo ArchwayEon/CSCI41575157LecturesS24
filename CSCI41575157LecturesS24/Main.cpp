@@ -473,6 +473,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     float speed = 90.0f;
     double elapsedSeconds;
     float deltaAngle;
+    bool lookWithMouse = false;
+    bool resetCameraPosition = false;
     Timer timer;
     while (!glfwWindowShouldClose(window)) {
         elapsedSeconds = timer.GetElapsedTimeInSeconds();
@@ -487,10 +489,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         deltaAngle = static_cast<float>(speed * elapsedSeconds);
         referenceFrame = glm::rotate(referenceFrame, glm::radians(deltaAngle), axis);
 
-        lookFrame = mouse.spherical.ToMat4();
-        cameraFrame[0] = lookFrame[0];
-        cameraFrame[1] = lookFrame[1];
-        cameraFrame[2] = lookFrame[2];
+        if (resetCameraPosition) {
+            cameraFrame = glm::mat4(1.0f);
+            cameraFrame[3] = glm::vec4(0.0f, 3.0f, 20.0f, 1.0f);
+            resetCameraPosition = false;
+            lookWithMouse = false;
+        }
+        if (lookWithMouse) {
+            lookFrame = mouse.spherical.ToMat4();
+            cameraFrame[0] = lookFrame[0];
+            cameraFrame[1] = lookFrame[1];
+            cameraFrame[2] = lookFrame[2];
+        }
 
         cameraPosition = cameraFrame[3];
         cameraForward = -cameraFrame[2];
@@ -545,6 +555,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             mouse.spherical.theta, mouse.spherical.phi);
         ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
         ImGui::SliderFloat("Speed", &speed, 0, 360);
+        ImGui::Checkbox("Use mouse to look", &lookWithMouse);
+        ImGui::Checkbox("Reset camera position", &resetCameraPosition);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
