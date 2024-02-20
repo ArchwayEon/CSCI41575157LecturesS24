@@ -545,9 +545,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             mouse.spherical.theta, mouse.spherical.phi);
         ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
         ImGui::SliderFloat("Speed", &speed, 0, 360);
-        ImGui::SliderFloat("Camera X", &cameraPosition.x, left, right);
-        ImGui::SliderFloat("Camera Y", &cameraPosition.y, bottom, top);
-        ImGui::SliderFloat("Camera Z", &cameraPosition.z, 20, 50);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
