@@ -53,7 +53,7 @@ struct MouseParams {
 // Eek! A global mouse!
 MouseParams mouse;
 
-static void OnMouse(GLFWwindow* window, double mouseX, double mouseY)
+static void OnMouseMove(GLFWwindow* window, double mouseX, double mouseY)
 {
     mouse.x = mouseX;
     mouse.y = mouseY;
@@ -299,7 +299,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     glViewport(0, 0, 1200, 800);
     glfwSetFramebufferSizeCallback(window, OnWindowSizeChanged);
-    glfwSetCursorPosCallback(window, OnMouse);
+    glfwSetCursorPosCallback(window, OnMouseMove);
     glfwSetScrollCallback(window, OnScroll);
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwMaximizeWindow(window);
