@@ -350,7 +350,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glDepthRange(0.0f, 1.0f);
 
     std::string vertexSource = ReadFromFile("basic.vert.glsl");
-    std::string fragmentSource = ReadFromFile("basic.frag.glsl");
+    std::string fragmentSource = ReadFromFile("ambient.frag.glsl");
 
     unsigned int shaderProgram;
     Result result = CreateShaderProgram(vertexSource, fragmentSource, shaderProgram);
@@ -476,6 +476,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // Material
     Material material{};
     material.ambientIntensity = 0.1f;
+    unsigned int ambientLoc = 
+        glGetUniformLocation(shaderProgram, "materialAmbientIntensity");
 
     glm::mat4 lookFrame(1.0f);
     glm::mat4 cameraFrame(1.0f);
@@ -536,6 +538,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
             glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr(referenceFrame));
             glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+            glUniform1f(ambientLoc, material.ambientIntensity);
             glBindVertexArray(vaoId);
             glBindBuffer(GL_ARRAY_BUFFER, vboId);
             // Positions

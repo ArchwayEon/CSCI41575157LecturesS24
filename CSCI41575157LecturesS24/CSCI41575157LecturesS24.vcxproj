@@ -148,6 +148,7 @@
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ambient.frag.glsl" />
     <None Include="basic.frag.glsl" />
     <None Include="basic.vert.glsl" />
   </ItemGroup>
