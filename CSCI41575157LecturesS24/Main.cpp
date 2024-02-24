@@ -8,11 +8,16 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Timer.h"
+
+struct Material {
+    float ambientIntensity;
+};
 
 struct SphericalCoordinate {
     float phi = 0.0f, theta = 0.0f, rho = 1.0f;
@@ -274,6 +279,35 @@ static void EnableAttribute(int attribIndex, int elementCount, int sizeInBytes, 
     );
 }
 
+void Trim(std::string& str)
+{
+    const std::string delimiters = " \f\n\r\t\v";
+    str.erase(str.find_last_not_of(delimiters) + 1);
+    str.erase(0, str.find_first_not_of(delimiters));
+}
+
+std::string ReadFromFile(const std::string& filePath)
+{
+    std::stringstream ss;
+    std::ifstream fin{};
+    fin.open(filePath.c_str());
+    if (fin.fail()) {
+        ss << "Could not open: " << filePath << std::endl;
+        return ss.str();
+    }
+
+    std::string line;
+    while (!fin.eof()) {
+        getline(fin, line);
+        Trim(line);
+        if (line != "") { // Skip blank lines
+            ss << line << std::endl;
+        }
+    }
+    fin.close();
+    return ss.str();
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
     _In_ LPWSTR    lpCmdLine,
@@ -315,34 +349,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glDepthFunc(GL_LEQUAL);
     glDepthRange(0.0f, 1.0f);
 
-    std::string vertexSource =
-        "#version 430\n"
-        "layout(location = 0) in vec3 position;\n"
-        "layout(location = 1) in vec3 color;\n"
-        "layout(location = 2) in vec2 texCoord;\n"
-        "out vec4 fragColor;\n"
-        "out vec2 fragTexCoord;\n"
-        "uniform mat4 world;\n"
-        "uniform mat4 view;\n"
-        "uniform mat4 projection;\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = projection * view * world * vec4(position, 1.0);\n"
-        "   fragColor = vec4(color, 1.0);\n"
-        "   fragTexCoord = texCoord;\n"
-        "}\n";
-
-    std::string fragmentSource =
-        "#version 430\n"
-        "in vec4 fragColor;\n"
-        "in vec2 fragTexCoord;\n"
-        "out vec4 color;\n"
-        "uniform sampler2D tex;\n"
-        "void main()\n"
-        "{\n"
-        "   vec4 texFragColor = texture(tex, fragTexCoord) * fragColor;\n"
-        "   color = texFragColor;\n"
-        "}\n";
+    std::string vertexSource = ReadFromFile("basic.vert.glsl");
+    std::string fragmentSource = ReadFromFile("basic.frag.glsl");
 
     unsigned int shaderProgram;
     Result result = CreateShaderProgram(vertexSource, fragmentSource, shaderProgram);
@@ -464,6 +472,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glm::mat4 projection;
     glm::mat4 referenceFrame(1.0f);
     glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
+
+    // Material
+    Material material{};
+    material.ambientIntensity = 0.1f;
 
     glm::mat4 lookFrame(1.0f);
     glm::mat4 cameraFrame(1.0f);
