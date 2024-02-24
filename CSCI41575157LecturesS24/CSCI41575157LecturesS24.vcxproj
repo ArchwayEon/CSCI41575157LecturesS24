@@ -151,6 +151,8 @@
     <None Include="ambient.frag.glsl" />
     <None Include="basic.frag.glsl" />
     <None Include="basic.vert.glsl" />
+    <None Include="globaldiffuse.frag.glsl" />
+    <None Include="lighting.vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

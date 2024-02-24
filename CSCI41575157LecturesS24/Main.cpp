@@ -19,6 +19,12 @@ struct Material {
     float ambientIntensity;
 };
 
+struct Light {
+    glm::vec3 position;
+    glm::vec3 color;
+    float intensity;
+};
+
 struct SphericalCoordinate {
     float phi = 0.0f, theta = 0.0f, rho = 1.0f;
 
@@ -150,7 +156,7 @@ struct Result {
 };
 
 struct VertexData {
-    glm::vec3 position, color;
+    glm::vec3 position, color, normal;
     glm::vec2 tex;
 };
 
@@ -336,7 +342,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glfwSetCursorPosCallback(window, OnMouseMove);
     glfwSetScrollCallback(window, OnScroll);
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwMaximizeWindow(window);
+    //glfwMaximizeWindow(window);
 
     // Cull back faces and use counter-clockwise winding of front faces
     glEnable(GL_CULL_FACE);
@@ -349,8 +355,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glDepthFunc(GL_LEQUAL);
     glDepthRange(0.0f, 1.0f);
 
-    std::string vertexSource = ReadFromFile("basic.vert.glsl");
-    std::string fragmentSource = ReadFromFile("ambient.frag.glsl");
+    std::string vertexSource = ReadFromFile("lighting.vert.glsl");
+    std::string fragmentSource = ReadFromFile("globaldiffuse.frag.glsl");
 
     unsigned int shaderProgram;
     Result result = CreateShaderProgram(vertexSource, fragmentSource, shaderProgram);
@@ -392,35 +398,35 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glGenerateMipmap(GL_TEXTURE_2D);
     
     // Front face
-    VertexData A = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}};
-    VertexData B = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}};
-    VertexData C = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}};
-    VertexData D = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}};
+    VertexData A = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f} };
+    VertexData B = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}};
+    VertexData C = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}};
+    VertexData D = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}};
     // Right face
-    VertexData E = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}};
-    VertexData F = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}};
-    VertexData G = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}};
-    VertexData H = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}};
+    VertexData E = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}};
+    VertexData F = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}};
+    VertexData G = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}};
+    VertexData H = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}};
     // Back face
-    VertexData I = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f} };
-    VertexData J = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f} };
-    VertexData K = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f} };
-    VertexData L = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f} };
+    VertexData I = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f} };
+    VertexData J = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f} };
+    VertexData K = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f} };
+    VertexData L = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f} };
     // Left face
-    VertexData M = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f} };
-    VertexData N = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f} };
-    VertexData O = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f} };
-    VertexData P = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f} };
+    VertexData M = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
+    VertexData N = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
+    VertexData O = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} };
+    VertexData P = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} };
     // Top face
-    VertexData Q = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f} };
-    VertexData R = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f} };
-    VertexData S = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f} };
-    VertexData T = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f} };
+    VertexData Q = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f} };
+    VertexData R = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f} };
+    VertexData S = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f} };
+    VertexData T = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f} };
     // Bottom face
-    VertexData U = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f} };
-    VertexData V = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f} };
-    VertexData W = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f} };
-    VertexData X = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f} };
+    VertexData U = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f} };
+    VertexData V = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f} };
+    VertexData W = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f} };
+    VertexData X = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f} };
 
     // 3 vertex per triangle, 2 triangles per face, 6 faces
     // 3 * 2 * 6 = 36 vertices
@@ -478,6 +484,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     material.ambientIntensity = 0.1f;
     unsigned int ambientLoc = 
         glGetUniformLocation(shaderProgram, "materialAmbientIntensity");
+
+    // Lights
+    Light globalLight{};
+    globalLight.position = glm::vec3(100.0f, 100.0f, 0.0f); 
+    globalLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
+    globalLight.intensity = 0.5f;
+    unsigned int globalLightPosLoc =
+        glGetUniformLocation(shaderProgram, "globalLightPosition");
+    unsigned int globalLightColorLoc =
+        glGetUniformLocation(shaderProgram, "globalLightColor");
+    unsigned int globalLightIntensityLoc =
+        glGetUniformLocation(shaderProgram, "globalLightIntensity");
 
     glm::mat4 lookFrame(1.0f);
     glm::mat4 cameraFrame(1.0f);
@@ -539,14 +557,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr(referenceFrame));
             glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
             glUniform1f(ambientLoc, material.ambientIntensity);
+            glUniform3fv(globalLightPosLoc, 1, glm::value_ptr(globalLight.position));
+            glUniform3fv(globalLightColorLoc, 1, glm::value_ptr(globalLight.color));
+            glUniform1f(globalLightIntensityLoc, globalLight.intensity);
+
             glBindVertexArray(vaoId);
             glBindBuffer(GL_ARRAY_BUFFER, vboId);
             // Positions
             EnableAttribute(0, 3, sizeof(VertexData), (void*)0);
             // Colors
             EnableAttribute(1, 3, sizeof(VertexData), (void*)sizeof(glm::vec3));
+            // Normals
+            EnableAttribute(2, 3, sizeof(VertexData), (void*)(sizeof(glm::vec3)*2));
             // Texture Coords
-            EnableAttribute(2, 2, sizeof(VertexData), (void*)(sizeof(glm::vec3)*2));
+            EnableAttribute(3, 2, sizeof(VertexData), (void*)(sizeof(glm::vec3)*3));
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, textureId);
             glDrawArrays(GL_TRIANGLES, 0, 36);
