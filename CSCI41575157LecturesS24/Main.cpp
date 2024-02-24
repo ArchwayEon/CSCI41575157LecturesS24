@@ -356,7 +356,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glDepthRange(0.0f, 1.0f);
 
     std::string vertexSource = ReadFromFile("lighting.vert.glsl");
-    std::string fragmentSource = ReadFromFile("globaldiffuse.frag.glsl");
+    std::string fragmentSource = ReadFromFile("diffuse.frag.glsl");
 
     unsigned int shaderProgram;
     Result result = CreateShaderProgram(vertexSource, fragmentSource, shaderProgram);
@@ -489,13 +489,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     Light globalLight{};
     globalLight.position = glm::vec3(100.0f, 100.0f, 0.0f); 
     globalLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
-    globalLight.intensity = 0.5f;
+    globalLight.intensity = 0.25f;
     unsigned int globalLightPosLoc =
         glGetUniformLocation(shaderProgram, "globalLightPosition");
     unsigned int globalLightColorLoc =
         glGetUniformLocation(shaderProgram, "globalLightColor");
     unsigned int globalLightIntensityLoc =
         glGetUniformLocation(shaderProgram, "globalLightIntensity");
+    Light localLight{};
+    localLight.position = glm::vec3(0.0f, 0.0f, 8.0f);
+    localLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
+    localLight.intensity = 0.5f;
+    unsigned int localLightPosLoc =
+        glGetUniformLocation(shaderProgram, "localLightPosition");
+    unsigned int localLightColorLoc =
+        glGetUniformLocation(shaderProgram, "localLightColor");
+    unsigned int localLightIntensityLoc =
+        glGetUniformLocation(shaderProgram, "localLightIntensity");
 
     glm::mat4 lookFrame(1.0f);
     glm::mat4 cameraFrame(1.0f);
@@ -560,6 +570,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             glUniform3fv(globalLightPosLoc, 1, glm::value_ptr(globalLight.position));
             glUniform3fv(globalLightColorLoc, 1, glm::value_ptr(globalLight.color));
             glUniform1f(globalLightIntensityLoc, globalLight.intensity);
+            glUniform3fv(localLightPosLoc, 1, glm::value_ptr(localLight.position));
+            glUniform3fv(localLightColorLoc, 1, glm::value_ptr(localLight.color));
+            glUniform1f(localLightIntensityLoc, localLight.intensity);
 
             glBindVertexArray(vaoId);
             glBindBuffer(GL_ARRAY_BUFFER, vboId);
