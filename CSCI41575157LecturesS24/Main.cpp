@@ -691,7 +691,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
         if (resetCameraPosition) {
             cameraFrame = glm::mat4(1.0f);
-            cameraFrame[3] = glm::vec4(0.0f, 3.0f, 20.0f, 1.0f);
+            cameraFrame[3] = glm::vec4(0.0f, 3.0f, 30.0f, 1.0f);
             resetCameraPosition = false;
             lookWithMouse = false;
         }
