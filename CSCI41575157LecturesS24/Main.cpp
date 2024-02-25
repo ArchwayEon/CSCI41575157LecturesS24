@@ -19,8 +19,11 @@
 #include "stb_image.h"
 
 struct Material {
-    float ambientIntensity;
+    float ambientIntensity;  // 0 to 1
+    float specularIntensity; // 0 to 1
+    float shininess;         // 0 to infinity
 };
+
 
 struct Light {
     glm::vec3 position;
@@ -511,7 +514,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glDepthRange(0.0f, 1.0f);
 
     std::string vertexSource1 = ReadFromFile("lighting.vert.glsl");
-    std::string fragmentSource1 = ReadFromFile("diffuse.frag.glsl");
+    std::string fragmentSource1 = ReadFromFile("lighting.frag.glsl");
     std::string vertexSource2 = ReadFromFile("basic.vert.glsl");
     std::string fragmentSource2 = ReadFromFile("basic.frag.glsl");
 
@@ -592,12 +595,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     textureData = nullptr;
 
     VertexData* floorVertexData = 
-        CreateXZQuadVertexData(25.0f, 25.0f, 25.0f, 25.0f);
+        CreateXZQuadVertexData(25.0f, 25.0f, 5.0f, 5.0f);
 
-    unsigned int vboId3;
+    unsigned int floorVBO;
     glBindVertexArray(lightingVAO);
-    glGenBuffers(1, &vboId3);
-    glBindBuffer(GL_ARRAY_BUFFER, vboId3);
+    glGenBuffers(1, &floorVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(VertexData), floorVertexData, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     delete[] floorVertexData;
@@ -635,8 +638,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // Material
     Material material{};
     material.ambientIntensity = 0.1f;
+    material.specularIntensity = 0.5f;
+    material.shininess = 16.0f;
     unsigned int ambientLoc = 
         glGetUniformLocation(shaderProgram1, "materialAmbientIntensity");
+    unsigned int specularLoc =
+        glGetUniformLocation(shaderProgram1, "materialSpecularIntensity");
+    unsigned int shininessLoc =
+        glGetUniformLocation(shaderProgram1, "materialShininess");
 
     // Lights
     Light globalLight{};
@@ -662,6 +671,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         glGetUniformLocation(shaderProgram1, "localLightIntensity");
     unsigned int localLightAttentuationLoc =
         glGetUniformLocation(shaderProgram1, "localLightAttenuationCoef");
+    unsigned int viewPositionLoc =
+        glGetUniformLocation(shaderProgram1, "viewPosition");
 
     quadReferenceFrame[3] = glm::vec4(localLight.position, 1.0f);
 
@@ -731,10 +742,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             glUniform3fv(localLightColorLoc, 1, glm::value_ptr(localLight.color));
             glUniform1f(localLightIntensityLoc, localLight.intensity);
             glUniform1f(localLightAttentuationLoc, localLight.attenuationCoef);
+            glUniform3fv(viewPositionLoc, 1, glm::value_ptr(cameraPosition));
 
             glBindVertexArray(lightingVAO);
             glUniformMatrix4fv(worldLoc1, 1, GL_FALSE, glm::value_ptr(cubeReferenceFrame));
             glUniform1f(ambientLoc, material.ambientIntensity);
+            glUniform1f(specularLoc, material.specularIntensity);
+            glUniform1f(shininessLoc, material.shininess);
             glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
             // Positions
             EnableAttribute(0, 3, sizeof(VertexData), (void*)0);
@@ -751,7 +765,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             // The floor
             glUniformMatrix4fv(worldLoc1, 1, GL_FALSE, glm::value_ptr(floorReferenceFrame));
             glUniform1f(ambientLoc, material.ambientIntensity);
-            glBindBuffer(GL_ARRAY_BUFFER, vboId3);
+            glUniform1f(specularLoc, material.specularIntensity);
+            glUniform1f(shininessLoc, material.shininess);
+            glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
             // Positions
             EnableAttribute(0, 3, sizeof(VertexData), (void*)0);
             // Colors
@@ -817,6 +833,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::SliderFloat("Global Intensity", &globalLight.intensity, 0, 1);
         ImGui::SliderFloat("Local Intensity", &localLight.intensity, 0, 1);
         ImGui::SliderFloat("Attenuation", &localLight.attenuationCoef, 0, 1);
+        ImGui::SliderFloat("Ambient", &material.ambientIntensity, 0, 1);
+        ImGui::SliderFloat("Specular", &material.specularIntensity, 0, 1);
+        ImGui::SliderFloat("Shininess", &material.shininess, 0, 100);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

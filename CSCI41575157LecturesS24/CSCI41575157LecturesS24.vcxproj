@@ -153,6 +153,7 @@
     <None Include="basic.vert.glsl" />
     <None Include="diffuse.frag.glsl" />
     <None Include="globaldiffuse.frag.glsl" />
+    <None Include="lighting.frag.glsl" />
     <None Include="lighting.vert.glsl" />
   </ItemGroup>
   <ItemGroup>
