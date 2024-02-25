@@ -157,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="lightbulb.png" />
+    <Image Include="stone-road-texture.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

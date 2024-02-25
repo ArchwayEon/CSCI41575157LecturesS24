@@ -26,6 +26,7 @@ struct Light {
     glm::vec3 position;
     glm::vec3 color;
     float intensity;
+    float attenuationCoef;
 };
 
 struct SphericalCoordinate {
@@ -421,6 +422,25 @@ VertexDataPCT* CreateQuadVertexData()
     return vertexData;
 }
 
+VertexData* CreateXZQuadVertexData(
+    float width, float depth, float repeatS=1.0f, float repeatT=1.0f)
+{
+    float x = width / 2;
+    float z = depth / 2;
+    glm::vec4 white(1.0f, 1.0f, 1.0f, 1.0f);
+    glm::vec3 up(0.0f, 1.0f, 0.0f);
+    // Front face
+    VertexData A = { {-x, 0.0f,-z}, white, up, {0.0f, repeatT} };
+    VertexData B = { {-x, 0.0f, z}, white, up, {0.0f, 0.0f} };
+    VertexData C = { { x, 0.0f, z}, white, up, {repeatS, 0.0f} };
+    VertexData D = { { x, 0.0f,-z}, white, up, {repeatS, repeatT} };
+
+    VertexData* vertexData{ new VertexData[6]{
+        A, B, C, A, C, D
+    } };
+    return vertexData;
+}
+
 void PointAt(glm::mat4& referenceFrame, const glm::vec3& point)
 {
     glm::vec3 position = referenceFrame[3];
@@ -523,18 +543,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
           0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 0, 255
     };
 
-    unsigned int textureId1 = Create2DTexture(textureData, 4, 4);
+    unsigned int customTextureId = Create2DTexture(textureData, 4, 4);
     delete[] textureData;
     textureData = nullptr;
 
     VertexData* cubeVertexData = CreateCubeVertexData();
 
-    unsigned int vaoId1, vboId1;
-    glGenVertexArrays(1, &vaoId1);
-    glBindVertexArray(vaoId1);
-    glGenBuffers(1, &vboId1);
-    glBindBuffer(GL_ARRAY_BUFFER, vboId1);
-    glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(VertexData), cubeVertexData, GL_STATIC_DRAW);
+    unsigned int lightingVAO, cubeVBO;
+    glGenVertexArrays(1, &lightingVAO);
+    glBindVertexArray(lightingVAO);
+    glGenBuffers(1, &cubeVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+    glBufferData(GL_ARRAY_BUFFER, 
+        36 * sizeof(VertexData), cubeVertexData, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     delete[] cubeVertexData;
     cubeVertexData = nullptr;
@@ -544,21 +565,43 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     textureData = 
         LoadTextureDataFromFile(
             "lightbulb.png", textureWidth, textureHeight, numChannels);
-    unsigned int textureId2 = 
+    unsigned int lightBulbTextureId = 
         Create2DTexture(textureData, textureWidth, textureHeight);
     stbi_image_free(textureData);
     textureData = nullptr;
     VertexDataPCT* quadVertexData = CreateQuadVertexData();
 
-    unsigned int vaoId2, vboId2;
-    glGenVertexArrays(1, &vaoId2);
-    glBindVertexArray(vaoId2);
-    glGenBuffers(1, &vboId2);
-    glBindBuffer(GL_ARRAY_BUFFER, vboId2);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(VertexData), quadVertexData, GL_STATIC_DRAW);
+    unsigned int basicVAO, quadVBO;
+    glGenVertexArrays(1, &basicVAO);
+    glBindVertexArray(basicVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(VertexDataPCT), quadVertexData, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     delete[] quadVertexData;
     quadVertexData = nullptr;
+    glBindVertexArray(0);
+
+    // Floor
+    textureData =
+        LoadTextureDataFromFile(
+            "stone-road-texture.jpg", textureWidth, textureHeight, numChannels);
+    unsigned int floorTextureId = 
+        Create2DTexture(textureData, textureWidth, textureHeight);
+    stbi_image_free(textureData);
+    textureData = nullptr;
+
+    VertexData* floorVertexData = 
+        CreateXZQuadVertexData(25.0f, 25.0f, 25.0f, 25.0f);
+
+    unsigned int vboId3;
+    glBindVertexArray(lightingVAO);
+    glGenBuffers(1, &vboId3);
+    glBindBuffer(GL_ARRAY_BUFFER, vboId3);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(VertexData), floorVertexData, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    delete[] floorVertexData;
+    floorVertexData = nullptr;
     glBindVertexArray(0);
 
     float cubeYAngle = 0;
@@ -585,6 +628,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glm::mat4 projection;
     glm::mat4 cubeReferenceFrame(1.0f);
     glm::mat4 quadReferenceFrame(1.0f);
+    glm::mat4 floorReferenceFrame(1.0f);
+    floorReferenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
     glm::vec3 clearColor = { 0.0f, 0.0f, 0.0f };
 
     // Material
@@ -597,7 +642,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     Light globalLight{};
     globalLight.position = glm::vec3(100.0f, 100.0f, 0.0f); 
     globalLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
-    globalLight.intensity = 1.0f;
+    globalLight.intensity = 0.05f;
     unsigned int globalLightPosLoc =
         glGetUniformLocation(shaderProgram1, "globalLightPosition");
     unsigned int globalLightColorLoc =
@@ -608,18 +653,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     localLight.position = glm::vec3(0.0f, 0.0f, 8.0f);
     localLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
     localLight.intensity = 0.5f;
+    localLight.attenuationCoef = 0.0f;
     unsigned int localLightPosLoc =
         glGetUniformLocation(shaderProgram1, "localLightPosition");
     unsigned int localLightColorLoc =
         glGetUniformLocation(shaderProgram1, "localLightColor");
     unsigned int localLightIntensityLoc =
         glGetUniformLocation(shaderProgram1, "localLightIntensity");
+    unsigned int localLightAttentuationLoc =
+        glGetUniformLocation(shaderProgram1, "localLightAttenuationCoef");
 
     quadReferenceFrame[3] = glm::vec4(localLight.position, 1.0f);
 
     glm::mat4 lookFrame(1.0f);
     glm::mat4 cameraFrame(1.0f);
-    cameraFrame[3] = glm::vec4(0.0f, 3.0f, 20.0f, 1.0f);
+    cameraFrame[3] = glm::vec4(0.0f, 3.0f, 30.0f, 1.0f);
     glm::vec3 cameraForward;
     glm::vec3 axis(0.0f, 1.0f, 0.0f);
     float speed = 90.0f;
@@ -675,18 +723,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         if (result1.isSuccess){
             glUseProgram(shaderProgram1);
             glUniformMatrix4fv(projectionLoc1, 1, GL_FALSE, glm::value_ptr(projection));
-            glUniformMatrix4fv(worldLoc1, 1, GL_FALSE, glm::value_ptr(cubeReferenceFrame));
             glUniformMatrix4fv(viewLoc1, 1, GL_FALSE, glm::value_ptr(view));
-            glUniform1f(ambientLoc, material.ambientIntensity);
             glUniform3fv(globalLightPosLoc, 1, glm::value_ptr(globalLight.position));
             glUniform3fv(globalLightColorLoc, 1, glm::value_ptr(globalLight.color));
             glUniform1f(globalLightIntensityLoc, globalLight.intensity);
             glUniform3fv(localLightPosLoc, 1, glm::value_ptr(localLight.position));
             glUniform3fv(localLightColorLoc, 1, glm::value_ptr(localLight.color));
             glUniform1f(localLightIntensityLoc, localLight.intensity);
+            glUniform1f(localLightAttentuationLoc, localLight.attenuationCoef);
 
-            glBindVertexArray(vaoId1);
-            glBindBuffer(GL_ARRAY_BUFFER, vboId1);
+            glBindVertexArray(lightingVAO);
+            glUniformMatrix4fv(worldLoc1, 1, GL_FALSE, glm::value_ptr(cubeReferenceFrame));
+            glUniform1f(ambientLoc, material.ambientIntensity);
+            glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
             // Positions
             EnableAttribute(0, 3, sizeof(VertexData), (void*)0);
             // Colors
@@ -696,8 +745,26 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             // Texture Coords
             EnableAttribute(3, 2, sizeof(VertexData), (void*)(sizeof(float) * 10));
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, textureId1);
+            glBindTexture(GL_TEXTURE_2D, customTextureId);
             glDrawArrays(GL_TRIANGLES, 0, 36);
+
+            // The floor
+            glUniformMatrix4fv(worldLoc1, 1, GL_FALSE, glm::value_ptr(floorReferenceFrame));
+            glUniform1f(ambientLoc, material.ambientIntensity);
+            glBindBuffer(GL_ARRAY_BUFFER, vboId3);
+            // Positions
+            EnableAttribute(0, 3, sizeof(VertexData), (void*)0);
+            // Colors
+            EnableAttribute(1, 4, sizeof(VertexData), (void*)(sizeof(float) * 3));
+            // Normals
+            EnableAttribute(2, 3, sizeof(VertexData), (void*)(sizeof(float) * 7));
+            // Texture Coords
+            EnableAttribute(3, 2, sizeof(VertexData), (void*)(sizeof(float) * 10));
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, floorTextureId);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
             glDisableVertexAttribArray(0);
             glDisableVertexAttribArray(1);
             glDisableVertexAttribArray(2);
@@ -713,8 +780,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             glUniformMatrix4fv(worldLoc2, 1, GL_FALSE, glm::value_ptr(quadReferenceFrame));
             glUniformMatrix4fv(viewLoc2, 1, GL_FALSE, glm::value_ptr(view));
 
-            glBindVertexArray(vaoId2);
-            glBindBuffer(GL_ARRAY_BUFFER, vboId2);
+            glBindVertexArray(basicVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
             // Positions
             EnableAttribute(0, 3, sizeof(VertexDataPCT), (void*)0);
             // Colors
@@ -722,7 +789,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             // Texture Coords
             EnableAttribute(2, 2, sizeof(VertexDataPCT), (void*)(sizeof(glm::vec3) * 2));
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, textureId2);
+            glBindTexture(GL_TEXTURE_2D, lightBulbTextureId);
             glDrawArrays(GL_TRIANGLES, 0, 6);
             glDisableVertexAttribArray(0);
             glDisableVertexAttribArray(1);
@@ -747,6 +814,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::SliderFloat("Speed", &speed, 0, 360);
         ImGui::Checkbox("Use mouse to look", &lookWithMouse);
         ImGui::Checkbox("Reset camera position", &resetCameraPosition);
+        ImGui::SliderFloat("Global Intensity", &globalLight.intensity, 0, 1);
+        ImGui::SliderFloat("Local Intensity", &localLight.intensity, 0, 1);
+        ImGui::SliderFloat("Attenuation", &localLight.attenuationCoef, 0, 1);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
