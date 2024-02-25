@@ -595,7 +595,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     Light globalLight{};
     globalLight.position = glm::vec3(100.0f, 100.0f, 0.0f); 
     globalLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
-    globalLight.intensity = 1.00f;
+    globalLight.intensity = 0.1f;
     unsigned int globalLightPosLoc =
         glGetUniformLocation(shaderProgram1, "globalLightPosition");
     unsigned int globalLightColorLoc =
