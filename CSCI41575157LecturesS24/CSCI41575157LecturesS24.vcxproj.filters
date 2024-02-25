@@ -54,4 +54,17 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="ambient.frag.glsl" />
+    <None Include="basic.frag.glsl" />
+    <None Include="basic.vert.glsl" />
+    <None Include="diffuse.frag.glsl" />
+    <None Include="globaldiffuse.frag.glsl" />
+    <None Include="lighting.vert.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="lightbulb.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

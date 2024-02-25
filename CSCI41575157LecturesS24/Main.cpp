@@ -15,6 +15,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Timer.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 struct Material {
     float ambientIntensity;
 };
@@ -155,8 +158,16 @@ struct Result {
     Result() : isSuccess(true) {}
 };
 
+struct VertexDataPCT {
+    glm::vec3 position;
+    glm::vec3 color;
+    glm::vec2 tex;
+};
+
 struct VertexData {
-    glm::vec3 position, color, normal;
+    glm::vec3 position;
+    glm::vec4 color;
+    glm::vec3 normal;
     glm::vec2 tex;
 };
 
@@ -314,6 +325,125 @@ std::string ReadFromFile(const std::string& filePath)
     return ss.str();
 }
 
+unsigned char* LoadTextureDataFromFile(
+    const std::string& filePath, int& width, int& height, int& numChannels)
+{
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* data = 
+        stbi_load(filePath.c_str(), &width, &height, &numChannels, 0);
+    return data;
+}
+
+unsigned int Create2DTexture(
+    unsigned char* textureData, unsigned int width, unsigned int height)
+{
+    // Generate the texture id
+    unsigned int textureId;
+    glGenTextures(1, &textureId);
+    // Select the texture 
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    // Apply texture parameters 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // Send the texture to the GPU 
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
+    // Generate mipmaps
+    glGenerateMipmap(GL_TEXTURE_2D);
+    return textureId;
+}
+
+VertexData* CreateCubeVertexData()
+{
+    // Front face
+    VertexData A = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f} };
+    VertexData B = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f} };
+    VertexData C = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f} };
+    VertexData D = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f} };
+    // Right face
+    VertexData E = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
+    VertexData F = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
+    VertexData G = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} };
+    VertexData H = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} };
+    // Back face
+    VertexData I = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f} };
+    VertexData J = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f} };
+    VertexData K = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f} };
+    VertexData L = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f} };
+    // Left face
+    VertexData M = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
+    VertexData N = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
+    VertexData O = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} };
+    VertexData P = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} };
+    // Top face
+    VertexData Q = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f} };
+    VertexData R = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f} };
+    VertexData S = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f} };
+    VertexData T = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f} };
+    // Bottom face
+    VertexData U = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f} };
+    VertexData V = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f} };
+    VertexData W = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f} };
+    VertexData X = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f} };
+
+    // 3 vertex per triangle, 2 triangles per face, 6 faces
+    // 3 * 2 * 6 = 36 vertices
+    VertexData* vertexData{ new VertexData[36]{
+        // Front face
+        A, B, C, A, C, D,
+        // Right face
+        E, F, G, E, G, H,
+        // Back face
+        I, J, K, I, K, L,
+        // Left face
+        M, N, O, M, O, P,
+        // Top face
+        Q, R, S, Q, S, T,
+        // Bottom face
+        U, V, W, U, W, X
+    } };
+    return vertexData;
+}
+
+VertexDataPCT* CreateQuadVertexData()
+{
+    // Front face
+    VertexDataPCT A = { {-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f} };
+    VertexDataPCT B = { {-0.5f,-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f} };
+    VertexDataPCT C = { { 0.5f,-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f} };
+    VertexDataPCT D = { { 0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f} };
+
+    VertexDataPCT* vertexData{ new VertexDataPCT[6]{
+        A, B, C, A, C, D
+    } };
+    return vertexData;
+}
+
+void PointAt(glm::mat4& referenceFrame, const glm::vec3& point)
+{
+    glm::vec3 position = referenceFrame[3];
+    glm::vec3 zAxis = glm::normalize(point - position);
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 xAxis = glm::normalize(glm::cross(up, zAxis));
+    glm::vec3 yAxis = glm::cross(zAxis, xAxis);
+    referenceFrame[0] = glm::vec4(xAxis, 0.0f);
+    referenceFrame[1] = glm::vec4(yAxis, 0.0f);
+    referenceFrame[2] = glm::vec4(zAxis, 0.0f);
+}
+
+std::string GetOpenGLError()
+{
+    std::stringstream log;
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR)
+    {
+        log << err << std::endl;
+    }
+    return log.str();
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
     _In_ LPWSTR    lpCmdLine,
@@ -344,6 +474,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     //glfwMaximizeWindow(window);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // Cull back faces and use counter-clockwise winding of front faces
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -355,11 +488,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glDepthFunc(GL_LEQUAL);
     glDepthRange(0.0f, 1.0f);
 
-    std::string vertexSource = ReadFromFile("lighting.vert.glsl");
-    std::string fragmentSource = ReadFromFile("diffuse.frag.glsl");
+    std::string vertexSource1 = ReadFromFile("lighting.vert.glsl");
+    std::string fragmentSource1 = ReadFromFile("diffuse.frag.glsl");
+    std::string vertexSource2 = ReadFromFile("basic.vert.glsl");
+    std::string fragmentSource2 = ReadFromFile("basic.frag.glsl");
 
-    unsigned int shaderProgram;
-    Result result = CreateShaderProgram(vertexSource, fragmentSource, shaderProgram);
+    unsigned int shaderProgram1;
+    Result result1 = CreateShaderProgram(vertexSource1, fragmentSource1, shaderProgram1);
+    unsigned int shaderProgram2;
+    Result result2 = CreateShaderProgram(vertexSource2, fragmentSource2, shaderProgram2);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -369,9 +506,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     ImGui_ImplOpenGL3_Init("#version 430");
 
     // Get the uniform locations
-    unsigned int projectionLoc = glGetUniformLocation(shaderProgram, "projection");
-    unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
-    unsigned int worldLoc = glGetUniformLocation(shaderProgram, "world");
+    unsigned int projectionLoc1 = glGetUniformLocation(shaderProgram1, "projection");
+    unsigned int viewLoc1 = glGetUniformLocation(shaderProgram1, "view");
+    unsigned int worldLoc1 = glGetUniformLocation(shaderProgram1, "world");
+    unsigned int projectionLoc2 = glGetUniformLocation(shaderProgram2, "projection");
+    unsigned int viewLoc2 = glGetUniformLocation(shaderProgram2, "view");
+    unsigned int worldLoc2 = glGetUniformLocation(shaderProgram2, "world");
 
     // Create the texture data
     unsigned char* textureData = new unsigned char[] {
@@ -381,77 +521,42 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
           0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 0, 255
     };
 
-    // Generate the texture id
-    GLuint textureId;
-    glGenTextures(1, &textureId);
-    // Select the texture 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    // Apply texture parameters 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    // Send the texture to the GPU 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 4, 4, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
-    // Generate mipmaps
-    glGenerateMipmap(GL_TEXTURE_2D);
-    
-    // Front face
-    VertexData A = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f} };
-    VertexData B = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}};
-    VertexData C = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}};
-    VertexData D = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}};
-    // Right face
-    VertexData E = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}};
-    VertexData F = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}};
-    VertexData G = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}};
-    VertexData H = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}};
-    // Back face
-    VertexData I = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f} };
-    VertexData J = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f} };
-    VertexData K = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f} };
-    VertexData L = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f} };
-    // Left face
-    VertexData M = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
-    VertexData N = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
-    VertexData O = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} };
-    VertexData P = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} };
-    // Top face
-    VertexData Q = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f} };
-    VertexData R = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f} };
-    VertexData S = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f} };
-    VertexData T = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f} };
-    // Bottom face
-    VertexData U = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f} };
-    VertexData V = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f} };
-    VertexData W = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f} };
-    VertexData X = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f} };
+    unsigned int textureId1 = Create2DTexture(textureData, 4, 4);
+    delete[] textureData;
+    textureData = nullptr;
 
-    // 3 vertex per triangle, 2 triangles per face, 6 faces
-    // 3 * 2 * 6 = 36 vertices
-    VertexData vertexData[36]{
-        // Front face
-        A, B, C, A, C, D,
-        // Right face
-        E, F, G, E, G, H,
-        // Back face
-        I, J, K, I, K, L,
-        // Left face
-        M, N, O, M, O, P,
-        // Top face
-        Q, R, S, Q, S, T,
-        // Bottom face
-        U, V, W, U, W, X
-    };
+    VertexData* cubeVertexData = CreateCubeVertexData();
 
-    unsigned int vaoId, vboId;
-    glGenVertexArrays(1, &vaoId);
-    glBindVertexArray(vaoId);
-    glGenBuffers(1, &vboId);
-    glBindBuffer(GL_ARRAY_BUFFER, vboId);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
+    unsigned int vaoId1, vboId1;
+    glGenVertexArrays(1, &vaoId1);
+    glBindVertexArray(vaoId1);
+    glGenBuffers(1, &vboId1);
+    glBindBuffer(GL_ARRAY_BUFFER, vboId1);
+    glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(VertexData), cubeVertexData, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    delete[] cubeVertexData;
+    cubeVertexData = nullptr;
+    glBindVertexArray(0);
+
+    int textureWidth, textureHeight, numChannels;
+    textureData = 
+        LoadTextureDataFromFile(
+            "lightbulb.png", textureWidth, textureHeight, numChannels);
+    unsigned int textureId2 = 
+        Create2DTexture(textureData, textureWidth, textureHeight);
+    stbi_image_free(textureData);
+    textureData = nullptr;
+    VertexDataPCT* quadVertexData = CreateQuadVertexData();
+
+    unsigned int vaoId2, vboId2;
+    glGenVertexArrays(1, &vaoId2);
+    glBindVertexArray(vaoId2);
+    glGenBuffers(1, &vboId2);
+    glBindBuffer(GL_ARRAY_BUFFER, vboId2);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(VertexData), quadVertexData, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    delete[] quadVertexData;
+    quadVertexData = nullptr;
     glBindVertexArray(0);
 
     float cubeYAngle = 0;
@@ -463,7 +568,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     float top = 20.0f;
     int width, height;
     
-    std::string message = result.message;
+    std::string message = result1.message;
 
     float aspectRatio;
     float nearPlane = 1.0f;
@@ -476,36 +581,39 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     glm::mat4 view;
     glm::mat4 projection;
-    glm::mat4 referenceFrame(1.0f);
-    glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
+    glm::mat4 cubeReferenceFrame(1.0f);
+    glm::mat4 quadReferenceFrame(1.0f);
+    glm::vec3 clearColor = { 0.0f, 0.0f, 0.0f };
 
     // Material
     Material material{};
     material.ambientIntensity = 0.1f;
     unsigned int ambientLoc = 
-        glGetUniformLocation(shaderProgram, "materialAmbientIntensity");
+        glGetUniformLocation(shaderProgram1, "materialAmbientIntensity");
 
     // Lights
     Light globalLight{};
     globalLight.position = glm::vec3(100.0f, 100.0f, 0.0f); 
     globalLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
-    globalLight.intensity = 0.25f;
+    globalLight.intensity = 1.00f;
     unsigned int globalLightPosLoc =
-        glGetUniformLocation(shaderProgram, "globalLightPosition");
+        glGetUniformLocation(shaderProgram1, "globalLightPosition");
     unsigned int globalLightColorLoc =
-        glGetUniformLocation(shaderProgram, "globalLightColor");
+        glGetUniformLocation(shaderProgram1, "globalLightColor");
     unsigned int globalLightIntensityLoc =
-        glGetUniformLocation(shaderProgram, "globalLightIntensity");
+        glGetUniformLocation(shaderProgram1, "globalLightIntensity");
     Light localLight{};
     localLight.position = glm::vec3(0.0f, 0.0f, 8.0f);
     localLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
     localLight.intensity = 0.5f;
     unsigned int localLightPosLoc =
-        glGetUniformLocation(shaderProgram, "localLightPosition");
+        glGetUniformLocation(shaderProgram1, "localLightPosition");
     unsigned int localLightColorLoc =
-        glGetUniformLocation(shaderProgram, "localLightColor");
+        glGetUniformLocation(shaderProgram1, "localLightColor");
     unsigned int localLightIntensityLoc =
-        glGetUniformLocation(shaderProgram, "localLightIntensity");
+        glGetUniformLocation(shaderProgram1, "localLightIntensity");
+
+    quadReferenceFrame[3] = glm::vec4(localLight.position, 1.0f);
 
     glm::mat4 lookFrame(1.0f);
     glm::mat4 cameraFrame(1.0f);
@@ -529,7 +637,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         deltaAngle = static_cast<float>(speed * elapsedSeconds);
-        referenceFrame = glm::rotate(referenceFrame, glm::radians(deltaAngle), axis);
+        cubeReferenceFrame = glm::rotate(cubeReferenceFrame, glm::radians(deltaAngle), axis);
 
         if (resetCameraPosition) {
             cameraFrame = glm::mat4(1.0f);
@@ -549,6 +657,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         cameraTarget = cameraPosition + cameraForward;
         cameraUp = cameraFrame[1];
         view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
+
+        PointAt(quadReferenceFrame, cameraPosition);
         
         if (width >= height) {
             aspectRatio = width / (height * 1.0f);
@@ -560,12 +670,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             glm::radians(mouse.fieldOfView), aspectRatio, nearPlane, farPlane);
 
         // Render the object
-        if (result.isSuccess)
-        {
-            glUseProgram(shaderProgram);
-            glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-            glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr(referenceFrame));
-            glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        if (result1.isSuccess){
+            glUseProgram(shaderProgram1);
+            glUniformMatrix4fv(projectionLoc1, 1, GL_FALSE, glm::value_ptr(projection));
+            glUniformMatrix4fv(worldLoc1, 1, GL_FALSE, glm::value_ptr(cubeReferenceFrame));
+            glUniformMatrix4fv(viewLoc1, 1, GL_FALSE, glm::value_ptr(view));
             glUniform1f(ambientLoc, material.ambientIntensity);
             glUniform3fv(globalLightPosLoc, 1, glm::value_ptr(globalLight.position));
             glUniform3fv(globalLightColorLoc, 1, glm::value_ptr(globalLight.color));
@@ -574,21 +683,48 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             glUniform3fv(localLightColorLoc, 1, glm::value_ptr(localLight.color));
             glUniform1f(localLightIntensityLoc, localLight.intensity);
 
-            glBindVertexArray(vaoId);
-            glBindBuffer(GL_ARRAY_BUFFER, vboId);
+            glBindVertexArray(vaoId1);
+            glBindBuffer(GL_ARRAY_BUFFER, vboId1);
             // Positions
             EnableAttribute(0, 3, sizeof(VertexData), (void*)0);
             // Colors
-            EnableAttribute(1, 3, sizeof(VertexData), (void*)sizeof(glm::vec3));
+            EnableAttribute(1, 4, sizeof(VertexData), (void*)(sizeof(float) * 3));
             // Normals
-            EnableAttribute(2, 3, sizeof(VertexData), (void*)(sizeof(glm::vec3)*2));
+            EnableAttribute(2, 3, sizeof(VertexData), (void*)(sizeof(float) * 7));
             // Texture Coords
-            EnableAttribute(3, 2, sizeof(VertexData), (void*)(sizeof(glm::vec3)*3));
+            EnableAttribute(3, 2, sizeof(VertexData), (void*)(sizeof(float) * 10));
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, textureId);
+            glBindTexture(GL_TEXTURE_2D, textureId1);
             glDrawArrays(GL_TRIANGLES, 0, 36);
             glDisableVertexAttribArray(0);
             glDisableVertexAttribArray(1);
+            glDisableVertexAttribArray(2);
+            glDisableVertexAttribArray(3);
+            glUseProgram(0);
+            glBindVertexArray(0);
+        }
+
+        if (result2.isSuccess)
+        {
+            glUseProgram(shaderProgram2);
+            glUniformMatrix4fv(projectionLoc2, 1, GL_FALSE, glm::value_ptr(projection));
+            glUniformMatrix4fv(worldLoc2, 1, GL_FALSE, glm::value_ptr(quadReferenceFrame));
+            glUniformMatrix4fv(viewLoc2, 1, GL_FALSE, glm::value_ptr(view));
+
+            glBindVertexArray(vaoId2);
+            glBindBuffer(GL_ARRAY_BUFFER, vboId2);
+            // Positions
+            EnableAttribute(0, 3, sizeof(VertexDataPCT), (void*)0);
+            // Colors
+            EnableAttribute(1, 3, sizeof(VertexDataPCT), (void*)sizeof(glm::vec3));
+            // Texture Coords
+            EnableAttribute(2, 2, sizeof(VertexDataPCT), (void*)(sizeof(glm::vec3) * 2));
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, textureId2);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glDisableVertexAttribArray(0);
+            glDisableVertexAttribArray(1);
+            glDisableVertexAttribArray(2);
             glUseProgram(0);
             glBindVertexArray(0);
         }
