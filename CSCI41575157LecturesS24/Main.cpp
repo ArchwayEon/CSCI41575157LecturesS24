@@ -495,12 +495,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glfwSetCursorPosCallback(window, OnMouseMove);
     glfwSetScrollCallback(window, OnScroll);
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    //glfwMaximizeWindow(window);
+    glfwMaximizeWindow(window);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glEnable(GL_FRAMEBUFFER_SRGB);
 
     // Cull back faces and use counter-clockwise winding of front faces
     glEnable(GL_CULL_FACE);
@@ -686,6 +685,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     float deltaAngle;
     bool lookWithMouse = false;
     bool resetCameraPosition = false;
+    bool correctGamma = false;
     Timer timer;
     while (!glfwWindowShouldClose(window)) {
         elapsedSeconds = timer.GetElapsedTimeInSeconds();
@@ -693,6 +693,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         glfwGetWindowSize(window, &width, &height);
         mouse.windowWidth = width;
         mouse.windowHeight = height;
+
+        if (correctGamma) {
+            glEnable(GL_FRAMEBUFFER_SRGB);
+        }
+        else {
+            glDisable(GL_FRAMEBUFFER_SRGB);
+        }
 
         glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -830,8 +837,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::SliderFloat("Speed", &speed, 0, 360);
         ImGui::Checkbox("Use mouse to look", &lookWithMouse);
         ImGui::Checkbox("Reset camera position", &resetCameraPosition);
+        ImGui::SliderFloat("Ambient Intensity", &material.ambientIntensity, 0, 1);
         ImGui::SliderFloat("Global Intensity", &globalLight.intensity, 0, 1);
         ImGui::SliderFloat("Local Intensity", &localLight.intensity, 0, 1);
+        ImGui::Checkbox("Correct gamma", &correctGamma);
         ImGui::SliderFloat("Attenuation", &localLight.attenuationCoef, 0, 1);
         ImGui::SliderFloat("Ambient", &material.ambientIntensity, 0, 1);
         ImGui::SliderFloat("Specular", &material.specularIntensity, 0, 1);
