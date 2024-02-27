@@ -471,7 +471,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glm::mat4 view;
     glm::mat4 projection;
     glm::mat4 referenceFrame(1.0f);
-    glm::vec3 clearColor = { 0.2f, 0.3f, 0.3f };
+    glm::vec3 clearColor = { 0.1f, 0.1f, 0.1f };
 
     // Material
     Material material{};
@@ -572,6 +572,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::SliderFloat("Speed", &speed, 0, 360);
         ImGui::Checkbox("Use mouse to look", &lookWithMouse);
         ImGui::Checkbox("Reset camera position", &resetCameraPosition);
+        ImGui::SliderFloat("Ambient Intensity", &material.ambientIntensity, 0, 1);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
