@@ -747,6 +747,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::Checkbox("Reset camera position", &resetCameraPosition);
         ImGui::SliderFloat("Ambient Intensity", &material.ambientIntensity, 0, 1);
         ImGui::SliderFloat("Global Intensity", &globalLight.intensity, 0, 1);
+        ImGui::SliderFloat("Local Intensity", &localLight.intensity, 0, 1);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
