@@ -842,7 +842,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::SliderFloat("Local Intensity", &localLight.intensity, 0, 1);
         ImGui::Checkbox("Correct gamma", &correctGamma);
         ImGui::SliderFloat("Attenuation", &localLight.attenuationCoef, 0, 1);
-        ImGui::SliderFloat("Ambient", &material.ambientIntensity, 0, 1);
         ImGui::SliderFloat("Specular", &material.specularIntensity, 0, 1);
         ImGui::SliderFloat("Shininess", &material.shininess, 0, 100);
         ImGui::End();
