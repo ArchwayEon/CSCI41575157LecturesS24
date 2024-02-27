@@ -342,7 +342,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glfwSetCursorPosCallback(window, OnMouseMove);
     glfwSetScrollCallback(window, OnScroll);
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    //glfwMaximizeWindow(window);
+    glfwMaximizeWindow(window);
 
     // Cull back faces and use counter-clockwise winding of front faces
     glEnable(GL_CULL_FACE);
@@ -597,6 +597,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::Checkbox("Use mouse to look", &lookWithMouse);
         ImGui::Checkbox("Reset camera position", &resetCameraPosition);
         ImGui::SliderFloat("Ambient Intensity", &material.ambientIntensity, 0, 1);
+        ImGui::SliderFloat("Global Intensity", &globalLight.intensity, 0, 1);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
