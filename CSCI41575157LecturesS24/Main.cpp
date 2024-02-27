@@ -472,7 +472,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glfwSetCursorPosCallback(window, OnMouseMove);
     glfwSetScrollCallback(window, OnScroll);
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    //glfwMaximizeWindow(window);
+    glfwMaximizeWindow(window);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -745,6 +745,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::SliderFloat("Speed", &speed, 0, 360);
         ImGui::Checkbox("Use mouse to look", &lookWithMouse);
         ImGui::Checkbox("Reset camera position", &resetCameraPosition);
+        ImGui::SliderFloat("Ambient Intensity", &material.ambientIntensity, 0, 1);
+        ImGui::SliderFloat("Global Intensity", &globalLight.intensity, 0, 1);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
