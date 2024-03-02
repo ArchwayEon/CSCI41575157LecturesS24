@@ -61,9 +61,13 @@
     <None Include="diffuse.frag.glsl" />
     <None Include="globaldiffuse.frag.glsl" />
     <None Include="lighting.vert.glsl" />
+    <None Include="lighting.frag.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="lightbulb.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="stone-road-texture.jpg">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -55,6 +55,8 @@ struct SphericalCoordinate {
     }
 };
 
+
+
 static void OnWindowSizeChanged(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -300,6 +302,28 @@ static void EnableAttribute(int attribIndex, int elementCount, int sizeInBytes, 
     );
 }
 
+static void EnablePCNTAttributes()
+{
+    // Positions
+    EnableAttribute(0, 3, sizeof(VertexData), (void*)0);
+    // Colors
+    EnableAttribute(1, 4, sizeof(VertexData), (void*)(sizeof(float) * 3));
+    // Normals
+    EnableAttribute(2, 3, sizeof(VertexData), (void*)(sizeof(float) * 7));
+    // Texture Coords
+    EnableAttribute(3, 2, sizeof(VertexData), (void*)(sizeof(float) * 10));
+}
+
+static void EnablePCTAttributes()
+{
+    // Positions
+    EnableAttribute(0, 3, sizeof(VertexDataPCT), (void*)0);
+    // Colors
+    EnableAttribute(1, 3, sizeof(VertexDataPCT), (void*)(sizeof(float) * 3));
+    // Texture Coords
+    EnableAttribute(2, 2, sizeof(VertexDataPCT), (void*)(sizeof(float) * 6));
+}
+
 void Trim(std::string& str)
 {
     const std::string delimiters = " \f\n\r\t\v";
@@ -411,7 +435,7 @@ VertexData* CreateCubeVertexData()
     return vertexData;
 }
 
-VertexDataPCT* CreateQuadVertexData()
+VertexDataPCT* CreateQuadVertexDataPCT()
 {
     // Front face
     VertexDataPCT A = { {-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f} };
@@ -467,6 +491,149 @@ std::string GetOpenGLError()
     return log.str();
 }
 
+struct GraphicsObject {
+    VertexData* vertexDataPCNT = nullptr;
+    VertexDataPCT* vertexDataPCT = nullptr;
+    std::size_t sizeOfBuffer = 0;
+    unsigned int numberOfVertices = 0;
+    unsigned int vao = 0;
+    unsigned int vbo = 0;
+    unsigned int shaderProgram = 0;
+    unsigned int textureId = 0;
+    glm::mat4 referenceFrame = glm::mat4(1.0f);
+    Material material{};
+};
+
+static unsigned int AllocateVertexBufferPCNT(GraphicsObject& object)
+{
+    glBindVertexArray(object.vao);
+    glGenBuffers(1, &object.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, object.vbo);
+    glBufferData(
+        GL_ARRAY_BUFFER, object.sizeOfBuffer, object.vertexDataPCNT, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    delete[] object.vertexDataPCNT;
+    object.vertexDataPCNT = nullptr;
+    glBindVertexArray(0);
+    return object.vbo;
+}
+
+static unsigned int AllocateVertexBufferPCT(GraphicsObject& object)
+{
+    glBindVertexArray(object.vao);
+    glGenBuffers(1, &object.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, object.vbo);
+    glBufferData(
+        GL_ARRAY_BUFFER, object.sizeOfBuffer, object.vertexDataPCT, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    delete[] object.vertexDataPCT;
+    object.vertexDataPCT = nullptr;
+    glBindVertexArray(0);
+    return object.vbo;
+}
+
+struct LightingShaderLocation {
+    unsigned int worldLoc = 0;
+    unsigned int projectionLoc = 0;
+    unsigned int viewLoc = 0;
+    unsigned int materialAmbientLoc = 0;
+    unsigned int materialSpecularLoc = 0;
+    unsigned int materialShininessLoc = 0;
+    unsigned int globalLightPositionLoc = 0;
+    unsigned int globalLightColorLoc = 0;
+    unsigned int globalLightIntensityLoc = 0;
+    unsigned int localLightPositionLoc = 0;
+    unsigned int localLightColorLoc = 0;
+    unsigned int localLightIntensityLoc = 0;
+    unsigned int localLightAttenuationLoc = 0;
+    unsigned int viewPositionLoc = 0;
+};
+
+struct TextureShaderLocation {
+    unsigned int worldLoc = 0;
+    unsigned int projectionLoc = 0;
+    unsigned int viewLoc = 0;
+};
+
+static void RenderObject(
+    GraphicsObject& object, LightingShaderLocation& location,
+    glm::mat4& projection, glm::mat4& view, 
+    Light& globalLight, Light& localLight,
+    glm::vec3& cameraPosition)
+{
+    glUseProgram(object.shaderProgram);
+    glUniformMatrix4fv(
+        location.projectionLoc, 1, GL_FALSE,
+        glm::value_ptr(projection));
+    glUniformMatrix4fv(location.viewLoc, 1, GL_FALSE,
+        glm::value_ptr(view));
+    glUniform3fv(
+        location.globalLightPositionLoc, 1,
+        glm::value_ptr(globalLight.position));
+    glUniform3fv(
+        location.globalLightColorLoc, 1,
+        glm::value_ptr(globalLight.color));
+    glUniform1f(
+        location.globalLightIntensityLoc,
+        globalLight.intensity);
+    glUniform3fv(
+        location.localLightPositionLoc, 1,
+        glm::value_ptr(localLight.position));
+    glUniform3fv(
+        location.localLightColorLoc, 1,
+        glm::value_ptr(localLight.color));
+    glUniform1f(
+        location.localLightIntensityLoc,
+        localLight.intensity);
+    glUniform1f(
+        location.localLightAttenuationLoc,
+        localLight.attenuationCoef);
+    glUniform3fv(
+        location.viewPositionLoc, 1,
+        glm::value_ptr(cameraPosition));
+
+    glBindVertexArray(object.vao);
+    glUniformMatrix4fv(
+        location.worldLoc, 1, GL_FALSE,
+        glm::value_ptr(object.referenceFrame));
+    glUniform1f(
+        location.materialAmbientLoc,
+        object.material.ambientIntensity);
+    glUniform1f(
+        location.materialSpecularLoc,
+        object.material.specularIntensity);
+    glUniform1f(
+        location.materialShininessLoc,
+        object.material.shininess);
+    glBindBuffer(GL_ARRAY_BUFFER, object.vbo);
+    EnablePCNTAttributes();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, object.textureId);
+    glDrawArrays(GL_TRIANGLES, 0, object.numberOfVertices);
+}
+
+static void RenderObject(
+    GraphicsObject& object, TextureShaderLocation& location,
+    glm::mat4& projection, glm::mat4& view)
+{
+    glUseProgram(object.shaderProgram);
+    glUniformMatrix4fv(
+        location.projectionLoc, 1, GL_FALSE,
+        glm::value_ptr(projection));
+    glUniformMatrix4fv(location.viewLoc, 1, GL_FALSE,
+        glm::value_ptr(view));
+
+    glBindVertexArray(object.vao);
+    glUniformMatrix4fv(
+        location.worldLoc, 1, GL_FALSE,
+        glm::value_ptr(object.referenceFrame));
+    glBindBuffer(GL_ARRAY_BUFFER, object.vbo);
+    EnablePCTAttributes();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, object.textureId);
+    glDrawArrays(GL_TRIANGLES, 0, object.numberOfVertices);
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
     _In_ LPWSTR    lpCmdLine,
@@ -500,7 +667,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
     // Cull back faces and use counter-clockwise winding of front faces
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -517,10 +683,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     std::string vertexSource2 = ReadFromFile("basic.vert.glsl");
     std::string fragmentSource2 = ReadFromFile("basic.frag.glsl");
 
-    unsigned int shaderProgram1;
-    Result result1 = CreateShaderProgram(vertexSource1, fragmentSource1, shaderProgram1);
-    unsigned int shaderProgram2;
-    Result result2 = CreateShaderProgram(vertexSource2, fragmentSource2, shaderProgram2);
+    unsigned int lightingShaderProgram;
+    Result result1 = CreateShaderProgram(vertexSource1, fragmentSource1, lightingShaderProgram);
+    unsigned int textureShaderProgram;
+    Result result2 = CreateShaderProgram(vertexSource2, fragmentSource2, textureShaderProgram);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -530,12 +696,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     ImGui_ImplOpenGL3_Init("#version 430");
 
     // Get the uniform locations
-    unsigned int projectionLoc1 = glGetUniformLocation(shaderProgram1, "projection");
-    unsigned int viewLoc1 = glGetUniformLocation(shaderProgram1, "view");
-    unsigned int worldLoc1 = glGetUniformLocation(shaderProgram1, "world");
-    unsigned int projectionLoc2 = glGetUniformLocation(shaderProgram2, "projection");
-    unsigned int viewLoc2 = glGetUniformLocation(shaderProgram2, "view");
-    unsigned int worldLoc2 = glGetUniformLocation(shaderProgram2, "world");
+    LightingShaderLocation lightingLocation;
+    lightingLocation.projectionLoc = 
+        glGetUniformLocation(lightingShaderProgram, "projection");
+    lightingLocation.viewLoc = 
+        glGetUniformLocation(lightingShaderProgram, "view");
+    lightingLocation.worldLoc = 
+        glGetUniformLocation(lightingShaderProgram, "world");
+    TextureShaderLocation textureLocation;
+    textureLocation.projectionLoc = 
+        glGetUniformLocation(textureShaderProgram, "projection");
+    textureLocation.viewLoc =
+        glGetUniformLocation(textureShaderProgram, "view");
+    textureLocation.worldLoc = 
+        glGetUniformLocation(textureShaderProgram, "world");
 
     // Create the texture data
     unsigned char* textureData = new unsigned char[] {
@@ -549,21 +723,42 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     delete[] textureData;
     textureData = nullptr;
 
-    VertexData* cubeVertexData = CreateCubeVertexData();
-
-    unsigned int lightingVAO, cubeVBO;
+    unsigned int lightingVAO;
     glGenVertexArrays(1, &lightingVAO);
-    glBindVertexArray(lightingVAO);
-    glGenBuffers(1, &cubeVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, 
-        36 * sizeof(VertexData), cubeVertexData, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    delete[] cubeVertexData;
-    cubeVertexData = nullptr;
-    glBindVertexArray(0);
+
+    GraphicsObject cube;
+    cube.vertexDataPCNT = CreateCubeVertexData();
+    cube.sizeOfBuffer = 36 * sizeof(VertexData);
+    cube.numberOfVertices = 36;
+    cube.vao = lightingVAO;
+    cube.shaderProgram = lightingShaderProgram;
+    cube.vbo = AllocateVertexBufferPCNT(cube);
+    cube.textureId = customTextureId;
 
     int textureWidth, textureHeight, numChannels;
+    // Floor
+    textureData =
+        LoadTextureDataFromFile(
+            "stone-road-texture.jpg", textureWidth, textureHeight, numChannels);
+    unsigned int floorTextureId =
+        Create2DTexture(textureData, textureWidth, textureHeight);
+    stbi_image_free(textureData);
+    textureData = nullptr;
+
+    GraphicsObject floor;
+    floor.vertexDataPCNT = CreateXZQuadVertexData(25.0f, 25.0f, 5.0f, 5.0f);;
+    floor.sizeOfBuffer = 6 * sizeof(VertexData);
+    floor.numberOfVertices = 6;
+    floor.vao = lightingVAO;
+    floor.shaderProgram = lightingShaderProgram;
+    floor.vbo = AllocateVertexBufferPCNT(floor);
+    floor.textureId = floorTextureId;
+    floor.referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
+    
+    unsigned int basicTextureVAO;
+    glGenVertexArrays(1, &basicTextureVAO);
+
+    // Lightbulb
     textureData = 
         LoadTextureDataFromFile(
             "lightbulb.png", textureWidth, textureHeight, numChannels);
@@ -571,40 +766,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         Create2DTexture(textureData, textureWidth, textureHeight);
     stbi_image_free(textureData);
     textureData = nullptr;
-    VertexDataPCT* quadVertexData = CreateQuadVertexData();
 
-    unsigned int basicVAO, quadVBO;
-    glGenVertexArrays(1, &basicVAO);
-    glBindVertexArray(basicVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(VertexDataPCT), quadVertexData, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    delete[] quadVertexData;
-    quadVertexData = nullptr;
-    glBindVertexArray(0);
-
-    // Floor
-    textureData =
-        LoadTextureDataFromFile(
-            "stone-road-texture.jpg", textureWidth, textureHeight, numChannels);
-    unsigned int floorTextureId = 
-        Create2DTexture(textureData, textureWidth, textureHeight);
-    stbi_image_free(textureData);
-    textureData = nullptr;
-
-    VertexData* floorVertexData = 
-        CreateXZQuadVertexData(25.0f, 25.0f, 5.0f, 5.0f);
-
-    unsigned int floorVBO;
-    glBindVertexArray(lightingVAO);
-    glGenBuffers(1, &floorVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(VertexData), floorVertexData, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    delete[] floorVertexData;
-    floorVertexData = nullptr;
-    glBindVertexArray(0);
+    GraphicsObject lightBulb;
+    lightBulb.vertexDataPCT = CreateQuadVertexDataPCT();
+    lightBulb.sizeOfBuffer = 6 * sizeof(VertexDataPCT);
+    lightBulb.numberOfVertices = 6;
+    lightBulb.vao = basicTextureVAO;
+    lightBulb.shaderProgram = textureShaderProgram;
+    lightBulb.vbo = AllocateVertexBufferPCT(lightBulb);
+    lightBulb.textureId = lightBulbTextureId;
 
     float cubeYAngle = 0;
     float cubeXAngle = 0;
@@ -628,52 +798,51 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     glm::mat4 view;
     glm::mat4 projection;
-    glm::mat4 cubeReferenceFrame(1.0f);
-    glm::mat4 quadReferenceFrame(1.0f);
-    glm::mat4 floorReferenceFrame(1.0f);
-    floorReferenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
+
     glm::vec3 clearColor = { 0.0f, 0.0f, 0.0f };
 
     // Material
-    Material material{};
-    material.ambientIntensity = 0.1f;
-    material.specularIntensity = 0.5f;
-    material.shininess = 16.0f;
-    unsigned int ambientLoc = 
-        glGetUniformLocation(shaderProgram1, "materialAmbientIntensity");
-    unsigned int specularLoc =
-        glGetUniformLocation(shaderProgram1, "materialSpecularIntensity");
-    unsigned int shininessLoc =
-        glGetUniformLocation(shaderProgram1, "materialShininess");
+    //Material material{};
+    floor.material.ambientIntensity = 0.1f;
+    floor.material.specularIntensity = 0.5f;
+    floor.material.shininess = 16.0f;
+    cube.material.ambientIntensity = 0.1f;
+    cube.material.specularIntensity = 0.5f;
+    cube.material.shininess = 16.0f;
+
+    lightingLocation.materialAmbientLoc = 
+        glGetUniformLocation(lightingShaderProgram, "materialAmbientIntensity");
+    lightingLocation.materialSpecularLoc =
+        glGetUniformLocation(lightingShaderProgram, "materialSpecularIntensity");
+    lightingLocation.materialShininessLoc =
+        glGetUniformLocation(lightingShaderProgram, "materialShininess");
 
     // Lights
     Light globalLight{};
     globalLight.position = glm::vec3(100.0f, 100.0f, 0.0f); 
     globalLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
     globalLight.intensity = 0.05f;
-    unsigned int globalLightPosLoc =
-        glGetUniformLocation(shaderProgram1, "globalLightPosition");
-    unsigned int globalLightColorLoc =
-        glGetUniformLocation(shaderProgram1, "globalLightColor");
-    unsigned int globalLightIntensityLoc =
-        glGetUniformLocation(shaderProgram1, "globalLightIntensity");
+    lightingLocation.globalLightPositionLoc =
+        glGetUniformLocation(lightingShaderProgram, "globalLightPosition");
+    lightingLocation.globalLightColorLoc =
+        glGetUniformLocation(lightingShaderProgram, "globalLightColor");
+    lightingLocation.globalLightIntensityLoc =
+        glGetUniformLocation(lightingShaderProgram, "globalLightIntensity");
     Light localLight{};
     localLight.position = glm::vec3(0.0f, 0.0f, 8.0f);
     localLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
     localLight.intensity = 0.5f;
     localLight.attenuationCoef = 0.0f;
-    unsigned int localLightPosLoc =
-        glGetUniformLocation(shaderProgram1, "localLightPosition");
-    unsigned int localLightColorLoc =
-        glGetUniformLocation(shaderProgram1, "localLightColor");
-    unsigned int localLightIntensityLoc =
-        glGetUniformLocation(shaderProgram1, "localLightIntensity");
-    unsigned int localLightAttentuationLoc =
-        glGetUniformLocation(shaderProgram1, "localLightAttenuationCoef");
-    unsigned int viewPositionLoc =
-        glGetUniformLocation(shaderProgram1, "viewPosition");
-
-    quadReferenceFrame[3] = glm::vec4(localLight.position, 1.0f);
+    lightingLocation.localLightPositionLoc =
+        glGetUniformLocation(lightingShaderProgram, "localLightPosition");
+    lightingLocation.localLightColorLoc =
+        glGetUniformLocation(lightingShaderProgram, "localLightColor");
+    lightingLocation.localLightIntensityLoc =
+        glGetUniformLocation(lightingShaderProgram, "localLightIntensity");
+    lightingLocation.localLightAttenuationLoc =
+        glGetUniformLocation(lightingShaderProgram, "localLightAttenuationCoef");
+    lightingLocation.viewPositionLoc =
+        glGetUniformLocation(lightingShaderProgram, "viewPosition");
 
     glm::mat4 lookFrame(1.0f);
     glm::mat4 cameraFrame(1.0f);
@@ -705,7 +874,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         deltaAngle = static_cast<float>(speed * elapsedSeconds);
-        cubeReferenceFrame = glm::rotate(cubeReferenceFrame, glm::radians(deltaAngle), axis);
+        cube.referenceFrame = glm::rotate(cube.referenceFrame, glm::radians(deltaAngle), axis);
 
         if (resetCameraPosition) {
             cameraFrame = glm::mat4(1.0f);
@@ -726,7 +895,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         cameraUp = cameraFrame[1];
         view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 
-        PointAt(quadReferenceFrame, cameraPosition);
+        lightBulb.referenceFrame[3] = glm::vec4(localLight.position, 1.0f);
+        PointAt(lightBulb.referenceFrame, cameraPosition);
         
         if (width >= height) {
             aspectRatio = width / (height * 1.0f);
@@ -739,86 +909,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
         // Render the object
         if (result1.isSuccess){
-            glUseProgram(shaderProgram1);
-            glUniformMatrix4fv(projectionLoc1, 1, GL_FALSE, glm::value_ptr(projection));
-            glUniformMatrix4fv(viewLoc1, 1, GL_FALSE, glm::value_ptr(view));
-            glUniform3fv(globalLightPosLoc, 1, glm::value_ptr(globalLight.position));
-            glUniform3fv(globalLightColorLoc, 1, glm::value_ptr(globalLight.color));
-            glUniform1f(globalLightIntensityLoc, globalLight.intensity);
-            glUniform3fv(localLightPosLoc, 1, glm::value_ptr(localLight.position));
-            glUniform3fv(localLightColorLoc, 1, glm::value_ptr(localLight.color));
-            glUniform1f(localLightIntensityLoc, localLight.intensity);
-            glUniform1f(localLightAttentuationLoc, localLight.attenuationCoef);
-            glUniform3fv(viewPositionLoc, 1, glm::value_ptr(cameraPosition));
-
-            glBindVertexArray(lightingVAO);
-            glUniformMatrix4fv(worldLoc1, 1, GL_FALSE, glm::value_ptr(cubeReferenceFrame));
-            glUniform1f(ambientLoc, material.ambientIntensity);
-            glUniform1f(specularLoc, material.specularIntensity);
-            glUniform1f(shininessLoc, material.shininess);
-            glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-            // Positions
-            EnableAttribute(0, 3, sizeof(VertexData), (void*)0);
-            // Colors
-            EnableAttribute(1, 4, sizeof(VertexData), (void*)(sizeof(float) * 3));
-            // Normals
-            EnableAttribute(2, 3, sizeof(VertexData), (void*)(sizeof(float) * 7));
-            // Texture Coords
-            EnableAttribute(3, 2, sizeof(VertexData), (void*)(sizeof(float) * 10));
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, customTextureId);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-
-            // The floor
-            glUniformMatrix4fv(worldLoc1, 1, GL_FALSE, glm::value_ptr(floorReferenceFrame));
-            glUniform1f(ambientLoc, material.ambientIntensity);
-            glUniform1f(specularLoc, material.specularIntensity);
-            glUniform1f(shininessLoc, material.shininess);
-            glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
-            // Positions
-            EnableAttribute(0, 3, sizeof(VertexData), (void*)0);
-            // Colors
-            EnableAttribute(1, 4, sizeof(VertexData), (void*)(sizeof(float) * 3));
-            // Normals
-            EnableAttribute(2, 3, sizeof(VertexData), (void*)(sizeof(float) * 7));
-            // Texture Coords
-            EnableAttribute(3, 2, sizeof(VertexData), (void*)(sizeof(float) * 10));
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, floorTextureId);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-
-
-            glDisableVertexAttribArray(0);
-            glDisableVertexAttribArray(1);
-            glDisableVertexAttribArray(2);
-            glDisableVertexAttribArray(3);
-            glUseProgram(0);
-            glBindVertexArray(0);
+            RenderObject(
+                cube, lightingLocation, projection, view, 
+                globalLight, localLight, cameraPosition);
+            RenderObject(
+                floor, lightingLocation, projection, view,
+                globalLight, localLight, cameraPosition);
         }
 
         if (result2.isSuccess)
         {
-            glUseProgram(shaderProgram2);
-            glUniformMatrix4fv(projectionLoc2, 1, GL_FALSE, glm::value_ptr(projection));
-            glUniformMatrix4fv(worldLoc2, 1, GL_FALSE, glm::value_ptr(quadReferenceFrame));
-            glUniformMatrix4fv(viewLoc2, 1, GL_FALSE, glm::value_ptr(view));
-
-            glBindVertexArray(basicVAO);
-            glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-            // Positions
-            EnableAttribute(0, 3, sizeof(VertexDataPCT), (void*)0);
-            // Colors
-            EnableAttribute(1, 3, sizeof(VertexDataPCT), (void*)sizeof(glm::vec3));
-            // Texture Coords
-            EnableAttribute(2, 2, sizeof(VertexDataPCT), (void*)(sizeof(glm::vec3) * 2));
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, lightBulbTextureId);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-            glDisableVertexAttribArray(0);
-            glDisableVertexAttribArray(1);
-            glDisableVertexAttribArray(2);
-            glUseProgram(0);
-            glBindVertexArray(0);
+            RenderObject(lightBulb, textureLocation, projection, view);
         }
 
         ImGui_ImplOpenGL3_NewFrame();
@@ -837,13 +938,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         ImGui::SliderFloat("Speed", &speed, 0, 360);
         ImGui::Checkbox("Use mouse to look", &lookWithMouse);
         ImGui::Checkbox("Reset camera position", &resetCameraPosition);
-        ImGui::SliderFloat("Ambient Intensity", &material.ambientIntensity, 0, 1);
         ImGui::SliderFloat("Global Intensity", &globalLight.intensity, 0, 1);
         ImGui::SliderFloat("Local Intensity", &localLight.intensity, 0, 1);
         ImGui::Checkbox("Correct gamma", &correctGamma);
         ImGui::SliderFloat("Attenuation", &localLight.attenuationCoef, 0, 1);
-        ImGui::SliderFloat("Specular", &material.specularIntensity, 0, 1);
-        ImGui::SliderFloat("Shininess", &material.shininess, 0, 100);
+        //ImGui::SliderFloat("Ambient Intensity", &material.ambientIntensity, 0, 1);
+        //ImGui::SliderFloat("Specular", &material.specularIntensity, 0, 1);
+        //ImGui::SliderFloat("Shininess", &material.shininess, 0, 100);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
