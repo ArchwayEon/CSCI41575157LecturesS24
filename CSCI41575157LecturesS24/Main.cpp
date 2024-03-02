@@ -383,6 +383,19 @@ unsigned int Create2DTexture(
     return textureId;
 }
 
+unsigned int CreateTextureFromFile(const std::string& filePath)
+{
+    int textureWidth, textureHeight, numChannels;
+    unsigned char* textureData =
+        LoadTextureDataFromFile(
+            filePath, textureWidth, textureHeight, numChannels);
+    unsigned int textureId =
+        Create2DTexture(textureData, textureWidth, textureHeight);
+    stbi_image_free(textureData);
+    textureData = nullptr;
+    return textureId;
+}
+
 VertexData* CreateCubeVertexData()
 {
     // Front face
@@ -734,16 +747,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     cube.shaderProgram = lightingShaderProgram;
     cube.vbo = AllocateVertexBufferPCNT(cube);
     cube.textureId = customTextureId;
-
-    int textureWidth, textureHeight, numChannels;
-    // Floor
-    textureData =
-        LoadTextureDataFromFile(
-            "stone-road-texture.jpg", textureWidth, textureHeight, numChannels);
-    unsigned int floorTextureId =
-        Create2DTexture(textureData, textureWidth, textureHeight);
-    stbi_image_free(textureData);
-    textureData = nullptr;
+    cube.material.ambientIntensity = 0.1f;
+    cube.material.specularIntensity = 0.5f;
+    cube.material.shininess = 16.0f;
 
     GraphicsObject floor;
     floor.vertexDataPCNT = CreateXZQuadVertexData(25.0f, 25.0f, 5.0f, 5.0f);;
@@ -752,20 +758,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     floor.vao = lightingVAO;
     floor.shaderProgram = lightingShaderProgram;
     floor.vbo = AllocateVertexBufferPCNT(floor);
-    floor.textureId = floorTextureId;
+    floor.textureId = CreateTextureFromFile("stone-road-texture.jpg");
     floor.referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
-    
+    floor.material.ambientIntensity = 0.1f;
+    floor.material.specularIntensity = 0.5f;
+    floor.material.shininess = 16.0f;
+
     unsigned int basicTextureVAO;
     glGenVertexArrays(1, &basicTextureVAO);
-
-    // Lightbulb
-    textureData = 
-        LoadTextureDataFromFile(
-            "lightbulb.png", textureWidth, textureHeight, numChannels);
-    unsigned int lightBulbTextureId = 
-        Create2DTexture(textureData, textureWidth, textureHeight);
-    stbi_image_free(textureData);
-    textureData = nullptr;
 
     GraphicsObject lightBulb;
     lightBulb.vertexDataPCT = CreateQuadVertexDataPCT();
@@ -774,7 +774,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     lightBulb.vao = basicTextureVAO;
     lightBulb.shaderProgram = textureShaderProgram;
     lightBulb.vbo = AllocateVertexBufferPCT(lightBulb);
-    lightBulb.textureId = lightBulbTextureId;
+    lightBulb.textureId = CreateTextureFromFile("lightbulb.png");
 
     float cubeYAngle = 0;
     float cubeXAngle = 0;
@@ -802,13 +802,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glm::vec3 clearColor = { 0.0f, 0.0f, 0.0f };
 
     // Material
-    //Material material{};
-    floor.material.ambientIntensity = 0.1f;
-    floor.material.specularIntensity = 0.5f;
-    floor.material.shininess = 16.0f;
-    cube.material.ambientIntensity = 0.1f;
-    cube.material.specularIntensity = 0.5f;
-    cube.material.shininess = 16.0f;
+
+
 
     lightingLocation.materialAmbientLoc = 
         glGetUniformLocation(lightingShaderProgram, "materialAmbientIntensity");
