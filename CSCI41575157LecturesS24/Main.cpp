@@ -164,13 +164,18 @@ struct Result {
     Result() : isSuccess(true) {}
 };
 
+struct VertexDataPC {
+    glm::vec3 position;
+    glm::vec3 color;
+};
+
 struct VertexDataPCT {
     glm::vec3 position;
     glm::vec3 color;
     glm::vec2 tex;
 };
 
-struct VertexData {
+struct VertexDataPCNT {
     glm::vec3 position;
     glm::vec4 color;
     glm::vec3 normal;
@@ -305,13 +310,13 @@ static void EnableAttribute(int attribIndex, int elementCount, int sizeInBytes, 
 static void EnablePCNTAttributes()
 {
     // Positions
-    EnableAttribute(0, 3, sizeof(VertexData), (void*)0);
+    EnableAttribute(0, 3, sizeof(VertexDataPCNT), (void*)0);
     // Colors
-    EnableAttribute(1, 4, sizeof(VertexData), (void*)(sizeof(float) * 3));
+    EnableAttribute(1, 4, sizeof(VertexDataPCNT), (void*)(sizeof(float) * 3));
     // Normals
-    EnableAttribute(2, 3, sizeof(VertexData), (void*)(sizeof(float) * 7));
+    EnableAttribute(2, 3, sizeof(VertexDataPCNT), (void*)(sizeof(float) * 7));
     // Texture Coords
-    EnableAttribute(3, 2, sizeof(VertexData), (void*)(sizeof(float) * 10));
+    EnableAttribute(3, 2, sizeof(VertexDataPCNT), (void*)(sizeof(float) * 10));
 }
 
 static void EnablePCTAttributes()
@@ -322,6 +327,14 @@ static void EnablePCTAttributes()
     EnableAttribute(1, 3, sizeof(VertexDataPCT), (void*)(sizeof(float) * 3));
     // Texture Coords
     EnableAttribute(2, 2, sizeof(VertexDataPCT), (void*)(sizeof(float) * 6));
+}
+
+static void EnablePCAttributes()
+{
+    // Positions
+    EnableAttribute(0, 3, sizeof(VertexDataPC), (void*)0);
+    // Colors
+    EnableAttribute(1, 3, sizeof(VertexDataPC), (void*)(sizeof(float) * 3));
 }
 
 void Trim(std::string& str)
@@ -396,42 +409,42 @@ unsigned int CreateTextureFromFile(const std::string& filePath)
     return textureId;
 }
 
-VertexData* CreateCubeVertexData()
+VertexDataPCNT* CreateCubeVertexData()
 {
     // Front face
-    VertexData A = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f} };
-    VertexData B = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f} };
-    VertexData C = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f} };
-    VertexData D = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f} };
+    VertexDataPCNT A = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f} };
+    VertexDataPCNT B = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f} };
+    VertexDataPCNT C = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f} };
+    VertexDataPCNT D = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f} };
     // Right face
-    VertexData E = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
-    VertexData F = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
-    VertexData G = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} };
-    VertexData H = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} };
+    VertexDataPCNT E = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
+    VertexDataPCNT F = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
+    VertexDataPCNT G = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} };
+    VertexDataPCNT H = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} };
     // Back face
-    VertexData I = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f} };
-    VertexData J = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f} };
-    VertexData K = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f} };
-    VertexData L = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f} };
+    VertexDataPCNT I = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f} };
+    VertexDataPCNT J = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f} };
+    VertexDataPCNT K = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f} };
+    VertexDataPCNT L = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f} };
     // Left face
-    VertexData M = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
-    VertexData N = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
-    VertexData O = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} };
-    VertexData P = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} };
+    VertexDataPCNT M = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
+    VertexDataPCNT N = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
+    VertexDataPCNT O = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} };
+    VertexDataPCNT P = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} };
     // Top face
-    VertexData Q = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f} };
-    VertexData R = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f} };
-    VertexData S = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f} };
-    VertexData T = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f} };
+    VertexDataPCNT Q = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f} };
+    VertexDataPCNT R = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f} };
+    VertexDataPCNT S = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f} };
+    VertexDataPCNT T = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f} };
     // Bottom face
-    VertexData U = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f} };
-    VertexData V = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f} };
-    VertexData W = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f} };
-    VertexData X = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f} };
+    VertexDataPCNT U = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f} };
+    VertexDataPCNT V = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f} };
+    VertexDataPCNT W = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f} };
+    VertexDataPCNT X = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f} };
 
     // 3 vertex per triangle, 2 triangles per face, 6 faces
     // 3 * 2 * 6 = 36 vertices
-    VertexData* vertexData{ new VertexData[36]{
+    VertexDataPCNT* vertexData{ new VertexDataPCNT[36]{
         // Front face
         A, B, C, A, C, D,
         // Right face
@@ -448,13 +461,18 @@ VertexData* CreateCubeVertexData()
     return vertexData;
 }
 
-VertexDataPCT* CreateQuadVertexDataPCT()
+VertexDataPCT* CreateXYPlanePCT(
+    float width = 1.0f, float height = 1.0f, 
+    glm::vec3 color = {1.0f, 1.0f, 1.0f},
+    glm::vec2 tex = {1.0f, 1.0f})
 {
+    float hw = width / 2;
+    float hh = height / 2;
     // Front face
-    VertexDataPCT A = { {-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f} };
-    VertexDataPCT B = { {-0.5f,-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f} };
-    VertexDataPCT C = { { 0.5f,-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f} };
-    VertexDataPCT D = { { 0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f} };
+    VertexDataPCT A = { {-hw, hh, 0.0f}, color, {0.0f, tex.t} };
+    VertexDataPCT B = { {-hw,-hh, 0.0f}, color, {0.0f, 0.0f} };
+    VertexDataPCT C = { { hw,-hh, 0.0f}, color, {tex.s, 0.0f} };
+    VertexDataPCT D = { { hw, hh, 0.0f}, color, {tex.s, tex.t} };
 
     VertexDataPCT* vertexData{ new VertexDataPCT[6]{
         A, B, C, A, C, D
@@ -462,23 +480,49 @@ VertexDataPCT* CreateQuadVertexDataPCT()
     return vertexData;
 }
 
-VertexData* CreateXZQuadVertexData(
-    float width, float depth, float repeatS=1.0f, float repeatT=1.0f)
+VertexDataPCNT* CreateXZPlanePCNT(
+    float width, float depth, 
+    glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f },
+    float repeatS = 1.0f, float repeatT = 1.0f)
 {
     float x = width / 2;
     float z = depth / 2;
-    glm::vec4 white(1.0f, 1.0f, 1.0f, 1.0f);
-    glm::vec3 up(0.0f, 1.0f, 0.0f);
+    glm::vec3 normal(0.0f, 1.0f, 0.0f);
     // Front face
-    VertexData A = { {-x, 0.0f,-z}, white, up, {0.0f, repeatT} };
-    VertexData B = { {-x, 0.0f, z}, white, up, {0.0f, 0.0f} };
-    VertexData C = { { x, 0.0f, z}, white, up, {repeatS, 0.0f} };
-    VertexData D = { { x, 0.0f,-z}, white, up, {repeatS, repeatT} };
+    VertexDataPCNT A = { {-x, 0.0f,-z}, color, normal, {0.0f, repeatT} };
+    VertexDataPCNT B = { {-x, 0.0f, z}, color, normal, {0.0f, 0.0f} };
+    VertexDataPCNT C = { { x, 0.0f, z}, color, normal, {repeatS, 0.0f} };
+    VertexDataPCNT D = { { x, 0.0f,-z}, color, normal, {repeatS, repeatT} };
 
-    VertexData* vertexData{ new VertexData[6]{
+    VertexDataPCNT* vertexData{ new VertexDataPCNT[6]{
         A, B, C, A, C, D
     } };
     return vertexData;
+}
+
+struct PCData {
+    VertexDataPC* vertexData;
+    int vertexCount;
+};
+
+PCData CreateXYCirclePC(float radius, glm::vec3 color, int steps = 10)
+{
+    PCData pcData{};
+    pcData.vertexCount = (static_cast<int>(360.0 / steps) + 1) * 2;
+    pcData.vertexData = new VertexDataPC[pcData.vertexCount];
+    int vi = 0;
+    float x, y, thetaRadians;
+    for (float theta = 0; theta <= 360; theta += steps) {
+        thetaRadians = glm::radians(theta);
+        x = radius * cosf(thetaRadians);
+        y = radius * sinf(thetaRadians);
+        pcData.vertexData[vi++] = { {x, y, 0.0f}, color};
+        thetaRadians = glm::radians(theta + steps);
+        x = radius * cosf(thetaRadians);
+        y = radius * sinf(thetaRadians);
+        pcData.vertexData[vi++] = { {x, y, 0.0f}, color };
+    }
+    return pcData;
 }
 
 void PointAt(glm::mat4& referenceFrame, const glm::vec3& point)
@@ -505,8 +549,9 @@ std::string GetOpenGLError()
 }
 
 struct GraphicsObject {
-    VertexData* vertexDataPCNT = nullptr;
+    VertexDataPCNT* vertexDataPCNT = nullptr;
     VertexDataPCT* vertexDataPCT = nullptr;
+    VertexDataPC* vertexDataPC = nullptr;
     std::size_t sizeOfBuffer = 0;
     unsigned int numberOfVertices = 0;
     unsigned int vao = 0;
@@ -545,6 +590,21 @@ static unsigned int AllocateVertexBufferPCT(GraphicsObject& object)
     return object.vbo;
 }
 
+static unsigned int AllocateVertexBufferPC(GraphicsObject& object)
+{
+    glBindVertexArray(object.vao);
+    glGenBuffers(1, &object.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, object.vbo);
+    glBufferData(
+        GL_ARRAY_BUFFER, object.sizeOfBuffer, object.vertexDataPC, 
+        GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    delete[] object.vertexDataPC;
+    object.vertexDataPC = nullptr;
+    glBindVertexArray(0);
+    return object.vbo;
+}
+
 struct LightingShaderLocation {
     unsigned int worldLoc = 0;
     unsigned int projectionLoc = 0;
@@ -562,17 +622,17 @@ struct LightingShaderLocation {
     unsigned int viewPositionLoc = 0;
 };
 
-struct TextureShaderLocation {
+struct BasicShaderLocation {
     unsigned int worldLoc = 0;
     unsigned int projectionLoc = 0;
     unsigned int viewLoc = 0;
 };
 
-static void RenderObject(
+static void RenderObjectPCNT(
     GraphicsObject& object, LightingShaderLocation& location,
     glm::mat4& projection, glm::mat4& view, 
     Light& globalLight, Light& localLight,
-    glm::vec3& cameraPosition)
+    glm::vec3& cameraPosition, unsigned int primitive)
 {
     glUseProgram(object.shaderProgram);
     glUniformMatrix4fv(
@@ -622,12 +682,12 @@ static void RenderObject(
     EnablePCNTAttributes();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, object.textureId);
-    glDrawArrays(GL_TRIANGLES, 0, object.numberOfVertices);
+    glDrawArrays(primitive, 0, object.numberOfVertices);
 }
 
-static void RenderObject(
-    GraphicsObject& object, TextureShaderLocation& location,
-    glm::mat4& projection, glm::mat4& view)
+static void RenderObjectPCT(
+    GraphicsObject& object, BasicShaderLocation& location,
+    glm::mat4& projection, glm::mat4& view, unsigned int primitive)
 {
     glUseProgram(object.shaderProgram);
     glUniformMatrix4fv(
@@ -644,7 +704,27 @@ static void RenderObject(
     EnablePCTAttributes();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, object.textureId);
-    glDrawArrays(GL_TRIANGLES, 0, object.numberOfVertices);
+    glDrawArrays(primitive, 0, object.numberOfVertices);
+}
+
+static void RenderObjectPC(
+    GraphicsObject& object, BasicShaderLocation& location,
+    glm::mat4& projection, glm::mat4& view, unsigned int primitive)
+{
+    glUseProgram(object.shaderProgram);
+    glUniformMatrix4fv(
+        location.projectionLoc, 1, GL_FALSE,
+        glm::value_ptr(projection));
+    glUniformMatrix4fv(location.viewLoc, 1, GL_FALSE,
+        glm::value_ptr(view));
+
+    glBindVertexArray(object.vao);
+    glUniformMatrix4fv(
+        location.worldLoc, 1, GL_FALSE,
+        glm::value_ptr(object.referenceFrame));
+    glBindBuffer(GL_ARRAY_BUFFER, object.vbo);
+    EnablePCAttributes();
+    glDrawArrays(primitive, 0, object.numberOfVertices);
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -695,11 +775,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     std::string fragmentSource1 = ReadFromFile("lighting.frag.glsl");
     std::string vertexSource2 = ReadFromFile("basic.vert.glsl");
     std::string fragmentSource2 = ReadFromFile("basic.frag.glsl");
+    std::string pcVertexSource = ReadFromFile("pc.vert.glsl");
+    std::string pcFragmentSource = ReadFromFile("pc.frag.glsl");
 
     unsigned int lightingShaderProgram;
     Result result1 = CreateShaderProgram(vertexSource1, fragmentSource1, lightingShaderProgram);
     unsigned int textureShaderProgram;
     Result result2 = CreateShaderProgram(vertexSource2, fragmentSource2, textureShaderProgram);
+    unsigned int pcShaderProgram;
+    Result resultPC = 
+        CreateShaderProgram(pcVertexSource, pcFragmentSource, pcShaderProgram);
+    std::string message = result1.message + result2.message + resultPC.message;
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -716,13 +802,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         glGetUniformLocation(lightingShaderProgram, "view");
     lightingLocation.worldLoc = 
         glGetUniformLocation(lightingShaderProgram, "world");
-    TextureShaderLocation textureLocation;
+    BasicShaderLocation textureLocation;
     textureLocation.projectionLoc = 
         glGetUniformLocation(textureShaderProgram, "projection");
     textureLocation.viewLoc =
         glGetUniformLocation(textureShaderProgram, "view");
     textureLocation.worldLoc = 
         glGetUniformLocation(textureShaderProgram, "world");
+    BasicShaderLocation pcLocation;
+    pcLocation.projectionLoc =
+        glGetUniformLocation(pcShaderProgram, "projection");
+    pcLocation.viewLoc =
+        glGetUniformLocation(pcShaderProgram, "view");
+    pcLocation.worldLoc =
+        glGetUniformLocation(pcShaderProgram, "world");
 
     // Create the texture data
     unsigned char* textureData = new unsigned char[] {
@@ -741,7 +834,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     GraphicsObject cube;
     cube.vertexDataPCNT = CreateCubeVertexData();
-    cube.sizeOfBuffer = 36 * sizeof(VertexData);
+    cube.sizeOfBuffer = 36 * sizeof(VertexDataPCNT);
     cube.numberOfVertices = 36;
     cube.vao = lightingVAO;
     cube.shaderProgram = lightingShaderProgram;
@@ -750,10 +843,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     cube.material.ambientIntensity = 0.1f;
     cube.material.specularIntensity = 0.5f;
     cube.material.shininess = 16.0f;
+    cube.referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
 
     GraphicsObject floor;
-    floor.vertexDataPCNT = CreateXZQuadVertexData(25.0f, 25.0f, 5.0f, 5.0f);;
-    floor.sizeOfBuffer = 6 * sizeof(VertexData);
+    floor.vertexDataPCNT = 
+        CreateXZPlanePCNT(50.0f, 50.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 5.0f, 5.0f);
+    floor.sizeOfBuffer = 6 * sizeof(VertexDataPCNT);
     floor.numberOfVertices = 6;
     floor.vao = lightingVAO;
     floor.shaderProgram = lightingShaderProgram;
@@ -768,13 +863,25 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glGenVertexArrays(1, &basicTextureVAO);
 
     GraphicsObject lightBulb;
-    lightBulb.vertexDataPCT = CreateQuadVertexDataPCT();
+    lightBulb.vertexDataPCT = CreateXYPlanePCT();
     lightBulb.sizeOfBuffer = 6 * sizeof(VertexDataPCT);
     lightBulb.numberOfVertices = 6;
     lightBulb.vao = basicTextureVAO;
     lightBulb.shaderProgram = textureShaderProgram;
     lightBulb.vbo = AllocateVertexBufferPCT(lightBulb);
     lightBulb.textureId = CreateTextureFromFile("lightbulb.png");
+
+    unsigned int pcTextureVAO;
+    glGenVertexArrays(1, &pcTextureVAO);
+
+    GraphicsObject circle;
+    PCData pcData = CreateXYCirclePC(5.0f, { 1.0f, 1.0f, 1.0f });
+    circle.vertexDataPC = pcData.vertexData;
+    circle.sizeOfBuffer = pcData.vertexCount * sizeof(VertexDataPC);
+    circle.numberOfVertices = pcData.vertexCount;
+    circle.vao = pcTextureVAO;
+    circle.shaderProgram = pcShaderProgram;
+    circle.vbo = AllocateVertexBufferPC(circle);
 
     float cubeYAngle = 0;
     float cubeXAngle = 0;
@@ -785,7 +892,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     float top = 20.0f;
     int width, height;
     
-    std::string message = result1.message;
+    
 
     float aspectRatio;
     float nearPlane = 1.0f;
@@ -800,10 +907,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     glm::mat4 projection;
 
     glm::vec3 clearColor = { 0.0f, 0.0f, 0.0f };
-
-    // Material
-
-
 
     lightingLocation.materialAmbientLoc = 
         glGetUniformLocation(lightingShaderProgram, "materialAmbientIntensity");
@@ -824,7 +927,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     lightingLocation.globalLightIntensityLoc =
         glGetUniformLocation(lightingShaderProgram, "globalLightIntensity");
     Light localLight{};
-    localLight.position = glm::vec3(0.0f, 0.0f, 8.0f);
+    localLight.position = glm::vec3(0.0f, 0.0f, -17.0f);
     localLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
     localLight.intensity = 0.5f;
     localLight.attenuationCoef = 0.0f;
@@ -904,17 +1007,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
         // Render the object
         if (result1.isSuccess){
-            RenderObject(
+            RenderObjectPCNT(
                 cube, lightingLocation, projection, view, 
-                globalLight, localLight, cameraPosition);
-            RenderObject(
+                globalLight, localLight, cameraPosition, GL_TRIANGLES);
+            RenderObjectPCNT(
                 floor, lightingLocation, projection, view,
-                globalLight, localLight, cameraPosition);
+                globalLight, localLight, cameraPosition, GL_TRIANGLES);
         }
 
         if (result2.isSuccess)
         {
-            RenderObject(lightBulb, textureLocation, projection, view);
+            RenderObjectPCT(
+                lightBulb, textureLocation, projection, view, GL_TRIANGLES);
+        }
+
+        if (resultPC.isSuccess)
+        {
+            RenderObjectPC(
+                circle, pcLocation, projection, view, GL_LINES);
         }
 
         ImGui_ImplOpenGL3_NewFrame();

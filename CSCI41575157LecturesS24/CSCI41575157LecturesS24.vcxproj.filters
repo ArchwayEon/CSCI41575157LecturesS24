@@ -62,6 +62,8 @@
     <None Include="globaldiffuse.frag.glsl" />
     <None Include="lighting.vert.glsl" />
     <None Include="lighting.frag.glsl" />
+    <None Include="pc.vert.glsl" />
+    <None Include="pc.frag.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="lightbulb.png">
