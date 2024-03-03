@@ -532,7 +532,7 @@ void GenerateXYCirclePCVertexData(
 {
 	data.clear();
 	float x, y, thetaRadians;
-	for (float theta = 0; theta <= 360; theta += steps) {
+	for (float theta = 0; theta < 360; theta += steps) {
 		thetaRadians = glm::radians(theta);
 		x = radius * cosf(thetaRadians);
 		y = radius * sinf(thetaRadians);
@@ -540,13 +540,27 @@ void GenerateXYCirclePCVertexData(
 	}
 }
 
-void GenerateLinesIndexData(
+void GenerateLinesIndexDataConnected(
 	std::vector<unsigned short>& data, std::size_t vertexCount)
 {
 	data.clear();
+	unsigned short nextIndex;
 	for (unsigned short index = 0; index < vertexCount; index++) {
 		data.push_back(index);
-		data.push_back((index + 1) % vertexCount);
+		nextIndex = (index + 1) % static_cast<unsigned short>(vertexCount);
+		data.push_back(nextIndex);
+	}
+}
+
+void GenerateLinesIndexDataUnconnected(
+	std::vector<unsigned short>& data, std::size_t vertexCount)
+{
+	data.clear();
+	unsigned short nextIndex;
+	for (unsigned short index = 0; index < vertexCount - 1; index++) {
+		data.push_back(index);
+		nextIndex = index + 1;
+		data.push_back(nextIndex);
 	}
 }
 
@@ -554,7 +568,8 @@ PCData CreateXYCirclePC(float radius, glm::vec3 color, int steps = 10)
 {
 	PCData pcData{};
 	GenerateXYCirclePCVertexData(pcData.vertexData, radius, color, steps);
-	GenerateLinesIndexData(pcData.indexData, pcData.vertexData.size());
+	GenerateLinesIndexDataConnected(
+		pcData.indexData, pcData.vertexData.size());
 	return pcData;
 }
 
@@ -566,8 +581,9 @@ void GenerateXYSpirographPCVertexData(
 	data.clear();
 	float x, y, thetaRadians;
 	float totalDegrees = 360.0f * revolutions;
+	if (k == 0.0f) k = .001f;
 	float q = (1 - k) / k;
-	for (float theta = 0; theta <= totalDegrees; theta += steps) {
+	for (float theta = 1; theta < totalDegrees; theta += steps) {
 		thetaRadians = glm::radians(theta);
 		x = R * (((1 - k) * cosf(thetaRadians)) + (l * k * cosf(q * thetaRadians)));
 		y = R * (((1 - k) * sinf(thetaRadians)) - (l * k * sinf(q * thetaRadians)));
@@ -582,7 +598,57 @@ PCData CreateXYSpirographPC(
 	PCData pcData{};
 	GenerateXYSpirographPCVertexData(
 		pcData.vertexData, R, l, k, color, revolutions, steps);
-	GenerateLinesIndexData(pcData.indexData, pcData.vertexData.size());
+	GenerateLinesIndexDataUnconnected(
+		pcData.indexData, pcData.vertexData.size());
+	return pcData;
+}
+
+void GenerateLinearBezierPC(
+	std::vector<VertexDataPC>& data,
+	glm::vec3 p0, glm::vec3 p1, glm::vec3 color, int steps)
+{
+	data.clear();
+	glm::vec3 l{};
+	float tick = 1.0f / steps;
+	for (float t = 0; t <= 1; t += tick) {
+		float coef = 1 - t;
+		l = coef * p0 + t * p1;
+		data.push_back({ {l.x, l.y, l.z}, color });
+	}
+}
+
+PCData CreateLinearBezierPC(
+	glm::vec3 p0, glm::vec3 p1, glm::vec3 color, int steps = 10)
+{
+	PCData pcData{};
+	GenerateLinearBezierPC(pcData.vertexData, p0, p1, color, steps);
+	GenerateLinesIndexDataUnconnected(
+		pcData.indexData, pcData.vertexData.size());
+	return pcData;
+}
+
+void GenerateQuadraticBezierPC(
+	std::vector<VertexDataPC>& data,
+	glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 color, int steps)
+{
+	data.clear();
+	glm::vec3 q{};
+	float tick = 1.0f / steps;
+	for (float t = 0; t <= 1; t += tick) {
+		float coef = 1 - t;
+		float coefSq = coef * coef;
+		q = (coefSq * p0) + (2 * coef * t * p1)	+ (t * t * p2);
+		data.push_back({ {q.x, q.y, q.z}, color });
+	}
+}
+
+PCData CreateQuadraticBezierPC(
+	glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 color, int steps = 10)
+{
+	PCData pcData{};
+	GenerateQuadraticBezierPC(pcData.vertexData, p0, p1, p2, color, steps);
+	GenerateLinesIndexDataUnconnected(
+		pcData.indexData, pcData.vertexData.size());
 	return pcData;
 }
 
@@ -986,7 +1052,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		circle.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
 	circle.vbo = AllocateVertexBufferPC(circle);
 	circle.ibo = AllocateIndexBuffer(circle);
-	circle.referenceFrame[3] = glm::vec4(-20.0f, 0.0f, 0.0f, 1.0f);
+	circle.referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -10.0f, 1.0f);
 
 	GraphicsObject spirograph;
 	int spirographSteps = 10;
@@ -1015,7 +1081,57 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		spirograph.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
 	spirograph.vbo = AllocateVertexBufferPC(spirograph);
 	spirograph.ibo = AllocateIndexBuffer(spirograph);
-	spirograph.referenceFrame[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	spirograph.referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -8.0f, 1.0f);
+
+	GraphicsObject linearBezier;
+	int linearBezierSteps = 10;
+	glm::vec3 lbP0(-10.0f, 0.0f, 0.0f);
+	glm::vec3 lbP1(10.0f, 0.0f, 0.0f);
+	PCData linearBezierPCData =
+		CreateLinearBezierPC(lbP0, lbP1, { 1.0f, 1.0f, 1.0f }, linearBezierSteps);
+	linearBezier.vertexDataPC = linearBezierPCData.vertexData;
+	linearBezier.indexData = linearBezierPCData.indexData;
+	linearBezier.sizeOfVertexBuffer =
+		linearBezier.vertexDataPC.size() * sizeof(VertexDataPC);
+	linearBezier.numberOfVertices = linearBezier.vertexDataPC.size();
+	linearBezier.sizeOfIndexBuffer = 
+		linearBezier.indexData.size() * sizeof(unsigned short);
+	linearBezier.numberOfIndices = linearBezier.indexData.size();
+	linearBezier.vao = pcVAO;
+	linearBezier.shaderProgram = pcShaderProgram;
+	linearBezier.isDynamic = true;
+	linearBezier.maxSizeOfVertexBuffer = 50 * sizeof(VertexDataPC);
+	linearBezier.maxSizeOfIndexBuffer =
+		linearBezier.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
+	linearBezier.vbo = AllocateVertexBufferPC(linearBezier);
+	linearBezier.ibo = AllocateIndexBuffer(linearBezier);
+	linearBezier.referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -7.0f, 1.0f);
+
+	GraphicsObject quadraticBezier;
+	int quadraticBezierSteps = 10;
+	glm::vec3 qbP0(-5.0f, 0.0f, 0.0f);
+	glm::vec3 qbP1(0.0f, 8.0f, 0.0f);
+	glm::vec3 qbP2(5.0f, -8.0f, 0.0f);
+	PCData quadraticBezierPCData =
+		CreateQuadraticBezierPC(
+			qbP0, qbP1, qbP2, { 1.0f, 1.0f, 1.0f }, quadraticBezierSteps);
+	quadraticBezier.vertexDataPC = quadraticBezierPCData.vertexData;
+	quadraticBezier.indexData = quadraticBezierPCData.indexData;
+	quadraticBezier.sizeOfVertexBuffer =
+		quadraticBezier.vertexDataPC.size() * sizeof(VertexDataPC);
+	quadraticBezier.numberOfVertices = quadraticBezier.vertexDataPC.size();
+	quadraticBezier.sizeOfIndexBuffer =
+		quadraticBezier.indexData.size() * sizeof(unsigned short);
+	quadraticBezier.numberOfIndices = quadraticBezier.indexData.size();
+	quadraticBezier.vao = pcVAO;
+	quadraticBezier.shaderProgram = pcShaderProgram;
+	quadraticBezier.isDynamic = true;
+	quadraticBezier.maxSizeOfVertexBuffer = 50 * sizeof(VertexDataPC);
+	quadraticBezier.maxSizeOfIndexBuffer =
+		quadraticBezier.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
+	quadraticBezier.vbo = AllocateVertexBufferPC(quadraticBezier);
+	quadraticBezier.ibo = AllocateIndexBuffer(quadraticBezier);
+	quadraticBezier.referenceFrame[3] = glm::vec4(0.0f, 0.5f, 0.0f, 1.0f);
 
 	float cubeYAngle = 0;
 	float cubeXAngle = 0;
@@ -1157,7 +1273,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		{
 			GenerateXYCirclePCVertexData(
 				circle.vertexDataPC, circleRadius, { 1.0f, 1.0f, 1.0f }, circleSteps);
-			GenerateLinesIndexData(
+			GenerateLinesIndexDataConnected(
 				circle.indexData, circle.vertexDataPC.size());
 			RenderObjectPC(
 				circle, pcLocation, projection, view, GL_LINES);
@@ -1166,10 +1282,26 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				spirograph.vertexDataPC, 
 				spirographR, spirographl, spirographk, 
 				{ 1.0f, 1.0f, 1.0f }, revolutions, spirographSteps);
-			GenerateLinesIndexData(
+			GenerateLinesIndexDataUnconnected(
 				spirograph.indexData, spirograph.vertexDataPC.size());
 			RenderObjectPC(
 				spirograph, pcLocation, projection, view, GL_LINES);
+
+			GenerateLinearBezierPC(
+				linearBezier.vertexDataPC, lbP0, lbP1, { 1.0f, 1.0f, 1.0f }, 
+				linearBezierSteps);
+			GenerateLinesIndexDataUnconnected(
+				linearBezier.indexData, linearBezier.vertexDataPC.size());
+			RenderObjectPC(
+				linearBezier, pcLocation, projection, view, GL_LINES);
+
+			GenerateQuadraticBezierPC(
+				quadraticBezier.vertexDataPC, qbP0, qbP1, qbP2, 
+				{ 1.0f, 1.0f, 1.0f }, quadraticBezierSteps);
+			GenerateLinesIndexDataUnconnected(
+				quadraticBezier.indexData, quadraticBezier.vertexDataPC.size());
+			RenderObjectPC(
+				quadraticBezier, pcLocation, projection, view, GL_LINES);
 		}
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -1198,6 +1330,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::SliderFloat("Spirograph l", &spirographl, 0, 1);
 		ImGui::SliderFloat("Spirograph k", &spirographk, 0, 1);
 		ImGui::SliderFloat("Revolutions", &revolutions, 1, 30);
+		ImGui::DragFloat3("LB Point 1", &lbP0.x, 0.1f);
+		ImGui::DragFloat3("LB Point 2", &lbP1.x, 0.1f);
+		ImGui::DragFloat3("QB Point 1", &qbP0.x, 0.1f);
+		ImGui::DragFloat3("QB Point 2", &qbP1.x, 0.1f);
+		ImGui::DragFloat3("QB Point 3", &qbP2.x, 0.1f);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
