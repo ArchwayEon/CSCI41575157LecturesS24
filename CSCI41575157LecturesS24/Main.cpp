@@ -185,8 +185,6 @@ struct VertexDataPCNT {
 struct PCData {
 	std::vector<VertexDataPC> vertexData;
 	std::vector<unsigned short> indexData;
-	int vertexCount;
-	int indexCount;
 };
 
 struct GraphicsObject {
@@ -555,10 +553,36 @@ void GenerateLinesIndexData(
 PCData CreateXYCirclePC(float radius, glm::vec3 color, int steps = 10)
 {
 	PCData pcData{};
-	pcData.vertexCount = (static_cast<int>(360.0 / steps) + 1);
-	pcData.indexCount = pcData.vertexCount * 2;
 	GenerateXYCirclePCVertexData(pcData.vertexData, radius, color, steps);
-	GenerateLinesIndexData(pcData.indexData, pcData.vertexCount);
+	GenerateLinesIndexData(pcData.indexData, pcData.vertexData.size());
+	return pcData;
+}
+
+void GenerateXYSpirographPCVertexData(
+	std::vector<VertexDataPC>& data,
+	float R, float l, float k, glm::vec3 color,
+	float revolutions, int steps)
+{
+	data.clear();
+	float x, y, thetaRadians;
+	float totalDegrees = 360.0f * revolutions;
+	float q = (1 - k) / k;
+	for (float theta = 0; theta <= totalDegrees; theta += steps) {
+		thetaRadians = glm::radians(theta);
+		x = R * (((1 - k) * cosf(thetaRadians)) + (l * k * cosf(q * thetaRadians)));
+		y = R * (((1 - k) * sinf(thetaRadians)) - (l * k * sinf(q * thetaRadians)));
+		data.push_back({ {x, y, 0.0f}, color });
+	}
+}
+
+PCData CreateXYSpirographPC(
+	float R, float l, float k, glm::vec3 color, 
+	float revolutions = 1, int steps = 10)
+{
+	PCData pcData{};
+	GenerateXYSpirographPCVertexData(
+		pcData.vertexData, R, l, k, color, revolutions, steps);
+	GenerateLinesIndexData(pcData.indexData, pcData.vertexData.size());
 	return pcData;
 }
 
@@ -943,12 +967,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	glGenVertexArrays(1, &pcVAO);
 
 	GraphicsObject circle;
-	int steps = 10;
-	float radius = 5.0f;
-	PCData circlePCData = CreateXYCirclePC(radius, { 1.0f, 1.0f, 1.0f }, steps);
+	int circleSteps = 10;
+	float circleRadius = 5.0f;
+	PCData circlePCData = 
+		CreateXYCirclePC(circleRadius, { 1.0f, 1.0f, 1.0f }, circleSteps);
 	circle.vertexDataPC = circlePCData.vertexData;
 	circle.indexData = circlePCData.indexData;
-	circle.sizeOfVertexBuffer = circle.vertexDataPC.size() * sizeof(VertexDataPC);
+	circle.sizeOfVertexBuffer = 
+		circle.vertexDataPC.size() * sizeof(VertexDataPC);
 	circle.numberOfVertices = circle.vertexDataPC.size();
 	circle.sizeOfIndexBuffer = circle.indexData.size() * sizeof(unsigned short);
 	circle.numberOfIndices = circle.indexData.size();
@@ -960,6 +986,36 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		circle.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
 	circle.vbo = AllocateVertexBufferPC(circle);
 	circle.ibo = AllocateIndexBuffer(circle);
+	circle.referenceFrame[3] = glm::vec4(-20.0f, 0.0f, 0.0f, 1.0f);
+
+	GraphicsObject spirograph;
+	int spirographSteps = 10;
+	float spirographR = 4.0f;
+	float spirographl = 0.955f;
+	float spirographk = 0.55f;
+	float revolutions = 20.0f;
+	PCData spirographPCData =
+		CreateXYSpirographPC(
+			spirographR, spirographl, spirographk, 
+			{ 1.0f, 1.0f, 1.0f }, revolutions, spirographSteps);
+	spirograph.vertexDataPC = spirographPCData.vertexData;
+	spirograph.indexData = spirographPCData.indexData;
+	spirograph.sizeOfVertexBuffer =
+		spirograph.vertexDataPC.size() * sizeof(VertexDataPC);
+	spirograph.numberOfVertices = spirograph.vertexDataPC.size();
+	spirograph.sizeOfIndexBuffer = 
+		spirograph.indexData.size() * sizeof(unsigned short);
+	spirograph.numberOfIndices = spirograph.indexData.size();
+	spirograph.vao = pcVAO;
+	spirograph.shaderProgram = pcShaderProgram;
+	spirograph.isDynamic = true;
+	spirograph.maxSizeOfVertexBuffer = 
+		360 * (int)revolutions * (int)sizeof(VertexDataPC);
+	spirograph.maxSizeOfIndexBuffer =
+		spirograph.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
+	spirograph.vbo = AllocateVertexBufferPC(spirograph);
+	spirograph.ibo = AllocateIndexBuffer(spirograph);
+	spirograph.referenceFrame[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	float cubeYAngle = 0;
 	float cubeXAngle = 0;
@@ -1100,11 +1156,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		if (resultPC.isSuccess)
 		{
 			GenerateXYCirclePCVertexData(
-				circle.vertexDataPC, radius, { 1.0f, 1.0f, 1.0f }, steps);
+				circle.vertexDataPC, circleRadius, { 1.0f, 1.0f, 1.0f }, circleSteps);
 			GenerateLinesIndexData(
 				circle.indexData, circle.vertexDataPC.size());
 			RenderObjectPC(
 				circle, pcLocation, projection, view, GL_LINES);
+
+			GenerateXYSpirographPCVertexData(
+				spirograph.vertexDataPC, 
+				spirographR, spirographl, spirographk, 
+				{ 1.0f, 1.0f, 1.0f }, revolutions, spirographSteps);
+			GenerateLinesIndexData(
+				spirograph.indexData, spirograph.vertexDataPC.size());
+			RenderObjectPC(
+				spirograph, pcLocation, projection, view, GL_LINES);
 		}
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -1127,8 +1192,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::SliderFloat("Local Intensity", &localLight.intensity, 0, 1);
 		ImGui::Checkbox("Correct gamma", &correctGamma);
 		ImGui::SliderFloat("Attenuation", &localLight.attenuationCoef, 0, 1);
-		ImGui::SliderFloat("Radius", &radius, 1, 10);
-		ImGui::SliderInt("Steps", &steps, 10, 120);
+		ImGui::SliderFloat("Radius", &circleRadius, 1, 10);
+		ImGui::SliderInt("Steps", &circleSteps, 10, 120);
+		ImGui::SliderFloat("Spirograph R", &spirographR, 1, 10);
+		ImGui::SliderFloat("Spirograph l", &spirographl, 0, 1);
+		ImGui::SliderFloat("Spirograph k", &spirographk, 0, 1);
+		ImGui::SliderFloat("Revolutions", &revolutions, 1, 30);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
