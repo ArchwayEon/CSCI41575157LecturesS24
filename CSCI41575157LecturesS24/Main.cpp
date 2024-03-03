@@ -189,6 +189,27 @@ struct PCData {
 	int indexCount;
 };
 
+struct GraphicsObject {
+	VertexDataPCNT* vertexDataPCNT = nullptr;
+	VertexDataPCT* vertexDataPCT = nullptr;
+	std::vector<VertexDataPC> vertexDataPC;
+	std::vector<unsigned short> indexData;
+	std::size_t sizeOfVertexBuffer = 0;
+	std::size_t maxSizeOfVertexBuffer = 0;
+	std::size_t sizeOfIndexBuffer = 0;
+	std::size_t maxSizeOfIndexBuffer = 0;
+	std::size_t numberOfVertices = 0;
+	std::size_t numberOfIndices = 0;
+	unsigned int vao = 0;
+	unsigned int vbo = 0;
+	unsigned int ibo = 0;
+	bool isDynamic = false;
+	unsigned int shaderProgram = 0;
+	unsigned int textureId = 0;
+	glm::mat4 referenceFrame = glm::mat4(1.0f);
+	Material material{};
+};
+
 static void Log(std::stringstream& log, const std::vector<char>& message)
 {
 	std::copy(message.begin(), message.end(), std::ostream_iterator<char>(log, ""));
@@ -521,8 +542,8 @@ void GenerateXYCirclePCVertexData(
 	}
 }
 
-void GenerateXYCirclePCIndexData(
-	std::vector<unsigned short>& data, int vertexCount)
+void GenerateLinesIndexData(
+	std::vector<unsigned short>& data, std::size_t vertexCount)
 {
 	data.clear();
 	for (unsigned short index = 0; index < vertexCount; index++) {
@@ -537,7 +558,7 @@ PCData CreateXYCirclePC(float radius, glm::vec3 color, int steps = 10)
 	pcData.vertexCount = (static_cast<int>(360.0 / steps) + 1);
 	pcData.indexCount = pcData.vertexCount * 2;
 	GenerateXYCirclePCVertexData(pcData.vertexData, radius, color, steps);
-	GenerateXYCirclePCIndexData(pcData.indexData, pcData.vertexCount);
+	GenerateLinesIndexData(pcData.indexData, pcData.vertexCount);
 	return pcData;
 }
 
@@ -563,26 +584,6 @@ std::string GetOpenGLError()
 	}
 	return log.str();
 }
-
-struct GraphicsObject {
-	VertexDataPCNT* vertexDataPCNT = nullptr;
-	VertexDataPCT* vertexDataPCT = nullptr;
-	std::vector<VertexDataPC> vertexDataPC;
-	std::vector<unsigned short> indexData;
-	std::size_t sizeOfVertexBuffer = 0;
-	std::size_t maxSizeOfVertexBuffer = 0;
-	std::size_t sizeOfIndexBuffer = 0;
-	unsigned int numberOfVertices = 0;
-	unsigned int numberOfIndices = 0;
-	unsigned int vao = 0;
-	unsigned int vbo = 0;
-	unsigned int ibo = 0;
-	bool isDynamic = false;
-	unsigned int shaderProgram = 0;
-	unsigned int textureId = 0;
-	glm::mat4 referenceFrame = glm::mat4(1.0f);
-	Material material{};
-};
 
 static unsigned int AllocateVertexBufferPCNT(GraphicsObject& object)
 {
@@ -638,10 +639,17 @@ static unsigned int AllocateIndexBuffer(GraphicsObject& object)
 	glBindVertexArray(object.vao);
 	glGenBuffers(1, &object.ibo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object.ibo);
-	glBufferData(
-		GL_ELEMENT_ARRAY_BUFFER, object.sizeOfIndexBuffer,
-		object.indexData.data(), 
-		(object.isDynamic == false) ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW);
+	if (object.isDynamic == false) {
+		glBufferData(
+			GL_ELEMENT_ARRAY_BUFFER, object.sizeOfIndexBuffer,
+			object.indexData.data(), GL_STATIC_DRAW);
+	}
+	else {
+		glBufferData(
+			GL_ELEMENT_ARRAY_BUFFER, object.maxSizeOfIndexBuffer,
+			nullptr, GL_STATIC_DRAW);
+	}
+	
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	object.indexData.clear();
 	glBindVertexArray(0);
@@ -725,7 +733,7 @@ static void RenderObjectPCNT(
 	EnablePCNTAttributes();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, object.textureId);
-	glDrawArrays(primitive, 0, object.numberOfVertices);
+	glDrawArrays(primitive, 0, (int)object.numberOfVertices);
 }
 
 static void RenderObjectPCT(
@@ -747,7 +755,7 @@ static void RenderObjectPCT(
 	EnablePCTAttributes();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, object.textureId);
-	glDrawArrays(primitive, 0, object.numberOfVertices);
+	glDrawArrays(primitive, 0, (int)object.numberOfVertices);
 }
 
 static void RenderObjectPC(
@@ -774,7 +782,14 @@ static void RenderObjectPC(
 	}
 	EnablePCAttributes();
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object.ibo);
-	glDrawElements(primitive, object.numberOfIndices, GL_UNSIGNED_SHORT, nullptr);
+	if (object.isDynamic) {
+		glBufferSubData(
+			GL_ELEMENT_ARRAY_BUFFER, 0,
+			object.sizeOfIndexBuffer,
+			object.indexData.data());
+	}
+	glDrawElements(
+		primitive, (int)object.indexData.size(), GL_UNSIGNED_SHORT, nullptr);
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -933,14 +948,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	PCData circlePCData = CreateXYCirclePC(radius, { 1.0f, 1.0f, 1.0f }, steps);
 	circle.vertexDataPC = circlePCData.vertexData;
 	circle.indexData = circlePCData.indexData;
-	circle.maxSizeOfVertexBuffer = 360 * sizeof(VertexDataPC);
-	circle.sizeOfVertexBuffer = circlePCData.vertexCount * sizeof(VertexDataPC);
-	circle.numberOfVertices = circlePCData.vertexCount;
-	circle.sizeOfIndexBuffer = circlePCData.indexCount * sizeof(unsigned short);
-	circle.numberOfIndices = circlePCData.indexCount;
+	circle.sizeOfVertexBuffer = circle.vertexDataPC.size() * sizeof(VertexDataPC);
+	circle.numberOfVertices = circle.vertexDataPC.size();
+	circle.sizeOfIndexBuffer = circle.indexData.size() * sizeof(unsigned short);
+	circle.numberOfIndices = circle.indexData.size();
 	circle.vao = pcVAO;
 	circle.shaderProgram = pcShaderProgram;
 	circle.isDynamic = true;
+	circle.maxSizeOfVertexBuffer = 360 * sizeof(VertexDataPC);
+	circle.maxSizeOfIndexBuffer =
+		circle.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
 	circle.vbo = AllocateVertexBufferPC(circle);
 	circle.ibo = AllocateIndexBuffer(circle);
 
@@ -1084,6 +1101,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		{
 			GenerateXYCirclePCVertexData(
 				circle.vertexDataPC, radius, { 1.0f, 1.0f, 1.0f }, steps);
+			GenerateLinesIndexData(
+				circle.indexData, circle.vertexDataPC.size());
 			RenderObjectPC(
 				circle, pcLocation, projection, view, GL_LINES);
 		}
@@ -1109,6 +1128,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::Checkbox("Correct gamma", &correctGamma);
 		ImGui::SliderFloat("Attenuation", &localLight.attenuationCoef, 0, 1);
 		ImGui::SliderFloat("Radius", &radius, 1, 10);
+		ImGui::SliderInt("Steps", &steps, 10, 120);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
