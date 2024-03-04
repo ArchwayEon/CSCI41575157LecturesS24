@@ -882,6 +882,30 @@ static void RenderObjectPC(
 		primitive, (int)object.indexData.size(), GL_UNSIGNED_SHORT, nullptr);
 }
 
+void SetUpDynamicPCGraphicsObject(
+	GraphicsObject& object, PCData& pcData,
+	unsigned int vao, unsigned int shaderProgram, 
+	std::size_t maxVertexCount)
+{
+	object.vertexDataPC = pcData.vertexData;
+	object.indexData = pcData.indexData;
+	object.sizeOfVertexBuffer =
+		object.vertexDataPC.size() * sizeof(VertexDataPC);
+	object.numberOfVertices = object.vertexDataPC.size();
+	object.sizeOfIndexBuffer = 
+		object.indexData.size() * sizeof(unsigned short);
+	object.numberOfIndices = object.indexData.size();
+	object.vao = vao;
+	object.shaderProgram = shaderProgram;
+	object.isDynamic = true;
+	object.maxSizeOfVertexBuffer = maxVertexCount * sizeof(VertexDataPC);
+	object.maxSizeOfIndexBuffer =
+		object.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
+	object.vbo = AllocateVertexBufferPC(object);
+	object.ibo = AllocateIndexBuffer(object);
+
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
@@ -1037,21 +1061,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	float circleRadius = 5.0f;
 	PCData circlePCData = 
 		CreateXYCirclePC(circleRadius, { 1.0f, 1.0f, 1.0f }, circleSteps);
-	circle.vertexDataPC = circlePCData.vertexData;
-	circle.indexData = circlePCData.indexData;
-	circle.sizeOfVertexBuffer = 
-		circle.vertexDataPC.size() * sizeof(VertexDataPC);
-	circle.numberOfVertices = circle.vertexDataPC.size();
-	circle.sizeOfIndexBuffer = circle.indexData.size() * sizeof(unsigned short);
-	circle.numberOfIndices = circle.indexData.size();
-	circle.vao = pcVAO;
-	circle.shaderProgram = pcShaderProgram;
-	circle.isDynamic = true;
-	circle.maxSizeOfVertexBuffer = 360 * sizeof(VertexDataPC);
-	circle.maxSizeOfIndexBuffer =
-		circle.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
-	circle.vbo = AllocateVertexBufferPC(circle);
-	circle.ibo = AllocateIndexBuffer(circle);
+	SetUpDynamicPCGraphicsObject(circle, circlePCData, pcVAO, pcShaderProgram, 360);
 	circle.referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -10.0f, 1.0f);
 
 	GraphicsObject spirograph;
@@ -1064,23 +1074,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		CreateXYSpirographPC(
 			spirographR, spirographl, spirographk, 
 			{ 1.0f, 1.0f, 1.0f }, revolutions, spirographSteps);
-	spirograph.vertexDataPC = spirographPCData.vertexData;
-	spirograph.indexData = spirographPCData.indexData;
-	spirograph.sizeOfVertexBuffer =
-		spirograph.vertexDataPC.size() * sizeof(VertexDataPC);
-	spirograph.numberOfVertices = spirograph.vertexDataPC.size();
-	spirograph.sizeOfIndexBuffer = 
-		spirograph.indexData.size() * sizeof(unsigned short);
-	spirograph.numberOfIndices = spirograph.indexData.size();
-	spirograph.vao = pcVAO;
-	spirograph.shaderProgram = pcShaderProgram;
-	spirograph.isDynamic = true;
-	spirograph.maxSizeOfVertexBuffer = 
-		360 * (int)revolutions * (int)sizeof(VertexDataPC);
-	spirograph.maxSizeOfIndexBuffer =
-		spirograph.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
-	spirograph.vbo = AllocateVertexBufferPC(spirograph);
-	spirograph.ibo = AllocateIndexBuffer(spirograph);
+	SetUpDynamicPCGraphicsObject(
+		spirograph, spirographPCData, pcVAO, pcShaderProgram, 360 * (int)revolutions);
 	spirograph.referenceFrame[3] = glm::vec4(-10.0f, 0.0f, -10.0f, 1.0f);
 
 	GraphicsObject linearBezier;
@@ -1089,22 +1084,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	glm::vec3 lbP1(5.0f, 0.0f, 0.0f);
 	PCData linearBezierPCData =
 		CreateLinearBezierPC(lbP0, lbP1, { 1.0f, 1.0f, 1.0f }, linearBezierSteps);
-	linearBezier.vertexDataPC = linearBezierPCData.vertexData;
-	linearBezier.indexData = linearBezierPCData.indexData;
-	linearBezier.sizeOfVertexBuffer =
-		linearBezier.vertexDataPC.size() * sizeof(VertexDataPC);
-	linearBezier.numberOfVertices = linearBezier.vertexDataPC.size();
-	linearBezier.sizeOfIndexBuffer = 
-		linearBezier.indexData.size() * sizeof(unsigned short);
-	linearBezier.numberOfIndices = linearBezier.indexData.size();
-	linearBezier.vao = pcVAO;
-	linearBezier.shaderProgram = pcShaderProgram;
-	linearBezier.isDynamic = true;
-	linearBezier.maxSizeOfVertexBuffer = 50 * sizeof(VertexDataPC);
-	linearBezier.maxSizeOfIndexBuffer =
-		linearBezier.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
-	linearBezier.vbo = AllocateVertexBufferPC(linearBezier);
-	linearBezier.ibo = AllocateIndexBuffer(linearBezier);
+	SetUpDynamicPCGraphicsObject(
+		linearBezier, linearBezierPCData, pcVAO, pcShaderProgram, 50);
 	linearBezier.referenceFrame[3] = glm::vec4(0.0f, 0.0f, -10.0f, 1.0f);
 
 	GraphicsObject quadraticBezier;
@@ -1115,22 +1096,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	PCData quadraticBezierPCData =
 		CreateQuadraticBezierPC(
 			qbP0, qbP1, qbP2, { 1.0f, 1.0f, 1.0f }, quadraticBezierSteps);
-	quadraticBezier.vertexDataPC = quadraticBezierPCData.vertexData;
-	quadraticBezier.indexData = quadraticBezierPCData.indexData;
-	quadraticBezier.sizeOfVertexBuffer =
-		quadraticBezier.vertexDataPC.size() * sizeof(VertexDataPC);
-	quadraticBezier.numberOfVertices = quadraticBezier.vertexDataPC.size();
-	quadraticBezier.sizeOfIndexBuffer =
-		quadraticBezier.indexData.size() * sizeof(unsigned short);
-	quadraticBezier.numberOfIndices = quadraticBezier.indexData.size();
-	quadraticBezier.vao = pcVAO;
-	quadraticBezier.shaderProgram = pcShaderProgram;
-	quadraticBezier.isDynamic = true;
-	quadraticBezier.maxSizeOfVertexBuffer = 50 * sizeof(VertexDataPC);
-	quadraticBezier.maxSizeOfIndexBuffer =
-		quadraticBezier.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
-	quadraticBezier.vbo = AllocateVertexBufferPC(quadraticBezier);
-	quadraticBezier.ibo = AllocateIndexBuffer(quadraticBezier);
+	SetUpDynamicPCGraphicsObject(
+		quadraticBezier, quadraticBezierPCData, pcVAO, pcShaderProgram, 50);
 	quadraticBezier.referenceFrame[3] = glm::vec4(10.0f, 0.0f, -10.0f, 1.0f);;
 
 	float cubeYAngle = 0;
