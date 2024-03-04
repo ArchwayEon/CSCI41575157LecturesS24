@@ -1081,12 +1081,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		spirograph.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
 	spirograph.vbo = AllocateVertexBufferPC(spirograph);
 	spirograph.ibo = AllocateIndexBuffer(spirograph);
-	spirograph.referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -8.0f, 1.0f);
+	spirograph.referenceFrame[3] = glm::vec4(-10.0f, 0.0f, -10.0f, 1.0f);
 
 	GraphicsObject linearBezier;
 	int linearBezierSteps = 10;
-	glm::vec3 lbP0(-10.0f, 0.0f, 0.0f);
-	glm::vec3 lbP1(10.0f, 0.0f, 0.0f);
+	glm::vec3 lbP0(-5.0f, 0.0f, 0.0f);
+	glm::vec3 lbP1(5.0f, 0.0f, 0.0f);
 	PCData linearBezierPCData =
 		CreateLinearBezierPC(lbP0, lbP1, { 1.0f, 1.0f, 1.0f }, linearBezierSteps);
 	linearBezier.vertexDataPC = linearBezierPCData.vertexData;
@@ -1105,7 +1105,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		linearBezier.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
 	linearBezier.vbo = AllocateVertexBufferPC(linearBezier);
 	linearBezier.ibo = AllocateIndexBuffer(linearBezier);
-	linearBezier.referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -7.0f, 1.0f);
+	linearBezier.referenceFrame[3] = glm::vec4(0.0f, 0.0f, -10.0f, 1.0f);
 
 	GraphicsObject quadraticBezier;
 	int quadraticBezierSteps = 10;
@@ -1131,7 +1131,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		quadraticBezier.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
 	quadraticBezier.vbo = AllocateVertexBufferPC(quadraticBezier);
 	quadraticBezier.ibo = AllocateIndexBuffer(quadraticBezier);
-	quadraticBezier.referenceFrame[3] = glm::vec4(0.0f, 0.5f, 0.0f, 1.0f);
+	quadraticBezier.referenceFrame[3] = glm::vec4(10.0f, 0.0f, -10.0f, 1.0f);;
 
 	float cubeYAngle = 0;
 	float cubeXAngle = 0;
