@@ -652,6 +652,99 @@ PCData CreateQuadraticBezierPC(
 	return pcData;
 }
 
+void GenerateQuadraticBezierPCMat(
+	std::vector<VertexDataPC>& data,
+	const glm::mat3& pointMat, glm::vec3 color, int steps)
+{
+	data.clear();
+	glm::mat3 CM{};
+	CM[0] = glm::vec3(1, -2, 1);
+	CM[1] = glm::vec3(-2, 2, 0);
+	CM[2] = glm::vec3(1, 0, 0);
+	glm::vec3 tv = { 0, 0, 1 };
+	glm::vec3 q{};
+	float tick = 1.0f / steps;
+	for (float t = 0; t <= 1; t += tick) {
+		tv[0] = t * t;
+		tv[1] = t;
+		float coef = 1 - t;
+		float coefSq = coef * coef;
+		q = pointMat * CM * tv;
+		data.push_back({ {q.x, q.y, q.z}, color });
+	}
+}
+
+PCData CreateQuadraticBezierPCMat(
+	glm::mat3 pointMat, glm::vec3 color, int steps = 10)
+{
+	PCData pcData{};
+	GenerateQuadraticBezierPCMat(pcData.vertexData, pointMat, color, steps);
+	GenerateLinesIndexDataUnconnected(
+		pcData.indexData, pcData.vertexData.size());
+	return pcData;
+}
+
+void GenerateCubicBezierPC(
+	std::vector<VertexDataPC>& data,
+	glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 color, int steps)
+{
+	data.clear();
+	glm::vec3 c{};
+	float tick = 1.0f / steps;
+	for (float t = 0; t <= 1; t += tick) {
+		float coef = 1 - t;
+		float coef2 = coef * coef;
+		float coef3 = coef * coef * coef;
+		c = (coef3 * p0)
+			+ (3 * coef2 * t * p1)
+			+ (3 * coef * t * t * p2)
+			+ (t * t * t * p3);
+  		data.push_back({ {c.x, c.y, c.z}, color });
+	}
+}
+
+PCData CreateCubicBezierPC(
+	glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 color, int steps = 10)
+{
+	PCData pcData{};
+	GenerateCubicBezierPC(pcData.vertexData, p0, p1, p2, p3, color, steps);
+	GenerateLinesIndexDataUnconnected(
+		pcData.indexData, pcData.vertexData.size());
+	return pcData;
+}
+
+void GenerateCubicBezierPCMat(
+	std::vector<VertexDataPC>& data,
+	const glm::mat4& pointMat, glm::vec3 color, int steps)
+{
+	data.clear();
+	glm::mat4 CM{};
+	CM[0] = glm::vec4(-1, 3, -3, 1);
+	CM[1] = glm::vec4( 3, -6, 3, 0);
+	CM[2] = glm::vec4(-3, 3, 0, 0);
+	CM[3] = glm::vec4( 1, 0, 0, 0);
+	glm::vec4 tv = { 0, 0, 0, 1 };
+	glm::vec4 c{};
+	float tick = 1.0f / steps;
+	for (float t = 0; t <= 1; t += tick) {
+		tv[0] = t * t * t;
+		tv[1] = t * t;
+		tv[2] = t;
+		c = pointMat * CM * tv;
+		data.push_back({ {c.x, c.y, c.z}, color });
+	}
+}
+
+PCData CreateCubicBezierPCMat(
+	glm::mat4 pointMat, glm::vec3 color, int steps = 10)
+{
+	PCData pcData{};
+	GenerateCubicBezierPCMat(pcData.vertexData, pointMat, color, steps);
+	GenerateLinesIndexDataUnconnected(
+		pcData.indexData, pcData.vertexData.size());
+	return pcData;
+}
+
 void PointAt(glm::mat4& referenceFrame, const glm::vec3& point)
 {
 	glm::vec3 position = referenceFrame[3];
@@ -1098,7 +1191,47 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			qbP0, qbP1, qbP2, { 1.0f, 1.0f, 1.0f }, quadraticBezierSteps);
 	SetUpDynamicPCGraphicsObject(
 		quadraticBezier, quadraticBezierPCData, pcVAO, pcShaderProgram, 50);
-	quadraticBezier.referenceFrame[3] = glm::vec4(10.0f, 0.0f, -10.0f, 1.0f);;
+	quadraticBezier.referenceFrame[3] = glm::vec4(10.0f, 0.0f, -10.0f, 1.0f);
+
+	GraphicsObject quadraticBezierM;
+	int quadraticBezierMSteps = 10;
+	glm::mat3 pM{};
+	pM[0] = { -5.0f, 0.0f, 0.0f };
+	pM[1] = { 0.0f, 8.0f, 0.0f };
+	pM[2] = { 5.0f, -8.0f, 0.0f };
+	PCData quadraticBezierPCMatData =
+		CreateQuadraticBezierPCMat(
+			pM, { 1.0f, 1.0f, 0.0f }, quadraticBezierMSteps);
+	SetUpDynamicPCGraphicsObject(
+		quadraticBezierM, quadraticBezierPCMatData, pcVAO, pcShaderProgram, 50);
+	quadraticBezierM.referenceFrame[3] = glm::vec4(20.0f, 0.0f, -10.0f, 1.0f);
+
+	GraphicsObject cubicBezier;
+	int cubicBezierSteps = 20;
+	glm::vec3 cbP0(-5.0f, 0.0f, 0.0f);
+	glm::vec3 cbP1(0.0f, 8.0f, 0.0f);
+	glm::vec3 cbP2(5.0f, -8.0f, 0.0f);
+	glm::vec3 cbP3(5.0f, 0.0f, 0.0f);
+	PCData cubicBezierPCData =
+		CreateCubicBezierPC(
+			cbP0, cbP1, cbP2, cbP3, { 1.0f, 1.0f, 1.0f }, cubicBezierSteps);
+	SetUpDynamicPCGraphicsObject(
+		cubicBezier, cubicBezierPCData, pcVAO, pcShaderProgram, 50);
+	cubicBezier.referenceFrame[3] = glm::vec4(-20.0f, 0.0f, 0.0f, 1.0f);
+
+	GraphicsObject cubicBezierM;
+	int cubicBezierMSteps = 20;
+	glm::mat4 cpM{};
+	cpM[0] = { -5.0f, 0.0f, 0.0f, 1.0f };
+	cpM[1] = { 0.0f, 8.0f, 0.0f, 1.0f };
+	cpM[2] = { 5.0f, -8.0f, 0.0f, 1.0f };
+	cpM[3] = { 5.0f, 0.0f, 0.0f, 1.0f };
+	PCData cubicBezierPCMatData =
+		CreateCubicBezierPCMat(
+			cpM, { 1.0f, 1.0f, 0.0f }, cubicBezierMSteps);
+	SetUpDynamicPCGraphicsObject(
+		cubicBezierM, cubicBezierPCMatData, pcVAO, pcShaderProgram, 50);
+	cubicBezierM.referenceFrame[3] = glm::vec4(-8.0f, 0.0f, 0.0f, 1.0f);
 
 	float cubeYAngle = 0;
 	float cubeXAngle = 0;
@@ -1168,6 +1301,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	bool lookWithMouse = false;
 	bool resetCameraPosition = false;
 	bool correctGamma = false;
+	bool showCircle = true;
+	bool showSpirograph = true;
 	Timer timer;
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
@@ -1238,21 +1373,26 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 		if (resultPC.isSuccess)
 		{
-			GenerateXYCirclePCVertexData(
-				circle.vertexDataPC, circleRadius, { 1.0f, 1.0f, 1.0f }, circleSteps);
-			GenerateLinesIndexDataConnected(
-				circle.indexData, circle.vertexDataPC.size());
-			RenderObjectPC(
-				circle, pcLocation, projection, view, GL_LINES);
+			if (showCircle) {
+				GenerateXYCirclePCVertexData(
+					circle.vertexDataPC, circleRadius, { 1.0f, 1.0f, 1.0f }, circleSteps);
+				GenerateLinesIndexDataConnected(
+					circle.indexData, circle.vertexDataPC.size());
+				RenderObjectPC(
+					circle, pcLocation, projection, view, GL_LINES);
+			}
 
-			GenerateXYSpirographPCVertexData(
-				spirograph.vertexDataPC, 
-				spirographR, spirographl, spirographk, 
-				{ 1.0f, 1.0f, 1.0f }, revolutions, spirographSteps);
-			GenerateLinesIndexDataUnconnected(
-				spirograph.indexData, spirograph.vertexDataPC.size());
-			RenderObjectPC(
-				spirograph, pcLocation, projection, view, GL_LINES);
+			if (showSpirograph) {
+				GenerateXYSpirographPCVertexData(
+					spirograph.vertexDataPC,
+					spirographR, spirographl, spirographk,
+					{ 1.0f, 1.0f, 1.0f }, revolutions, spirographSteps);
+				GenerateLinesIndexDataUnconnected(
+					spirograph.indexData, spirograph.vertexDataPC.size());
+				RenderObjectPC(
+					spirograph, pcLocation, projection, view, GL_LINES);
+			}
+
 
 			GenerateLinearBezierPC(
 				linearBezier.vertexDataPC, lbP0, lbP1, { 1.0f, 1.0f, 1.0f }, 
@@ -1269,6 +1409,28 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				quadraticBezier.indexData, quadraticBezier.vertexDataPC.size());
 			RenderObjectPC(
 				quadraticBezier, pcLocation, projection, view, GL_LINES);
+
+			GenerateQuadraticBezierPCMat(
+				quadraticBezierM.vertexDataPC, pM, { 1.0f, 1.0f, 0.0f }, quadraticBezierMSteps);
+			GenerateLinesIndexDataUnconnected(
+				quadraticBezierM.indexData, quadraticBezierM.vertexDataPC.size());
+			RenderObjectPC(
+				quadraticBezierM, pcLocation, projection, view, GL_LINES);
+
+			GenerateCubicBezierPC(
+				cubicBezier.vertexDataPC, cbP0, cbP1, cbP2, cbP3,
+				{ 1.0f, 1.0f, 1.0f }, cubicBezierSteps);
+			GenerateLinesIndexDataUnconnected(
+				cubicBezier.indexData, cubicBezier.vertexDataPC.size());
+			RenderObjectPC(
+				cubicBezier, pcLocation, projection, view, GL_LINES);
+
+			GenerateCubicBezierPCMat(
+				cubicBezierM.vertexDataPC, cpM, { 1.0f, 1.0f, 0.0f }, cubicBezierMSteps);
+			GenerateLinesIndexDataUnconnected(
+				cubicBezierM.indexData, cubicBezierM.vertexDataPC.size());
+			RenderObjectPC(
+				cubicBezierM, pcLocation, projection, view, GL_LINES);
 		}
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -1287,10 +1449,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::SliderFloat("Speed", &speed, 0, 360);
 		ImGui::Checkbox("Use mouse to look", &lookWithMouse);
 		ImGui::Checkbox("Reset camera position", &resetCameraPosition);
-		ImGui::SliderFloat("Global Intensity", &globalLight.intensity, 0, 1);
-		ImGui::SliderFloat("Local Intensity", &localLight.intensity, 0, 1);
 		ImGui::Checkbox("Correct gamma", &correctGamma);
-		ImGui::SliderFloat("Attenuation", &localLight.attenuationCoef, 0, 1);
+		ImGui::Checkbox("Show Circle", &showCircle);
+		ImGui::Checkbox("Show Spirograph", &showSpirograph);
 		ImGui::SliderFloat("Radius", &circleRadius, 1, 10);
 		ImGui::SliderInt("Steps", &circleSteps, 10, 120);
 		ImGui::SliderFloat("Spirograph R", &spirographR, 1, 10);
