@@ -92,10 +92,16 @@ static void OnScroll(GLFWwindow* window, double xoffset, double yoffset)
 	if (mouse.fieldOfView > 60.0f) mouse.fieldOfView = 60.0f;
 }
 
-static void ProcessInput(GLFWwindow* window, double elapsedSeconds, glm::vec3& axis, glm::mat4& cameraFrame)
+static void ProcessInput(
+	GLFWwindow* window, double elapsedSeconds, 
+	glm::vec3& axis, glm::mat4& cameraFrame, bool& lookWithMouse)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS) {
+		lookWithMouse = !lookWithMouse;
 		return;
 	}
 	if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
@@ -564,6 +570,30 @@ void GenerateLinesIndexDataUnconnected(
 	}
 }
 
+void GenerateLinesIndexDataForBezierSurface(
+	std::vector<unsigned short>& data, std::size_t vertexCount, int steps)
+{
+	data.clear();
+	unsigned short index = 0;
+	unsigned short nextIndex;
+	for (int col = 0; col < steps; col++) {
+		for (int row = 0; row < steps - 1; row++) {
+			index = (col * steps) + row;
+			data.push_back(index);
+			nextIndex = index + 1;
+			data.push_back(nextIndex);
+		}
+	}
+	for (int row = 0; row < steps; row++) {
+		for (int col = 0; col < steps - 1; col++) {
+			index = (col * steps) + row;
+			data.push_back(index);
+			nextIndex = (col + 1) * steps + row;
+			data.push_back(nextIndex);
+		}
+	}
+}
+
 PCData CreateXYCirclePC(float radius, glm::vec3 color, int steps = 10)
 {
 	PCData pcData{};
@@ -742,6 +772,64 @@ PCData CreateCubicBezierPCMat(
 	GenerateCubicBezierPCMat(pcData.vertexData, pointMat, color, steps);
 	GenerateLinesIndexDataUnconnected(
 		pcData.indexData, pcData.vertexData.size());
+	return pcData;
+}
+
+void GenerateBezierPatch(
+	std::vector<VertexDataPC>& data,
+	glm::vec3 cp[][4], glm::vec3 color, int steps)
+{
+	data.clear();
+	glm::mat4 CM{};
+	CM[0] = glm::vec4(-1, 3, -3, 1);
+	CM[1] = glm::vec4(3, -6, 3, 0);
+	CM[2] = glm::vec4(-3, 3, 0, 0);
+	CM[3] = glm::vec4(1, 0, 0, 0);
+	glm::mat4 Px{}, Py{}, Pz{};
+	for (auto row = 0; row < 4; row++) {
+		for (auto col = 0; col < 4; col++) {
+			Px[row][col] = cp[row][col].x;
+			Py[row][col] = cp[row][col].y;
+			Pz[row][col] = cp[row][col].z;
+		}
+	}
+	glm::vec4 sv = { 0, 0, 0, 1 };
+	glm::vec4 tv = { 0, 0, 0, 1 };
+	float x, y, z;
+	float tick = 1.0f / steps;
+	for (float s = 0; s <= 1; s += tick) {
+		sv[0] = s * s * s;
+		sv[1] = s * s;
+		sv[2] = s;
+		for (float t = 0; t <= 1; t += tick) {
+			tv[0] = t * t * t;
+			tv[1] = t * t;
+			tv[2] = t;
+			x = glm::dot(sv, CM * Px * CM * tv);
+			y = glm::dot(sv, CM * Py * CM * tv);
+			z = glm::dot(sv, CM * Pz * CM * tv);
+			data.push_back({ { x, y, z }, color });
+		}
+	}
+}
+
+PCData CreateBezierPatch(
+	glm::vec3 points[][4], glm::vec3 color, int steps = 10)
+{
+	PCData pcData{};
+	GenerateBezierPatch(pcData.vertexData, points, color, steps);
+	GenerateLinesIndexDataUnconnected(
+		pcData.indexData, pcData.vertexData.size());
+	return pcData;
+}
+
+PCData CreateBezierPatchCrissCross(
+	glm::vec3 points[][4], glm::vec3 color, int steps = 10)
+{
+	PCData pcData{};
+	GenerateBezierPatch(pcData.vertexData, points, color, steps);
+	GenerateLinesIndexDataForBezierSurface(
+		pcData.indexData, pcData.vertexData.size(), steps);
 	return pcData;
 }
 
@@ -1233,6 +1321,41 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		cubicBezierM, cubicBezierPCMatData, pcVAO, pcShaderProgram, 50);
 	cubicBezierM.referenceFrame[3] = glm::vec4(-8.0f, 0.0f, 0.0f, 1.0f);
 
+	GraphicsObject bezierPatch;
+	glm::vec3 cpBezier[4][4];
+	cpBezier[0][0] = { -10, 1,-10 };
+	cpBezier[0][1] = { -5,  3,-10 };
+	cpBezier[0][2] = {  5, -3,-10 };
+	cpBezier[0][3] = {  10, 2,-10 };
+	cpBezier[1][0] = { -10, 0,-5 };
+	cpBezier[1][1] = { -5,  3,-5 };
+	cpBezier[1][2] = {  5, -3,-5 };
+	cpBezier[1][3] = {  10,-3,-5 };
+	cpBezier[2][0] = { -10, 2, 5 };
+	cpBezier[2][1] = { -5,  3, 5 };
+	cpBezier[2][2] = {  5, -3, 5 };
+	cpBezier[2][3] = {  10, 1, 5 };
+	cpBezier[3][0] = { -10,-2, 10 };
+	cpBezier[3][1] = { -5,  3, 10 };
+	cpBezier[3][2] = {  5, -3, 10 };
+	cpBezier[3][3] = {  10,-2, 10 };
+	int bezierPatchSteps = 20;
+	PCData bezierPatchPCData =
+		CreateBezierPatch(cpBezier, { 0.0f, 1.0f, 0.0f }, bezierPatchSteps);
+	SetUpDynamicPCGraphicsObject(
+		bezierPatch, bezierPatchPCData, pcVAO, pcShaderProgram, 500);
+	bezierPatch.referenceFrame[3] = glm::vec4(-15.0f, 2.0f, 15.0f, 1.0f);
+
+	GraphicsObject bezierPatchX;
+	int bezierPatchStepsX = 20;
+	PCData bezierPatchXPCData =
+		CreateBezierPatchCrissCross(
+			cpBezier, { 0.0f, 1.0f, 1.0f }, bezierPatchStepsX);
+	SetUpDynamicPCGraphicsObject(
+		bezierPatchX, bezierPatchXPCData, pcVAO, pcShaderProgram, 
+		bezierPatchStepsX * bezierPatchStepsX);
+	bezierPatchX.referenceFrame[3] = glm::vec4(15.0f, 2.0f, 15.0f, 1.0f);
+
 	float cubeYAngle = 0;
 	float cubeXAngle = 0;
 	float cubeZAngle = 0;
@@ -1306,7 +1429,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	Timer timer;
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
-		ProcessInput(window, elapsedSeconds, axis, cameraFrame);
+		ProcessInput(window, elapsedSeconds, axis, cameraFrame, lookWithMouse);
 		glfwGetWindowSize(window, &width, &height);
 		mouse.windowWidth = width;
 		mouse.windowHeight = height;
@@ -1431,6 +1554,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				cubicBezierM.indexData, cubicBezierM.vertexDataPC.size());
 			RenderObjectPC(
 				cubicBezierM, pcLocation, projection, view, GL_LINES);
+
+			GenerateBezierPatch(
+				bezierPatch.vertexDataPC, cpBezier, { 0.0f, 1.0f, 0.0f }, bezierPatchSteps);
+			GenerateLinesIndexDataUnconnected(
+				bezierPatch.indexData, bezierPatch.vertexDataPC.size());
+			RenderObjectPC(
+				bezierPatch, pcLocation, projection, view, GL_LINES);
+
+			GenerateBezierPatch(
+				bezierPatchX.vertexDataPC, cpBezier, { 0.0f, 1.0f, 1.0f }, 
+				bezierPatchStepsX);
+			GenerateLinesIndexDataForBezierSurface(
+				bezierPatchX.indexData, bezierPatchX.vertexDataPC.size(), 
+				bezierPatchStepsX);
+			RenderObjectPC(
+				bezierPatchX, pcLocation, projection, view, GL_LINES);
 		}
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -1463,6 +1602,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::DragFloat3("QB Point 1", &qbP0.x, 0.1f);
 		ImGui::DragFloat3("QB Point 2", &qbP1.x, 0.1f);
 		ImGui::DragFloat3("QB Point 3", &qbP2.x, 0.1f);
+		ImGui::SliderInt("Patch Steps", &bezierPatchSteps, 5, 20);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
