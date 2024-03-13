@@ -345,159 +345,6 @@ static unsigned int CreateTextureFromFile(const std::string& filePath)
 	return textureId;
 }
 
-
-
-void GenerateQuadraticBezierPCMat(
-	std::vector<VertexDataPC>& data,
-	const glm::mat3& pointMat, glm::vec3 color, int steps)
-{
-	data.clear();
-	glm::mat3 CM{};
-	CM[0] = glm::vec3(1, -2, 1);
-	CM[1] = glm::vec3(-2, 2, 0);
-	CM[2] = glm::vec3(1, 0, 0);
-	glm::vec3 tv = { 0, 0, 1 };
-	glm::vec3 q{};
-	float tick = 1.0f / steps;
-	for (float t = 0; t <= 1; t += tick) {
-		tv[0] = t * t;
-		tv[1] = t;
-		float coef = 1 - t;
-		float coefSq = coef * coef;
-		q = pointMat * CM * tv;
-		data.push_back({ {q.x, q.y, q.z}, color });
-	}
-}
-
-PCData CreateQuadraticBezierPCMat(
-	glm::mat3 pointMat, glm::vec3 color, int steps = 10)
-{
-	PCData pcData{};
-	GenerateQuadraticBezierPCMat(pcData.vertexData, pointMat, color, steps);
-	GenerateLinesIndexDataUnconnected(
-		pcData.indexData, pcData.vertexData.size());
-	return pcData;
-}
-
-void GenerateCubicBezierPC(
-	std::vector<VertexDataPC>& data,
-	glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 color, int steps)
-{
-	data.clear();
-	glm::vec3 c{};
-	float tick = 1.0f / steps;
-	for (float t = 0; t <= 1; t += tick) {
-		float coef = 1 - t;
-		float coef2 = coef * coef;
-		float coef3 = coef * coef * coef;
-		c = (coef3 * p0)
-			+ (3 * coef2 * t * p1)
-			+ (3 * coef * t * t * p2)
-			+ (t * t * t * p3);
-  		data.push_back({ {c.x, c.y, c.z}, color });
-	}
-}
-
-PCData CreateCubicBezierPC(
-	glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 color, int steps = 10)
-{
-	PCData pcData{};
-	GenerateCubicBezierPC(pcData.vertexData, p0, p1, p2, p3, color, steps);
-	GenerateLinesIndexDataUnconnected(
-		pcData.indexData, pcData.vertexData.size());
-	return pcData;
-}
-
-void GenerateCubicBezierPCMat(
-	std::vector<VertexDataPC>& data,
-	const glm::mat4& pointMat, glm::vec3 color, int steps)
-{
-	data.clear();
-	glm::mat4 CM{};
-	CM[0] = glm::vec4(-1, 3, -3, 1);
-	CM[1] = glm::vec4( 3, -6, 3, 0);
-	CM[2] = glm::vec4(-3, 3, 0, 0);
-	CM[3] = glm::vec4( 1, 0, 0, 0);
-	glm::vec4 tv = { 0, 0, 0, 1 };
-	glm::vec4 c{};
-	float tick = 1.0f / steps;
-	for (float t = 0; t <= 1; t += tick) {
-		tv[0] = t * t * t;
-		tv[1] = t * t;
-		tv[2] = t;
-		c = pointMat * CM * tv;
-		data.push_back({ {c.x, c.y, c.z}, color });
-	}
-}
-
-PCData CreateCubicBezierPCMat(
-	glm::mat4 pointMat, glm::vec3 color, int steps = 10)
-{
-	PCData pcData{};
-	GenerateCubicBezierPCMat(pcData.vertexData, pointMat, color, steps);
-	GenerateLinesIndexDataUnconnected(
-		pcData.indexData, pcData.vertexData.size());
-	return pcData;
-}
-
-void GenerateBezierPatch(
-	std::vector<VertexDataPC>& data,
-	glm::vec3 cp[][4], glm::vec3 color, int steps)
-{
-	data.clear();
-	glm::mat4 CM{};
-	CM[0] = glm::vec4(-1, 3, -3, 1);
-	CM[1] = glm::vec4(3, -6, 3, 0);
-	CM[2] = glm::vec4(-3, 3, 0, 0);
-	CM[3] = glm::vec4(1, 0, 0, 0);
-	glm::mat4 Px{}, Py{}, Pz{};
-	for (auto row = 0; row < 4; row++) {
-		for (auto col = 0; col < 4; col++) {
-			Px[row][col] = cp[row][col].x;
-			Py[row][col] = cp[row][col].y;
-			Pz[row][col] = cp[row][col].z;
-		}
-	}
-	glm::vec4 sv = { 0, 0, 0, 1 };
-	glm::vec4 tv = { 0, 0, 0, 1 };
-	float x, y, z;
-	float tick = 1.0f / steps;
-	for (float s = 0; s <= 1; s += tick) {
-		sv[0] = s * s * s;
-		sv[1] = s * s;
-		sv[2] = s;
-		for (float t = 0; t <= 1; t += tick) {
-			tv[0] = t * t * t;
-			tv[1] = t * t;
-			tv[2] = t;
-			x = glm::dot(sv, CM * Px * CM * tv);
-			y = glm::dot(sv, CM * Py * CM * tv);
-			z = glm::dot(sv, CM * Pz * CM * tv);
-			data.push_back({ { x, y, z }, color });
-		}
-	}
-}
-
-PCData CreateBezierPatch(
-	glm::vec3 points[][4], glm::vec3 color, int steps = 10)
-{
-	PCData pcData{};
-	GenerateBezierPatch(pcData.vertexData, points, color, steps);
-	GenerateLinesIndexDataUnconnected(
-		pcData.indexData, pcData.vertexData.size());
-	return pcData;
-}
-
-PCData CreateBezierPatchCrissCross(
-	glm::vec3 points[][4], glm::vec3 color, int steps = 10)
-{
-	PCData pcData{};
-	GenerateBezierPatch(pcData.vertexData, points, color, steps);
-	GenerateLinesIndexDataForBezierSurface(
-		pcData.indexData, pcData.vertexData.size(), steps);
-	return pcData;
-}
-
 void PointAt(glm::mat4& referenceFrame, const glm::vec3& point)
 {
 	glm::vec3 position = referenceFrame[3];
@@ -591,29 +438,6 @@ static unsigned int AllocateIndexBuffer(GraphicsObject& object)
 	glBindVertexArray(0);
 	return object.ibo;
 }
-
-struct LightingShaderLocation {
-	unsigned int worldLoc = 0;
-	unsigned int projectionLoc = 0;
-	unsigned int viewLoc = 0;
-	unsigned int materialAmbientLoc = 0;
-	unsigned int materialSpecularLoc = 0;
-	unsigned int materialShininessLoc = 0;
-	unsigned int globalLightPositionLoc = 0;
-	unsigned int globalLightColorLoc = 0;
-	unsigned int globalLightIntensityLoc = 0;
-	unsigned int localLightPositionLoc = 0;
-	unsigned int localLightColorLoc = 0;
-	unsigned int localLightIntensityLoc = 0;
-	unsigned int localLightAttenuationLoc = 0;
-	unsigned int viewPositionLoc = 0;
-};
-
-struct BasicShaderLocation {
-	unsigned int worldLoc = 0;
-	unsigned int projectionLoc = 0;
-	unsigned int viewLoc = 0;
-};
 
 static void RenderObjectPCNT(
 	GraphicsObject& object, LightingShaderLocation& location,
@@ -749,8 +573,7 @@ void SetUpDynamicPCGraphicsObject(
 		object.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
 	object.vbo = AllocateVertexBufferPC(object);
 	object.ibo = AllocateIndexBuffer(object);
-
-}
+ }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,

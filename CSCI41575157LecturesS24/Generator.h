@@ -51,3 +51,36 @@ void GenerateQuadraticBezierPC(
 
 PCData CreateQuadraticBezierPC(
 	glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 color, int steps = 10);
+
+void GenerateQuadraticBezierPCMat(
+	std::vector<VertexDataPC>& data,
+	const glm::mat3& pointMat, glm::vec3 color, int steps = 10);
+
+PCData CreateQuadraticBezierPCMat(
+	glm::mat3 pointMat, glm::vec3 color, int steps = 10);
+
+void GenerateCubicBezierPC(
+	std::vector<VertexDataPC>& data,
+	glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3,
+	glm::vec3 color, int steps);
+
+PCData CreateCubicBezierPC(
+	glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3,
+	glm::vec3 color, int steps = 10);
+
+void GenerateCubicBezierPCMat(
+	std::vector<VertexDataPC>& data,
+	const glm::mat4& pointMat, glm::vec3 color, int steps);
+
+PCData CreateCubicBezierPCMat(
+	glm::mat4 pointMat, glm::vec3 color, int steps = 10);
+
+void GenerateBezierPatch(
+	std::vector<VertexDataPC>& data,
+	glm::vec3 cp[][4], glm::vec3 color, int steps);
+
+PCData CreateBezierPatch(
+	glm::vec3 points[][4], glm::vec3 color, int steps = 10);
+
+PCData CreateBezierPatchCrissCross(
+	glm::vec3 points[][4], glm::vec3 color, int steps = 10);

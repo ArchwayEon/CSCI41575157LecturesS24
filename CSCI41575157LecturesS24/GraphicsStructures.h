@@ -98,3 +98,26 @@ struct GraphicsObject {
 	glm::mat4 referenceFrame = glm::mat4(1.0f);
 	Material material{};
 };
+
+struct LightingShaderLocation {
+	unsigned int worldLoc = 0;
+	unsigned int projectionLoc = 0;
+	unsigned int viewLoc = 0;
+	unsigned int materialAmbientLoc = 0;
+	unsigned int materialSpecularLoc = 0;
+	unsigned int materialShininessLoc = 0;
+	unsigned int globalLightPositionLoc = 0;
+	unsigned int globalLightColorLoc = 0;
+	unsigned int globalLightIntensityLoc = 0;
+	unsigned int localLightPositionLoc = 0;
+	unsigned int localLightColorLoc = 0;
+	unsigned int localLightIntensityLoc = 0;
+	unsigned int localLightAttenuationLoc = 0;
+	unsigned int viewPositionLoc = 0;
+};
+
+struct BasicShaderLocation {
+	unsigned int worldLoc = 0;
+	unsigned int projectionLoc = 0;
+	unsigned int viewLoc = 0;
+};
