@@ -141,10 +141,15 @@
     <ClCompile Include="..\3rdparty\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="..\3rdparty\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\3rdparty\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Generator.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="PCRenderer.cpp" />
     <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Generator.h" />
+    <ClInclude Include="GraphicsStructures.h" />
+    <ClInclude Include="PCRenderer.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>
