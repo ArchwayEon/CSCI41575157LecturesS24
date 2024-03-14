@@ -1,14 +1,23 @@
 #include "IVertexArray.h"
 #include <glad/glad.h> 
 
-IVertexArray::IVertexArray() : shaderProgram(0), vertexSize(0)
+IVertexArray::IVertexArray() 
 {
-	glGenVertexArrays(1, &vao);
+
 }
 
-void IVertexArray::AddObject(std::shared_ptr<GraphicsObject> object)
+void IVertexArray::EnableAttribute(
+	int attribIndex, int elementCount, int sizeInBytes, void* offset)
 {
-	object->shaderProgram = this->shaderProgram;
-	object->vbo = StaticAllocateVertexBuffer(object);
-	objects.push_back(object);
+	glEnableVertexAttribArray(attribIndex);
+	glVertexAttribPointer(
+		attribIndex,
+		elementCount,
+		GL_FLOAT,
+		GL_FALSE,
+		sizeInBytes, // The number of bytes to the next element
+		offset       // Byte offset of the first position in the array
+	);
 }
+
+

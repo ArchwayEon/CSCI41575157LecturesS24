@@ -141,21 +141,25 @@
     <ClCompile Include="..\3rdparty\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="..\3rdparty\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\3rdparty\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="BaseObject.cpp" />
     <ClCompile Include="Generator.cpp" />
     <ClCompile Include="IVertexArray.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PCNTVertexArray.cpp" />
     <ClCompile Include="PCRenderer.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BaseObject.h" />
     <ClInclude Include="Generator.h" />
     <ClInclude Include="GraphicsStructures.h" />
     <ClInclude Include="IVertexArray.h" />
     <ClInclude Include="PCNTVertexArray.h" />
     <ClInclude Include="PCRenderer.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Shader.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>

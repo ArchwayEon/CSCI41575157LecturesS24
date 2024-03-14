@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include "Renderer.h"
 #include "PCNTVertexArray.h"
+#include "Shader.h"
 
 // Eek! A global mouse!
 MouseParams mouse;
@@ -625,15 +626,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	glDepthFunc(GL_LEQUAL);
 	glDepthRange(0.0f, 1.0f);
 
-	std::string vertexSource1 = ReadFromFile("lighting.vert.glsl");
-	std::string fragmentSource1 = ReadFromFile("lighting.frag.glsl");
+	std::string lightingVertexSource = ReadFromFile("lighting.vert.glsl");
+	std::string lightingFragmentSource = ReadFromFile("lighting.frag.glsl");
+	std::shared_ptr<Shader> lightingShader = 
+		std::make_shared<Shader>(lightingVertexSource, lightingFragmentSource);
+
 	std::string vertexSource2 = ReadFromFile("basic.vert.glsl");
 	std::string fragmentSource2 = ReadFromFile("basic.frag.glsl");
 	std::string pcVertexSource = ReadFromFile("pc.vert.glsl");
 	std::string pcFragmentSource = ReadFromFile("pc.frag.glsl");
 
 	unsigned int lightingShaderProgram;
-	Result result1 = CreateShaderProgram(vertexSource1, fragmentSource1, lightingShaderProgram);
+	Result result1 = CreateShaderProgram(lightingVertexSource, lightingFragmentSource, lightingShaderProgram);
 	unsigned int textureShaderProgram;
 	Result result2 = CreateShaderProgram(vertexSource2, fragmentSource2, textureShaderProgram);
 	unsigned int pcShaderProgram;
@@ -656,6 +660,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		glGetUniformLocation(lightingShaderProgram, "view");
 	lightingLocation.worldLoc =
 		glGetUniformLocation(lightingShaderProgram, "world");
+
+	lightingShader->AddUniform("projection");
+	lightingShader->AddUniform("view");
+	lightingShader->AddUniform("world");
+
 	BasicShaderLocation textureLocation;
 	textureLocation.projectionLoc =
 		glGetUniformLocation(textureShaderProgram, "projection");
@@ -663,6 +672,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		glGetUniformLocation(textureShaderProgram, "view");
 	textureLocation.worldLoc =
 		glGetUniformLocation(textureShaderProgram, "world");
+
 	BasicShaderLocation pcLocation;
 	pcLocation.projectionLoc =
 		glGetUniformLocation(pcShaderProgram, "projection");
@@ -689,43 +699,43 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	std::unordered_map<std::string, SGraphicsObject> allObjects;
 
 	std::shared_ptr<PCNTVertexArray> vaPCNT = std::make_shared<PCNTVertexArray>();
-	vaPCNT->SetShaderProgram(lightingShaderProgram);
-	vaPCNT->SetVertexSize(sizeof(VertexDataPCNT));
 
 	SRenderer lightingRenderer = std::make_shared<Renderer>(vaPCNT);
+	lightingRenderer->SetShaderProgram(lightingShader);
+	lightingRenderer->SetVertexSize(sizeof(VertexDataPCNT));
 
 	SGraphicsObject cube = std::make_shared<GraphicsObject>();
+	cube->primitive = GL_TRIANGLES;
 	cube->vertexDataPCNT = CreateCubeVertexData();
 	cube->sizeOfVertexBuffer = 36 * sizeof(VertexDataPCNT);
 	cube->numberOfVertices = 36;
-	//cube->vao = lightingVAO;
-	//cube->shaderProgram = lightingShaderProgram;
-	//cube->vbo = AllocateVertexBufferPCNT(*cube);
 	cube->textureId = customTextureId;
 	cube->material.ambientIntensity = 0.1f;
 	cube->material.specularIntensity = 0.5f;
 	cube->material.shininess = 16.0f;
 	cube->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
 	allObjects["cube"] = cube;
-	vaPCNT->AddObject(cube);
+	lightingRenderer->AddObject(cube);
 
-	unsigned int lightingVAO;
-	glGenVertexArrays(1, &lightingVAO);
+	//unsigned int lightingVAO;
+	//glGenVertexArrays(1, &lightingVAO);
 
 	SGraphicsObject floor = std::make_shared<GraphicsObject>();
+	floor->primitive = GL_TRIANGLES;
 	floor->vertexDataPCNT =
 		CreateXZPlanePCNT(50.0f, 50.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 5.0f, 5.0f);
 	floor->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCNT);
 	floor->numberOfVertices = 6;
-	floor->vao = lightingVAO;
-	floor->shaderProgram = lightingShaderProgram;
-	floor->vbo = AllocateVertexBufferPCNT(*floor);
+	//floor->vao = lightingVAO;
+	//floor->shaderProgram = lightingShaderProgram;
+	//floor->vbo = AllocateVertexBufferPCNT(*floor);
 	floor->textureId = CreateTextureFromFile("stone-road-texture.jpg");
 	floor->referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
 	floor->material.ambientIntensity = 0.1f;
 	floor->material.specularIntensity = 0.5f;
 	floor->material.shininess = 16.0f;
 	allObjects["floor"] = floor;
+	lightingRenderer->AddObject(floor);
 
 	unsigned int basicTextureVAO;
 	glGenVertexArrays(1, &basicTextureVAO);
@@ -901,6 +911,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	lightingLocation.materialShininessLoc =
 		glGetUniformLocation(lightingShaderProgram, "materialShininess");
 
+	lightingShader->AddUniform("materialAmbientIntensity");
+	lightingShader->AddUniform("materialSpecularIntensity");
+	lightingShader->AddUniform("materialShininess");
+
 	// Lights
 	Light globalLight{};
 	globalLight.position = glm::vec3(100.0f, 100.0f, 0.0f);
@@ -912,6 +926,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		glGetUniformLocation(lightingShaderProgram, "globalLightColor");
 	lightingLocation.globalLightIntensityLoc =
 		glGetUniformLocation(lightingShaderProgram, "globalLightIntensity");
+
+	lightingShader->AddUniform("globalLightPosition");
+	lightingShader->AddUniform("globalLightColor");
+	lightingShader->AddUniform("globalLightIntensity");
+
 	Light localLight{};
 	localLight.position = glm::vec3(0.0f, 0.0f, -17.0f);
 	localLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
@@ -927,6 +946,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		glGetUniformLocation(lightingShaderProgram, "localLightAttenuationCoef");
 	lightingLocation.viewPositionLoc =
 		glGetUniformLocation(lightingShaderProgram, "viewPosition");
+
+	lightingShader->AddUniform("localLightPosition");
+	lightingShader->AddUniform("localLightColor");
+	lightingShader->AddUniform("localLightIntensity");
+	lightingShader->AddUniform("localLightAttenuationCoef");
+	lightingShader->AddUniform("viewPosition");
 
 	glm::mat4 lookFrame(1.0f);
 	glm::mat4 cameraFrame(1.0f);
@@ -997,13 +1022,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 		// Render the object
 		if (result1.isSuccess) {
+			lightingRenderer->Select();
+			lightingRenderer->Send("projection", projection);
+			lightingRenderer->Send("view", view);
+			lightingRenderer->Send("globalLightPosition", globalLight.position);
+			lightingRenderer->Send("globalLightColor", globalLight.color);
+			lightingRenderer->Send("globalLightIntensity", globalLight.intensity);
+			lightingRenderer->Send("localLightPosition", localLight.position);
+			lightingRenderer->Send("localLightColor", localLight.color);
+			lightingRenderer->Send("localLightIntensity", localLight.intensity);
+			lightingRenderer->Send(
+				"localLightAttenuationCoef", localLight.attenuationCoef);
+			lightingRenderer->Send("viewPosition", cameraPosition);
 			lightingRenderer->Render();
-			//RenderObjectPCNT(
-			//	*cube, lightingLocation, projection, view,
-			//	globalLight, localLight, cameraPosition, GL_TRIANGLES);
-			RenderObjectPCNT(
-				*floor, lightingLocation, projection, view,
-				globalLight, localLight, cameraPosition, GL_TRIANGLES);
 		}
 
 		if (result2.isSuccess)

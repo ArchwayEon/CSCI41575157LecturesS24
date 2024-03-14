@@ -10,7 +10,7 @@ void PCNTVertexArray::Render()
 }
 
 unsigned int PCNTVertexArray::StaticAllocateVertexBuffer(
-	std::shared_ptr<GraphicsObject> object)
+	unsigned int vao, std::shared_ptr<GraphicsObject> object)
 {
 	glBindVertexArray(vao);
 	unsigned int vbo;
@@ -25,4 +25,16 @@ unsigned int PCNTVertexArray::StaticAllocateVertexBuffer(
 	object->vertexDataPCNT = nullptr;
 	glBindVertexArray(0);
 	return vbo;
+}
+
+void PCNTVertexArray::EnableAttributes()
+{
+	// Positions
+	EnableAttribute(0, 3, sizeof(VertexDataPCNT), (void*)0);
+	// Colors
+	EnableAttribute(1, 4, sizeof(VertexDataPCNT), (void*)(sizeof(float) * 3));
+	// Normals
+	EnableAttribute(2, 3, sizeof(VertexDataPCNT), (void*)(sizeof(float) * 7));
+	// Texture Coords
+	EnableAttribute(3, 2, sizeof(VertexDataPCNT), (void*)(sizeof(float) * 10));
 }

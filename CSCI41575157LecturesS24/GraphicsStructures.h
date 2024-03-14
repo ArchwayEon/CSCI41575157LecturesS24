@@ -95,6 +95,7 @@ struct GraphicsObject {
 	bool isDynamic = false;
 	unsigned int shaderProgram = 0;
 	unsigned int textureId = 0;
+	unsigned int primitive = 0;
 	glm::mat4 referenceFrame = glm::mat4(1.0f);
 	Material material{};
 };

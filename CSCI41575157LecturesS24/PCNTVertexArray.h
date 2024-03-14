@@ -9,8 +9,9 @@ public:
 
 	void Render() override;
 
-protected:
 	unsigned int StaticAllocateVertexBuffer(
-		std::shared_ptr<GraphicsObject> object) override;
+		unsigned int vao, std::shared_ptr<GraphicsObject> object) override;
+
+	void EnableAttributes() override;
 };
 
