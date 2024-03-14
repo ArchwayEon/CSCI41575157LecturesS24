@@ -20,6 +20,8 @@
 #include "GraphicsStructures.h"
 #include "Generator.h"
 #include <unordered_map>
+#include "Renderer.h"
+#include "PCNTVertexArray.h"
 
 // Eek! A global mouse!
 MouseParams mouse;
@@ -553,7 +555,7 @@ static void RenderObjectPC(
 		primitive, (int)object.indexData.size(), GL_UNSIGNED_SHORT, nullptr);
 }
 
-void SetUpDynamicPCGraphicsObject(
+static void SetUpDynamicPCGraphicsObject(
 	GraphicsObject& object, PCData& pcData,
 	unsigned int vao, unsigned int shaderProgram, 
 	std::size_t maxVertexCount)
@@ -681,26 +683,34 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	delete[] textureData;
 	textureData = nullptr;
 
-	unsigned int lightingVAO;
-	glGenVertexArrays(1, &lightingVAO);
-
+	typedef std::shared_ptr<Renderer> SRenderer;
 	typedef std::shared_ptr<GraphicsObject> SGraphicsObject;
 
 	std::unordered_map<std::string, SGraphicsObject> allObjects;
+
+	std::shared_ptr<PCNTVertexArray> vaPCNT = std::make_shared<PCNTVertexArray>();
+	vaPCNT->SetShaderProgram(lightingShaderProgram);
+	vaPCNT->SetVertexSize(sizeof(VertexDataPCNT));
+
+	SRenderer lightingRenderer = std::make_shared<Renderer>(vaPCNT);
 
 	SGraphicsObject cube = std::make_shared<GraphicsObject>();
 	cube->vertexDataPCNT = CreateCubeVertexData();
 	cube->sizeOfVertexBuffer = 36 * sizeof(VertexDataPCNT);
 	cube->numberOfVertices = 36;
-	cube->vao = lightingVAO;
-	cube->shaderProgram = lightingShaderProgram;
-	cube->vbo = AllocateVertexBufferPCNT(*cube);
+	//cube->vao = lightingVAO;
+	//cube->shaderProgram = lightingShaderProgram;
+	//cube->vbo = AllocateVertexBufferPCNT(*cube);
 	cube->textureId = customTextureId;
 	cube->material.ambientIntensity = 0.1f;
 	cube->material.specularIntensity = 0.5f;
 	cube->material.shininess = 16.0f;
 	cube->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
 	allObjects["cube"] = cube;
+	vaPCNT->AddObject(cube);
+
+	unsigned int lightingVAO;
+	glGenVertexArrays(1, &lightingVAO);
 
 	SGraphicsObject floor = std::make_shared<GraphicsObject>();
 	floor->vertexDataPCNT =
@@ -987,9 +997,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 		// Render the object
 		if (result1.isSuccess) {
-			RenderObjectPCNT(
-				*cube, lightingLocation, projection, view,
-				globalLight, localLight, cameraPosition, GL_TRIANGLES);
+			lightingRenderer->Render();
+			//RenderObjectPCNT(
+			//	*cube, lightingLocation, projection, view,
+			//	globalLight, localLight, cameraPosition, GL_TRIANGLES);
 			RenderObjectPCNT(
 				*floor, lightingLocation, projection, view,
 				globalLight, localLight, cameraPosition, GL_TRIANGLES);
