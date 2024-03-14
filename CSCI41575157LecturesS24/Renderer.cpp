@@ -39,13 +39,7 @@ void Renderer::Send(const std::string& uniformName, float value)
 void Renderer::Render()
 {
 	for (const auto& object : objectMap) {
-		shader->SendMat4Uniform("world", object->referenceFrame);
-		shader->SendFloatUniform(
-			"materialAmbientIntensity", object->material.ambientIntensity);
-		shader->SendFloatUniform(
-			"materialSpecularIntensity", object->material.specularIntensity);
-		shader->SendFloatUniform(
-			"materialShininess", object->material.shininess);
+		va->SendObjectUniforms(object, shader);
 		glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
 		va->EnableAttributes();
 		glActiveTexture(GL_TEXTURE0);

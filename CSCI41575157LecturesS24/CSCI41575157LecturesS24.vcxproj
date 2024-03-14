@@ -147,6 +147,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PCNTVertexArray.cpp" />
     <ClCompile Include="PCRenderer.cpp" />
+    <ClCompile Include="PCTVertexArray.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Timer.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="IVertexArray.h" />
     <ClInclude Include="PCNTVertexArray.h" />
     <ClInclude Include="PCRenderer.h" />
+    <ClInclude Include="PCTVertexArray.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Timer.h" />

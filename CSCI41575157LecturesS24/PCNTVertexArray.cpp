@@ -38,3 +38,15 @@ void PCNTVertexArray::EnableAttributes()
 	// Texture Coords
 	EnableAttribute(3, 2, sizeof(VertexDataPCNT), (void*)(sizeof(float) * 10));
 }
+
+void PCNTVertexArray::SendObjectUniforms(
+	std::shared_ptr<GraphicsObject> object, std::shared_ptr<Shader> shader)
+{
+	shader->SendMat4Uniform("world", object->referenceFrame);
+	shader->SendFloatUniform(
+		"materialAmbientIntensity", object->material.ambientIntensity);
+	shader->SendFloatUniform(
+		"materialSpecularIntensity", object->material.specularIntensity);
+	shader->SendFloatUniform(
+		"materialShininess", object->material.shininess);
+}

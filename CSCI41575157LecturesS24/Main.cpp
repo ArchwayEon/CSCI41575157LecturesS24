@@ -23,6 +23,7 @@
 #include "Renderer.h"
 #include "PCNTVertexArray.h"
 #include "Shader.h"
+#include "PCTVertexArray.h"
 
 // Eek! A global mouse!
 MouseParams mouse;
@@ -247,18 +248,6 @@ static void EnableAttribute(int attribIndex, int elementCount, int sizeInBytes, 
 	);
 }
 
-static void EnablePCNTAttributes()
-{
-	// Positions
-	EnableAttribute(0, 3, sizeof(VertexDataPCNT), (void*)0);
-	// Colors
-	EnableAttribute(1, 4, sizeof(VertexDataPCNT), (void*)(sizeof(float) * 3));
-	// Normals
-	EnableAttribute(2, 3, sizeof(VertexDataPCNT), (void*)(sizeof(float) * 7));
-	// Texture Coords
-	EnableAttribute(3, 2, sizeof(VertexDataPCNT), (void*)(sizeof(float) * 10));
-}
-
 static void EnablePCTAttributes()
 {
 	// Positions
@@ -443,63 +432,6 @@ static unsigned int AllocateIndexBuffer(GraphicsObject& object)
 	return object.ibo;
 }
 
-static void RenderObjectPCNT(
-	GraphicsObject& object, LightingShaderLocation& location,
-	glm::mat4& projection, glm::mat4& view,
-	Light& globalLight, Light& localLight,
-	glm::vec3& cameraPosition, unsigned int primitive)
-{
-	glUseProgram(object.shaderProgram);
-	glUniformMatrix4fv(
-		location.projectionLoc, 1, GL_FALSE,
-		glm::value_ptr(projection));
-	glUniformMatrix4fv(location.viewLoc, 1, GL_FALSE,
-		glm::value_ptr(view));
-	glUniform3fv(
-		location.globalLightPositionLoc, 1,
-		glm::value_ptr(globalLight.position));
-	glUniform3fv(
-		location.globalLightColorLoc, 1,
-		glm::value_ptr(globalLight.color));
-	glUniform1f(
-		location.globalLightIntensityLoc,
-		globalLight.intensity);
-	glUniform3fv(
-		location.localLightPositionLoc, 1,
-		glm::value_ptr(localLight.position));
-	glUniform3fv(
-		location.localLightColorLoc, 1,
-		glm::value_ptr(localLight.color));
-	glUniform1f(
-		location.localLightIntensityLoc,
-		localLight.intensity);
-	glUniform1f(
-		location.localLightAttenuationLoc,
-		localLight.attenuationCoef);
-	glUniform3fv(
-		location.viewPositionLoc, 1,
-		glm::value_ptr(cameraPosition));
-
-	glBindVertexArray(object.vao);
-	glUniformMatrix4fv(
-		location.worldLoc, 1, GL_FALSE,
-		glm::value_ptr(object.referenceFrame));
-	glUniform1f(
-		location.materialAmbientLoc,
-		object.material.ambientIntensity);
-	glUniform1f(
-		location.materialSpecularLoc,
-		object.material.specularIntensity);
-	glUniform1f(
-		location.materialShininessLoc,
-		object.material.shininess);
-	glBindBuffer(GL_ARRAY_BUFFER, object.vbo);
-	EnablePCNTAttributes();
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, object.textureId);
-	glDrawArrays(primitive, 0, (int)object.numberOfVertices);
-}
-
 static void RenderObjectPCT(
 	GraphicsObject& object, BasicShaderLocation& location,
 	glm::mat4& projection, glm::mat4& view, unsigned int primitive)
@@ -631,19 +563,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	std::shared_ptr<Shader> lightingShader = 
 		std::make_shared<Shader>(lightingVertexSource, lightingFragmentSource);
 
-	std::string vertexSource2 = ReadFromFile("basic.vert.glsl");
-	std::string fragmentSource2 = ReadFromFile("basic.frag.glsl");
+	std::string basicVertexSource = ReadFromFile("basic.vert.glsl");
+	std::string basicFragmentSource = ReadFromFile("basic.frag.glsl");
+	std::shared_ptr<Shader> basicShader =
+		std::make_shared<Shader>(basicVertexSource, basicFragmentSource);
+
 	std::string pcVertexSource = ReadFromFile("pc.vert.glsl");
 	std::string pcFragmentSource = ReadFromFile("pc.frag.glsl");
 
-	unsigned int lightingShaderProgram;
-	Result result1 = CreateShaderProgram(lightingVertexSource, lightingFragmentSource, lightingShaderProgram);
-	unsigned int textureShaderProgram;
-	Result result2 = CreateShaderProgram(vertexSource2, fragmentSource2, textureShaderProgram);
+	//unsigned int lightingShaderProgram;
+	//Result result1 = CreateShaderProgram(lightingVertexSource, lightingFragmentSource, lightingShaderProgram);
+	//unsigned int textureShaderProgram;
+	//Result result2 = CreateShaderProgram(basicVertexSource, basicFragmentSource, textureShaderProgram);
+	
 	unsigned int pcShaderProgram;
 	Result resultPC =
 		CreateShaderProgram(pcVertexSource, pcFragmentSource, pcShaderProgram);
-	std::string message = result1.message + result2.message + resultPC.message;
+	std::string message = resultPC.message;
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -652,26 +588,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 430");
 
-	// Get the uniform locations
-	LightingShaderLocation lightingLocation;
-	lightingLocation.projectionLoc =
-		glGetUniformLocation(lightingShaderProgram, "projection");
-	lightingLocation.viewLoc =
-		glGetUniformLocation(lightingShaderProgram, "view");
-	lightingLocation.worldLoc =
-		glGetUniformLocation(lightingShaderProgram, "world");
-
 	lightingShader->AddUniform("projection");
 	lightingShader->AddUniform("view");
 	lightingShader->AddUniform("world");
 
-	BasicShaderLocation textureLocation;
-	textureLocation.projectionLoc =
-		glGetUniformLocation(textureShaderProgram, "projection");
-	textureLocation.viewLoc =
-		glGetUniformLocation(textureShaderProgram, "view");
-	textureLocation.worldLoc =
-		glGetUniformLocation(textureShaderProgram, "world");
+	//BasicShaderLocation textureLocation;
+	//textureLocation.projectionLoc =
+	//	glGetUniformLocation(textureShaderProgram, "projection");
+	//textureLocation.viewLoc =
+	//	glGetUniformLocation(textureShaderProgram, "view");
+	//textureLocation.worldLoc =
+	//	glGetUniformLocation(textureShaderProgram, "world");
+
+	basicShader->AddUniform("projection");
+	basicShader->AddUniform("view");
+	basicShader->AddUniform("world");
 
 	BasicShaderLocation pcLocation;
 	pcLocation.projectionLoc =
@@ -717,18 +648,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	allObjects["cube"] = cube;
 	lightingRenderer->AddObject(cube);
 
-	//unsigned int lightingVAO;
-	//glGenVertexArrays(1, &lightingVAO);
-
 	SGraphicsObject floor = std::make_shared<GraphicsObject>();
 	floor->primitive = GL_TRIANGLES;
 	floor->vertexDataPCNT =
 		CreateXZPlanePCNT(50.0f, 50.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 5.0f, 5.0f);
 	floor->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCNT);
 	floor->numberOfVertices = 6;
-	//floor->vao = lightingVAO;
-	//floor->shaderProgram = lightingShaderProgram;
-	//floor->vbo = AllocateVertexBufferPCNT(*floor);
 	floor->textureId = CreateTextureFromFile("stone-road-texture.jpg");
 	floor->referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
 	floor->material.ambientIntensity = 0.1f;
@@ -737,18 +662,25 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	allObjects["floor"] = floor;
 	lightingRenderer->AddObject(floor);
 
-	unsigned int basicTextureVAO;
-	glGenVertexArrays(1, &basicTextureVAO);
+	//unsigned int basicTextureVAO;
+	//glGenVertexArrays(1, &basicTextureVAO);
+
+	std::shared_ptr<PCTVertexArray> vaPCT = std::make_shared<PCTVertexArray>();
+	SRenderer basicRenderer = std::make_shared<Renderer>(vaPCT);
+	basicRenderer->SetShaderProgram(basicShader);
+	basicRenderer->SetVertexSize(sizeof(VertexDataPCT));
 
 	SGraphicsObject lightBulb = std::make_shared<GraphicsObject>();
+	lightBulb->primitive = GL_TRIANGLES;
 	lightBulb->vertexDataPCT = CreateXYPlanePCT();
 	lightBulb->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCT);
 	lightBulb->numberOfVertices = 6;
-	lightBulb->vao = basicTextureVAO;
-	lightBulb->shaderProgram = textureShaderProgram;
-	lightBulb->vbo = AllocateVertexBufferPCT(*lightBulb);
+	//lightBulb->vao = basicTextureVAO;
+	//lightBulb->shaderProgram = textureShaderProgram;
+	//lightBulb->vbo = AllocateVertexBufferPCT(*lightBulb);
 	lightBulb->textureId = CreateTextureFromFile("lightbulb.png");
 	allObjects["lightBulb"] = lightBulb;
+	basicRenderer->AddObject(lightBulb);
 
 	unsigned int pcVAO;
 	glGenVertexArrays(1, &pcVAO);
@@ -904,12 +836,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	glm::vec3 clearColor = { 0.0f, 0.0f, 0.0f };
 
-	lightingLocation.materialAmbientLoc =
-		glGetUniformLocation(lightingShaderProgram, "materialAmbientIntensity");
-	lightingLocation.materialSpecularLoc =
-		glGetUniformLocation(lightingShaderProgram, "materialSpecularIntensity");
-	lightingLocation.materialShininessLoc =
-		glGetUniformLocation(lightingShaderProgram, "materialShininess");
 
 	lightingShader->AddUniform("materialAmbientIntensity");
 	lightingShader->AddUniform("materialSpecularIntensity");
@@ -920,12 +846,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	globalLight.position = glm::vec3(100.0f, 100.0f, 0.0f);
 	globalLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
 	globalLight.intensity = 0.05f;
-	lightingLocation.globalLightPositionLoc =
-		glGetUniformLocation(lightingShaderProgram, "globalLightPosition");
-	lightingLocation.globalLightColorLoc =
-		glGetUniformLocation(lightingShaderProgram, "globalLightColor");
-	lightingLocation.globalLightIntensityLoc =
-		glGetUniformLocation(lightingShaderProgram, "globalLightIntensity");
 
 	lightingShader->AddUniform("globalLightPosition");
 	lightingShader->AddUniform("globalLightColor");
@@ -936,16 +856,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	localLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
 	localLight.intensity = 0.5f;
 	localLight.attenuationCoef = 0.0f;
-	lightingLocation.localLightPositionLoc =
-		glGetUniformLocation(lightingShaderProgram, "localLightPosition");
-	lightingLocation.localLightColorLoc =
-		glGetUniformLocation(lightingShaderProgram, "localLightColor");
-	lightingLocation.localLightIntensityLoc =
-		glGetUniformLocation(lightingShaderProgram, "localLightIntensity");
-	lightingLocation.localLightAttenuationLoc =
-		glGetUniformLocation(lightingShaderProgram, "localLightAttenuationCoef");
-	lightingLocation.viewPositionLoc =
-		glGetUniformLocation(lightingShaderProgram, "viewPosition");
 
 	lightingShader->AddUniform("localLightPosition");
 	lightingShader->AddUniform("localLightColor");
@@ -1020,28 +930,31 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		projection = glm::perspective(
 			glm::radians(mouse.fieldOfView), aspectRatio, nearPlane, farPlane);
 
-		// Render the object
-		if (result1.isSuccess) {
-			lightingRenderer->Select();
-			lightingRenderer->Send("projection", projection);
-			lightingRenderer->Send("view", view);
-			lightingRenderer->Send("globalLightPosition", globalLight.position);
-			lightingRenderer->Send("globalLightColor", globalLight.color);
-			lightingRenderer->Send("globalLightIntensity", globalLight.intensity);
-			lightingRenderer->Send("localLightPosition", localLight.position);
-			lightingRenderer->Send("localLightColor", localLight.color);
-			lightingRenderer->Send("localLightIntensity", localLight.intensity);
-			lightingRenderer->Send(
-				"localLightAttenuationCoef", localLight.attenuationCoef);
-			lightingRenderer->Send("viewPosition", cameraPosition);
-			lightingRenderer->Render();
-		}
+		
+		lightingRenderer->Select();
+		lightingRenderer->Send("projection", projection);
+		lightingRenderer->Send("view", view);
+		lightingRenderer->Send("globalLightPosition", globalLight.position);
+		lightingRenderer->Send("globalLightColor", globalLight.color);
+		lightingRenderer->Send("globalLightIntensity", globalLight.intensity);
+		lightingRenderer->Send("localLightPosition", localLight.position);
+		lightingRenderer->Send("localLightColor", localLight.color);
+		lightingRenderer->Send("localLightIntensity", localLight.intensity);
+		lightingRenderer->Send(
+			"localLightAttenuationCoef", localLight.attenuationCoef);
+		lightingRenderer->Send("viewPosition", cameraPosition);
+		lightingRenderer->Render();
 
-		if (result2.isSuccess)
-		{
-			RenderObjectPCT(
-				*lightBulb, textureLocation, projection, view, GL_TRIANGLES);
-		}
+		basicRenderer->Select();
+		basicRenderer->Send("projection", projection);
+		basicRenderer->Send("view", view);
+		basicRenderer->Render();
+
+		//if (result2.isSuccess)
+		//{
+		//	RenderObjectPCT(
+		//		*lightBulb, textureLocation, projection, view, GL_TRIANGLES);
+		//}
 
 		if (resultPC.isSuccess)
 		{

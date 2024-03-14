@@ -1,12 +1,11 @@
 #pragma once
 #include "IVertexArray.h"
-#include "Shader.h"
-class PCNTVertexArray : public IVertexArray
+class PCTVertexArray :  public IVertexArray
 {
 protected:
 public:
-	PCNTVertexArray();
-	~PCNTVertexArray() = default;
+	PCTVertexArray();
+	~PCTVertexArray() = default;
 
 	void Render() override;
 
@@ -17,6 +16,6 @@ public:
 
 	void SendObjectUniforms(
 		std::shared_ptr<GraphicsObject> object,
-		std::shared_ptr<Shader> shader);
+		std::shared_ptr<Shader> shader) override;
 };
 
