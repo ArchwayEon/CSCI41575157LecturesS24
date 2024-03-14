@@ -19,6 +19,7 @@
 #include "stb_image.h"
 #include "GraphicsStructures.h"
 #include "Generator.h"
+#include <unordered_map>
 
 // Eek! A global mouse!
 MouseParams mouse;
@@ -683,57 +684,65 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	unsigned int lightingVAO;
 	glGenVertexArrays(1, &lightingVAO);
 
-	GraphicsObject cube;
-	cube.vertexDataPCNT = CreateCubeVertexData();
-	cube.sizeOfVertexBuffer = 36 * sizeof(VertexDataPCNT);
-	cube.numberOfVertices = 36;
-	cube.vao = lightingVAO;
-	cube.shaderProgram = lightingShaderProgram;
-	cube.vbo = AllocateVertexBufferPCNT(cube);
-	cube.textureId = customTextureId;
-	cube.material.ambientIntensity = 0.1f;
-	cube.material.specularIntensity = 0.5f;
-	cube.material.shininess = 16.0f;
-	cube.referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
+	typedef std::shared_ptr<GraphicsObject> SGraphicsObject;
 
-	GraphicsObject floor;
-	floor.vertexDataPCNT =
+	std::unordered_map<std::string, SGraphicsObject> allObjects;
+
+	SGraphicsObject cube = std::make_shared<GraphicsObject>();
+	cube->vertexDataPCNT = CreateCubeVertexData();
+	cube->sizeOfVertexBuffer = 36 * sizeof(VertexDataPCNT);
+	cube->numberOfVertices = 36;
+	cube->vao = lightingVAO;
+	cube->shaderProgram = lightingShaderProgram;
+	cube->vbo = AllocateVertexBufferPCNT(*cube);
+	cube->textureId = customTextureId;
+	cube->material.ambientIntensity = 0.1f;
+	cube->material.specularIntensity = 0.5f;
+	cube->material.shininess = 16.0f;
+	cube->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
+	allObjects["cube"] = cube;
+
+	SGraphicsObject floor = std::make_shared<GraphicsObject>();
+	floor->vertexDataPCNT =
 		CreateXZPlanePCNT(50.0f, 50.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 5.0f, 5.0f);
-	floor.sizeOfVertexBuffer = 6 * sizeof(VertexDataPCNT);
-	floor.numberOfVertices = 6;
-	floor.vao = lightingVAO;
-	floor.shaderProgram = lightingShaderProgram;
-	floor.vbo = AllocateVertexBufferPCNT(floor);
-	floor.textureId = CreateTextureFromFile("stone-road-texture.jpg");
-	floor.referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
-	floor.material.ambientIntensity = 0.1f;
-	floor.material.specularIntensity = 0.5f;
-	floor.material.shininess = 16.0f;
+	floor->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCNT);
+	floor->numberOfVertices = 6;
+	floor->vao = lightingVAO;
+	floor->shaderProgram = lightingShaderProgram;
+	floor->vbo = AllocateVertexBufferPCNT(*floor);
+	floor->textureId = CreateTextureFromFile("stone-road-texture.jpg");
+	floor->referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
+	floor->material.ambientIntensity = 0.1f;
+	floor->material.specularIntensity = 0.5f;
+	floor->material.shininess = 16.0f;
+	allObjects["floor"] = floor;
 
 	unsigned int basicTextureVAO;
 	glGenVertexArrays(1, &basicTextureVAO);
 
-	GraphicsObject lightBulb;
-	lightBulb.vertexDataPCT = CreateXYPlanePCT();
-	lightBulb.sizeOfVertexBuffer = 6 * sizeof(VertexDataPCT);
-	lightBulb.numberOfVertices = 6;
-	lightBulb.vao = basicTextureVAO;
-	lightBulb.shaderProgram = textureShaderProgram;
-	lightBulb.vbo = AllocateVertexBufferPCT(lightBulb);
-	lightBulb.textureId = CreateTextureFromFile("lightbulb.png");
+	SGraphicsObject lightBulb = std::make_shared<GraphicsObject>();
+	lightBulb->vertexDataPCT = CreateXYPlanePCT();
+	lightBulb->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCT);
+	lightBulb->numberOfVertices = 6;
+	lightBulb->vao = basicTextureVAO;
+	lightBulb->shaderProgram = textureShaderProgram;
+	lightBulb->vbo = AllocateVertexBufferPCT(*lightBulb);
+	lightBulb->textureId = CreateTextureFromFile("lightbulb.png");
+	allObjects["lightBulb"] = lightBulb;
 
 	unsigned int pcVAO;
 	glGenVertexArrays(1, &pcVAO);
 
-	GraphicsObject circle;
+	SGraphicsObject circle = std::make_shared<GraphicsObject>();
 	int circleSteps = 10;
 	float circleRadius = 5.0f;
 	PCData circlePCData = 
 		CreateXYCirclePC(circleRadius, { 1.0f, 1.0f, 1.0f }, circleSteps);
-	SetUpDynamicPCGraphicsObject(circle, circlePCData, pcVAO, pcShaderProgram, 360);
-	circle.referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -10.0f, 1.0f);
+	SetUpDynamicPCGraphicsObject(*circle, circlePCData, pcVAO, pcShaderProgram, 360);
+	circle->referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -10.0f, 1.0f);
+	allObjects["circle"] = circle;
 
-	GraphicsObject spirograph;
+	SGraphicsObject spirograph = std::make_shared<GraphicsObject>();
 	int spirographSteps = 10;
 	float spirographR = 4.0f;
 	float spirographl = 0.955f;
@@ -744,20 +753,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			spirographR, spirographl, spirographk, 
 			{ 1.0f, 1.0f, 1.0f }, revolutions, spirographSteps);
 	SetUpDynamicPCGraphicsObject(
-		spirograph, spirographPCData, pcVAO, pcShaderProgram, 360 * (int)revolutions);
-	spirograph.referenceFrame[3] = glm::vec4(-10.0f, 0.0f, -10.0f, 1.0f);
+		*spirograph, spirographPCData, pcVAO, pcShaderProgram, 360 * (int)revolutions);
+	spirograph->referenceFrame[3] = glm::vec4(-10.0f, 0.0f, -10.0f, 1.0f);
+	allObjects["spirograph"] = spirograph;
 
-	GraphicsObject linearBezier;
+	SGraphicsObject linearBezier = std::make_shared<GraphicsObject>();
 	int linearBezierSteps = 10;
 	glm::vec3 lbP0(-5.0f, 0.0f, 0.0f);
 	glm::vec3 lbP1(5.0f, 0.0f, 0.0f);
 	PCData linearBezierPCData =
 		CreateLinearBezierPC(lbP0, lbP1, { 1.0f, 1.0f, 1.0f }, linearBezierSteps);
 	SetUpDynamicPCGraphicsObject(
-		linearBezier, linearBezierPCData, pcVAO, pcShaderProgram, 50);
-	linearBezier.referenceFrame[3] = glm::vec4(0.0f, 0.0f, -10.0f, 1.0f);
+		*linearBezier, linearBezierPCData, pcVAO, pcShaderProgram, 50);
+	linearBezier->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -10.0f, 1.0f);
+	allObjects["linearBezier"] = linearBezier;
 
-	GraphicsObject quadraticBezier;
+	SGraphicsObject quadraticBezier = std::make_shared<GraphicsObject>();
 	int quadraticBezierSteps = 10;
 	glm::vec3 qbP0(-5.0f, 0.0f, 0.0f);
 	glm::vec3 qbP1(0.0f, 8.0f, 0.0f);
@@ -766,10 +777,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		CreateQuadraticBezierPC(
 			qbP0, qbP1, qbP2, { 1.0f, 1.0f, 1.0f }, quadraticBezierSteps);
 	SetUpDynamicPCGraphicsObject(
-		quadraticBezier, quadraticBezierPCData, pcVAO, pcShaderProgram, 50);
-	quadraticBezier.referenceFrame[3] = glm::vec4(10.0f, 0.0f, -10.0f, 1.0f);
+		*quadraticBezier, quadraticBezierPCData, pcVAO, pcShaderProgram, 50);
+	quadraticBezier->referenceFrame[3] = glm::vec4(10.0f, 0.0f, -10.0f, 1.0f);
+	allObjects["quadraticBezier"] = quadraticBezier;
 
-	GraphicsObject quadraticBezierM;
+	SGraphicsObject quadraticBezierM = std::make_shared<GraphicsObject>();
 	int quadraticBezierMSteps = 10;
 	glm::mat3 pM{};
 	pM[0] = { -5.0f, 0.0f, 0.0f };
@@ -779,10 +791,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		CreateQuadraticBezierPCMat(
 			pM, { 1.0f, 1.0f, 0.0f }, quadraticBezierMSteps);
 	SetUpDynamicPCGraphicsObject(
-		quadraticBezierM, quadraticBezierPCMatData, pcVAO, pcShaderProgram, 50);
-	quadraticBezierM.referenceFrame[3] = glm::vec4(20.0f, 0.0f, -10.0f, 1.0f);
+		*quadraticBezierM, quadraticBezierPCMatData, pcVAO, pcShaderProgram, 50);
+	quadraticBezierM->referenceFrame[3] = glm::vec4(20.0f, 0.0f, -10.0f, 1.0f);
+	allObjects["quadraticBezierM"] = quadraticBezierM;
 
-	GraphicsObject cubicBezier;
+	SGraphicsObject cubicBezier = std::make_shared<GraphicsObject>();
 	int cubicBezierSteps = 20;
 	glm::vec3 cbP0(-5.0f, 0.0f, 0.0f);
 	glm::vec3 cbP1(0.0f, 8.0f, 0.0f);
@@ -792,10 +805,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		CreateCubicBezierPC(
 			cbP0, cbP1, cbP2, cbP3, { 1.0f, 1.0f, 1.0f }, cubicBezierSteps);
 	SetUpDynamicPCGraphicsObject(
-		cubicBezier, cubicBezierPCData, pcVAO, pcShaderProgram, 50);
-	cubicBezier.referenceFrame[3] = glm::vec4(-20.0f, 0.0f, 0.0f, 1.0f);
+		*cubicBezier, cubicBezierPCData, pcVAO, pcShaderProgram, 50);
+	cubicBezier->referenceFrame[3] = glm::vec4(-20.0f, 0.0f, 0.0f, 1.0f);
+	allObjects["cubicBezier"] = cubicBezier;
 
-	GraphicsObject cubicBezierM;
+	SGraphicsObject cubicBezierM = std::make_shared<GraphicsObject>();
 	int cubicBezierMSteps = 20;
 	glm::mat4 cpM{};
 	cpM[0] = { -5.0f, 0.0f, 0.0f, 1.0f };
@@ -806,11 +820,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		CreateCubicBezierPCMat(
 			cpM, { 1.0f, 1.0f, 0.0f }, cubicBezierMSteps);
 	SetUpDynamicPCGraphicsObject(
-		cubicBezierM, cubicBezierPCMatData, pcVAO, pcShaderProgram, 50);
-	cubicBezierM.referenceFrame[3] = glm::vec4(-8.0f, 0.0f, 0.0f, 1.0f);
+		*cubicBezierM, cubicBezierPCMatData, pcVAO, pcShaderProgram, 50);
+	cubicBezierM->referenceFrame[3] = glm::vec4(-8.0f, 0.0f, 0.0f, 1.0f);
+	allObjects["cubicBezierM"] = cubicBezierM;
 
-	GraphicsObject bezierPatch;
-	glm::vec3 cpBezier[4][4];
+	SGraphicsObject bezierPatch = std::make_shared<GraphicsObject>();
+	glm::vec3 cpBezier[4][4]{};
 	cpBezier[0][0] = { -10, 1,-10 };
 	cpBezier[0][1] = { -5,  3,-10 };
 	cpBezier[0][2] = {  5, -3,-10 };
@@ -831,18 +846,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	PCData bezierPatchPCData =
 		CreateBezierPatch(cpBezier, { 0.0f, 1.0f, 0.0f }, bezierPatchSteps);
 	SetUpDynamicPCGraphicsObject(
-		bezierPatch, bezierPatchPCData, pcVAO, pcShaderProgram, 500);
-	bezierPatch.referenceFrame[3] = glm::vec4(-15.0f, 2.0f, 15.0f, 1.0f);
+		*bezierPatch, bezierPatchPCData, pcVAO, pcShaderProgram, 500);
+	bezierPatch->referenceFrame[3] = glm::vec4(-15.0f, 2.0f, 15.0f, 1.0f);
+	allObjects["bezierPatch"] = bezierPatch;
 
-	GraphicsObject bezierPatchX;
+	SGraphicsObject bezierPatchX = std::make_shared<GraphicsObject>();
 	int bezierPatchStepsX = 20;
 	PCData bezierPatchXPCData =
 		CreateBezierPatchCrissCross(
 			cpBezier, { 0.0f, 1.0f, 1.0f }, bezierPatchStepsX);
 	SetUpDynamicPCGraphicsObject(
-		bezierPatchX, bezierPatchXPCData, pcVAO, pcShaderProgram, 
+		*bezierPatchX, bezierPatchXPCData, pcVAO, pcShaderProgram, 
 		bezierPatchStepsX * bezierPatchStepsX);
-	bezierPatchX.referenceFrame[3] = glm::vec4(15.0f, 2.0f, 15.0f, 1.0f);
+	bezierPatchX->referenceFrame[3] = glm::vec4(15.0f, 2.0f, 15.0f, 1.0f);
+	allObjects["bezierPatchX"] = bezierPatchX;
 
 	float cubeYAngle = 0;
 	float cubeXAngle = 0;
@@ -930,10 +947,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 
 		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | 
+			GL_STENCIL_BUFFER_BIT);
 
 		deltaAngle = static_cast<float>(speed * elapsedSeconds);
-		cube.referenceFrame = glm::rotate(cube.referenceFrame, glm::radians(deltaAngle), axis);
+		cube->referenceFrame = glm::rotate(
+			cube->referenceFrame, glm::radians(deltaAngle), axis);
 
 		if (resetCameraPosition) {
 			cameraFrame = glm::mat4(1.0f);
@@ -954,8 +973,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		cameraUp = cameraFrame[1];
 		view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 
-		lightBulb.referenceFrame[3] = glm::vec4(localLight.position, 1.0f);
-		PointAt(lightBulb.referenceFrame, cameraPosition);
+		lightBulb->referenceFrame[3] = glm::vec4(localLight.position, 1.0f);
+		PointAt(lightBulb->referenceFrame, cameraPosition);
 
 		if (width >= height) {
 			aspectRatio = width / (height * 1.0f);
@@ -969,95 +988,97 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		// Render the object
 		if (result1.isSuccess) {
 			RenderObjectPCNT(
-				cube, lightingLocation, projection, view,
+				*cube, lightingLocation, projection, view,
 				globalLight, localLight, cameraPosition, GL_TRIANGLES);
 			RenderObjectPCNT(
-				floor, lightingLocation, projection, view,
+				*floor, lightingLocation, projection, view,
 				globalLight, localLight, cameraPosition, GL_TRIANGLES);
 		}
 
 		if (result2.isSuccess)
 		{
 			RenderObjectPCT(
-				lightBulb, textureLocation, projection, view, GL_TRIANGLES);
+				*lightBulb, textureLocation, projection, view, GL_TRIANGLES);
 		}
 
 		if (resultPC.isSuccess)
 		{
 			if (showCircle) {
 				GenerateXYCirclePCVertexData(
-					circle.vertexDataPC, circleRadius, { 1.0f, 1.0f, 1.0f }, circleSteps);
+					circle->vertexDataPC, circleRadius, { 1.0f, 1.0f, 1.0f }, circleSteps);
 				GenerateLinesIndexDataConnected(
-					circle.indexData, circle.vertexDataPC.size());
+					circle->indexData, circle->vertexDataPC.size());
 				RenderObjectPC(
-					circle, pcLocation, projection, view, GL_LINES);
+					*circle, pcLocation, projection, view, GL_LINES);
 			}
 
 			if (showSpirograph) {
 				GenerateXYSpirographPCVertexData(
-					spirograph.vertexDataPC,
+					spirograph->vertexDataPC,
 					spirographR, spirographl, spirographk,
 					{ 1.0f, 1.0f, 1.0f }, revolutions, spirographSteps);
 				GenerateLinesIndexDataUnconnected(
-					spirograph.indexData, spirograph.vertexDataPC.size());
+					spirograph->indexData, spirograph->vertexDataPC.size());
 				RenderObjectPC(
-					spirograph, pcLocation, projection, view, GL_LINES);
+					*spirograph, pcLocation, projection, view, GL_LINES);
 			}
 
 
 			GenerateLinearBezierPC(
-				linearBezier.vertexDataPC, lbP0, lbP1, { 1.0f, 1.0f, 1.0f }, 
+				linearBezier->vertexDataPC, lbP0, lbP1, { 1.0f, 1.0f, 1.0f }, 
 				linearBezierSteps);
 			GenerateLinesIndexDataUnconnected(
-				linearBezier.indexData, linearBezier.vertexDataPC.size());
+				linearBezier->indexData, linearBezier->vertexDataPC.size());
 			RenderObjectPC(
-				linearBezier, pcLocation, projection, view, GL_LINES);
+				*linearBezier, pcLocation, projection, view, GL_LINES);
 
 			GenerateQuadraticBezierPC(
-				quadraticBezier.vertexDataPC, qbP0, qbP1, qbP2, 
+				quadraticBezier->vertexDataPC, qbP0, qbP1, qbP2, 
 				{ 1.0f, 1.0f, 1.0f }, quadraticBezierSteps);
 			GenerateLinesIndexDataUnconnected(
-				quadraticBezier.indexData, quadraticBezier.vertexDataPC.size());
+				quadraticBezier->indexData, quadraticBezier->vertexDataPC.size());
 			RenderObjectPC(
-				quadraticBezier, pcLocation, projection, view, GL_LINES);
+				*quadraticBezier, pcLocation, projection, view, GL_LINES);
 
 			GenerateQuadraticBezierPCMat(
-				quadraticBezierM.vertexDataPC, pM, { 1.0f, 1.0f, 0.0f }, quadraticBezierMSteps);
+				quadraticBezierM->vertexDataPC, pM, { 1.0f, 1.0f, 0.0f }, quadraticBezierMSteps);
 			GenerateLinesIndexDataUnconnected(
-				quadraticBezierM.indexData, quadraticBezierM.vertexDataPC.size());
+				quadraticBezierM->indexData, 
+				quadraticBezierM->vertexDataPC.size());
 			RenderObjectPC(
-				quadraticBezierM, pcLocation, projection, view, GL_LINES);
+				*quadraticBezierM, pcLocation, projection, view, GL_LINES);
 
 			GenerateCubicBezierPC(
-				cubicBezier.vertexDataPC, cbP0, cbP1, cbP2, cbP3,
+				cubicBezier->vertexDataPC, cbP0, cbP1, cbP2, cbP3,
 				{ 1.0f, 1.0f, 1.0f }, cubicBezierSteps);
 			GenerateLinesIndexDataUnconnected(
-				cubicBezier.indexData, cubicBezier.vertexDataPC.size());
+				cubicBezier->indexData, cubicBezier->vertexDataPC.size());
 			RenderObjectPC(
-				cubicBezier, pcLocation, projection, view, GL_LINES);
+				*cubicBezier, pcLocation, projection, view, GL_LINES);
 
 			GenerateCubicBezierPCMat(
-				cubicBezierM.vertexDataPC, cpM, { 1.0f, 1.0f, 0.0f }, cubicBezierMSteps);
+				cubicBezierM->vertexDataPC, cpM, { 1.0f, 1.0f, 0.0f }, cubicBezierMSteps);
 			GenerateLinesIndexDataUnconnected(
-				cubicBezierM.indexData, cubicBezierM.vertexDataPC.size());
+				cubicBezierM->indexData, cubicBezierM->vertexDataPC.size());
 			RenderObjectPC(
-				cubicBezierM, pcLocation, projection, view, GL_LINES);
+				*cubicBezierM, pcLocation, projection, view, GL_LINES);
 
 			GenerateBezierPatch(
-				bezierPatch.vertexDataPC, cpBezier, { 0.0f, 1.0f, 0.0f }, bezierPatchSteps);
+				bezierPatch->vertexDataPC, cpBezier, { 0.0f, 1.0f, 0.0f }, 
+				bezierPatchSteps);
 			GenerateLinesIndexDataUnconnected(
-				bezierPatch.indexData, bezierPatch.vertexDataPC.size());
+				bezierPatch->indexData, bezierPatch->vertexDataPC.size());
 			RenderObjectPC(
-				bezierPatch, pcLocation, projection, view, GL_LINES);
+				*bezierPatch, pcLocation, projection, view, GL_LINES);
 
 			GenerateBezierPatch(
-				bezierPatchX.vertexDataPC, cpBezier, { 0.0f, 1.0f, 1.0f }, 
+				bezierPatchX->vertexDataPC, cpBezier, { 0.0f, 1.0f, 1.0f }, 
 				bezierPatchStepsX);
 			GenerateLinesIndexDataForBezierSurface(
-				bezierPatchX.indexData, bezierPatchX.vertexDataPC.size(), 
+				bezierPatchX->indexData, bezierPatchX->vertexDataPC.size(), 
 				bezierPatchStepsX);
 			RenderObjectPC(
-				bezierPatchX, pcLocation, projection, view, GL_LINES);
+				*bezierPatchX, pcLocation, projection, view, GL_LINES);
 		}
 
 		ImGui_ImplOpenGL3_NewFrame();
