@@ -93,6 +93,7 @@ struct GraphicsObject {
 	unsigned int vbo = 0;
 	unsigned int ibo = 0;
 	bool isDynamic = false;
+	bool isVisible = true;
 	unsigned int shaderProgram = 0;
 	unsigned int textureId = 0;
 	unsigned int primitive = 0;

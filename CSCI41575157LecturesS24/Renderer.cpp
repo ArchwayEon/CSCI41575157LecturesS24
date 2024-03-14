@@ -40,12 +40,9 @@ void Renderer::Send(const std::string& uniformName, float value)
 void Renderer::Render()
 {
 	for (const auto& object : objectMap) {
-		va->SendObjectUniforms(object, shader);
-		va->RenderObject(object);
-		//glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
-		//va->EnableAttributes();
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, object->textureId);
-		//glDrawArrays(object->primitive, 0, (int)object->numberOfVertices);
+		if (object->isVisible) {
+			va->SendObjectUniforms(object, shader);
+			va->RenderObject(object);
+		}
 	}
 }
