@@ -11,7 +11,8 @@ Renderer::Renderer(std::shared_ptr<IVertexArray> va) :
 void Renderer::AddObject(std::shared_ptr<GraphicsObject> object)
 {
 	object->shaderProgram = shader->GetShaderProgram();
-	object->vbo = va->StaticAllocateVertexBuffer(vao, object);
+	object->vbo = va->AllocateVertexBuffer(vao, object);
+	object->ibo = va->AllocateIndexBuffer(vao, object);
 	objectMap.push_back(object);
 }
 
@@ -40,10 +41,11 @@ void Renderer::Render()
 {
 	for (const auto& object : objectMap) {
 		va->SendObjectUniforms(object, shader);
-		glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
-		va->EnableAttributes();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, object->textureId);
-		glDrawArrays(object->primitive, 0, (int)object->numberOfVertices);
+		va->RenderObject(object);
+		//glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
+		//va->EnableAttributes();
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, object->textureId);
+		//glDrawArrays(object->primitive, 0, (int)object->numberOfVertices);
 	}
 }

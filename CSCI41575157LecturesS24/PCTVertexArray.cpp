@@ -5,11 +5,16 @@ PCTVertexArray::PCTVertexArray() : IVertexArray()
 {
 }
 
-void PCTVertexArray::Render()
+void PCTVertexArray::RenderObject(std::shared_ptr<GraphicsObject> object)
 {
+	glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
+	EnableAttributes();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, object->textureId);
+	glDrawArrays(object->primitive, 0, (int)object->numberOfVertices);
 }
 
-unsigned int PCTVertexArray::StaticAllocateVertexBuffer(
+unsigned int PCTVertexArray::AllocateVertexBuffer(
 	unsigned int vao, std::shared_ptr<GraphicsObject> object)
 {
 	glBindVertexArray(vao);

@@ -5,11 +5,16 @@ PCNTVertexArray::PCNTVertexArray() : IVertexArray()
 {
 }
 
-void PCNTVertexArray::Render()
+void PCNTVertexArray::RenderObject(std::shared_ptr<GraphicsObject> object)
 {
+	glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
+	EnableAttributes();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, object->textureId);
+	glDrawArrays(object->primitive, 0, (int)object->numberOfVertices);
 }
 
-unsigned int PCNTVertexArray::StaticAllocateVertexBuffer(
+unsigned int PCNTVertexArray::AllocateVertexBuffer(
 	unsigned int vao, std::shared_ptr<GraphicsObject> object)
 {
 	glBindVertexArray(vao);
@@ -39,8 +44,7 @@ void PCNTVertexArray::EnableAttributes()
 	EnableAttribute(3, 2, sizeof(VertexDataPCNT), (void*)(sizeof(float) * 10));
 }
 
-void PCNTVertexArray::SendObjectUniforms(
-	std::shared_ptr<GraphicsObject> object, std::shared_ptr<Shader> shader)
+void PCNTVertexArray::SendObjectUniforms(std::shared_ptr<GraphicsObject> object, std::shared_ptr<Shader> shader)
 {
 	shader->SendMat4Uniform("world", object->referenceFrame);
 	shader->SendFloatUniform(
