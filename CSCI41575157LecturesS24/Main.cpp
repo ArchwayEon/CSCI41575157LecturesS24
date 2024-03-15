@@ -9,7 +9,7 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
-#include <string>
+#include <string> 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -18,7 +18,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GraphicsStructures.h"
-#include "Generator.h"
+#include "GeneratorFunctions.h"
 #include <unordered_map>
 #include "Renderer.h"
 #include "PCNTVertexArray.h"
@@ -353,134 +353,6 @@ std::string GetOpenGLError()
 	return log.str();
 }
 
-static unsigned int AllocateVertexBufferPCNT(GraphicsObject& object)
-{
-	glBindVertexArray(object.vao);
-	glGenBuffers(1, &object.vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, object.vbo);
-	glBufferData(
-		GL_ARRAY_BUFFER, object.sizeOfVertexBuffer, object.vertexDataPCNT, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	delete[] object.vertexDataPCNT;
-	object.vertexDataPCNT = nullptr;
-	glBindVertexArray(0);
-	return object.vbo;
-}
-
-static unsigned int AllocateVertexBufferPCT(GraphicsObject& object)
-{
-	glBindVertexArray(object.vao);
-	glGenBuffers(1, &object.vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, object.vbo);
-	glBufferData(
-		GL_ARRAY_BUFFER, object.sizeOfVertexBuffer, object.vertexDataPCT, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	delete[] object.vertexDataPCT;
-	object.vertexDataPCT = nullptr;
-	glBindVertexArray(0);
-	return object.vbo;
-}
-
-static unsigned int AllocateVertexBufferPC(GraphicsObject& object)
-{
-	glBindVertexArray(object.vao);
-	glGenBuffers(1, &object.vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, object.vbo);
-	if (object.isDynamic == false) {
-		glBufferData(
-			GL_ARRAY_BUFFER, object.sizeOfVertexBuffer, 
-			object.vertexDataPC.data(), GL_STATIC_DRAW);
-	}
-	else {
-		glBufferData(
-			GL_ARRAY_BUFFER, object.maxSizeOfVertexBuffer, 
-			nullptr, GL_DYNAMIC_DRAW);
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	object.vertexDataPC.clear();
-	glBindVertexArray(0);
-	return object.vbo;
-}
-
-static unsigned int AllocateIndexBuffer(GraphicsObject& object)
-{
-	glBindVertexArray(object.vao);
-	glGenBuffers(1, &object.ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object.ibo);
-	if (object.isDynamic == false) {
-		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER, object.sizeOfIndexBuffer,
-			object.indexData.data(), GL_STATIC_DRAW);
-	}
-	else {
-		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER, object.maxSizeOfIndexBuffer,
-			nullptr, GL_STATIC_DRAW);
-	}
-	
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	object.indexData.clear();
-	glBindVertexArray(0);
-	return object.ibo;
-}
-
-static void RenderObjectPC(
-	GraphicsObject& object, BasicShaderLocation& location,
-	glm::mat4& projection, glm::mat4& view, unsigned int primitive)
-{
-	glBindVertexArray(object.vao);
-	glUseProgram(object.shaderProgram);
-	glUniformMatrix4fv(
-		location.projectionLoc, 1, GL_FALSE,
-		glm::value_ptr(projection));
-	glUniformMatrix4fv(location.viewLoc, 1, GL_FALSE,
-		glm::value_ptr(view));
-
-	glUniformMatrix4fv(
-		location.worldLoc, 1, GL_FALSE,
-		glm::value_ptr(object.referenceFrame));
-	glBindBuffer(GL_ARRAY_BUFFER, object.vbo);
-	if (object.isDynamic) {
-		glBufferSubData(
-			GL_ARRAY_BUFFER, 0, 
-			object.sizeOfVertexBuffer, 
-			object.vertexDataPC.data());
-	}
-	EnablePCAttributes();
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object.ibo);
-	if (object.isDynamic) {
-		glBufferSubData(
-			GL_ELEMENT_ARRAY_BUFFER, 0,
-			object.sizeOfIndexBuffer,
-			object.indexData.data());
-	}
-	glDrawElements(
-		primitive, (int)object.indexData.size(), GL_UNSIGNED_SHORT, nullptr);
-}
-
-static void SetUpDynamicPCGraphicsObject(
-	GraphicsObject& object, PCData& pcData,
-	unsigned int vao, unsigned int shaderProgram, 
-	std::size_t maxVertexCount)
-{
-	object.vertexDataPC = pcData.vertexData;
-	object.indexData = pcData.indexData;
-	object.sizeOfVertexBuffer =
-		object.vertexDataPC.size() * sizeof(VertexDataPC);
-	object.numberOfVertices = object.vertexDataPC.size();
-	object.sizeOfIndexBuffer = 
-		object.indexData.size() * sizeof(unsigned short);
-	object.numberOfIndices = object.indexData.size();
-	object.vao = vao;
-	object.shaderProgram = shaderProgram;
-	object.isDynamic = true;
-	object.maxSizeOfVertexBuffer = maxVertexCount * sizeof(VertexDataPC);
-	object.maxSizeOfIndexBuffer =
-		object.maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
-	object.vbo = AllocateVertexBufferPC(object);
-	object.ibo = AllocateIndexBuffer(object);
- }
-
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
@@ -643,11 +515,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	circleParams.steps = 10;
 	circle->vertexArray->Generate(circleParams);
 	circle->vertexArray->SetAsDynamicGraphicsObject(circle, 360);
-	//int circleSteps = 10;
-	//float circleRadius = 5.0f;
-	//PCData circlePCData = 
-	//	CreateXYCirclePC(circleRadius, { 1.0f, 1.0f, 1.0f }, circleSteps);
-	//vaPC->SetUpDynamicGraphicsObject(circle, circlePCData, 360);
 	circle->referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -10.0f, 1.0f);
 	allObjects["circle"] = circle;
 	basicPCRenderer->AddObject(circle);

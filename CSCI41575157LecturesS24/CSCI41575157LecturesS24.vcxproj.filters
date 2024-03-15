@@ -80,7 +80,7 @@
     <ClInclude Include="Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Generator.h">
+    <ClInclude Include="GeneratorFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsStructures.h">

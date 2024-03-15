@@ -106,14 +106,13 @@ void PCVertexArray::SetUpDynamicGraphicsObject(
 }
 
 void PCVertexArray::SetAsDynamicGraphicsObject(
-	std::shared_ptr<GraphicsObject> object, std::size_t maxVertexCount)
+	std::shared_ptr<GraphicsObject> object, long long maxVertexCount)
 {
 	std::vector<VertexDataPC>& vertexData = 
 		reinterpret_cast<std::vector<VertexDataPC>&>
 			(object->vertexArray->GetVertexData());
 	object->isDynamic = true;
 	object->vertexDataPC = vertexData;
-		//object->vertexArray->GetGenerator()->GetVertexData();
 	object->indexData = object->vertexArray->GetIndexData();
 	object->sizeOfVertexBuffer = object->vertexArray->GetVertexDataSize();
 	object->numberOfVertices = object->vertexArray->GetNumberOfVertices();

@@ -39,7 +39,7 @@ public:
 		std::shared_ptr<GraphicsObject> object, PCData& pcData, 
 		std::size_t maxVertexCount) {};
 	virtual void SetAsDynamicGraphicsObject(
-		std::shared_ptr<GraphicsObject> object, std::size_t maxVertexCount) {};
+		std::shared_ptr<GraphicsObject> object, long long maxVertexCount) {};
 
 	virtual void Generate(IVertexDataParams& params);
 

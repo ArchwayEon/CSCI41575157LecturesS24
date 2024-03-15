@@ -1,4 +1,4 @@
-#include "Generator.h"
+#include "GeneratorFunctions.h"
 
 VertexDataPCNT* CreateCubeVertexData(void)
 {

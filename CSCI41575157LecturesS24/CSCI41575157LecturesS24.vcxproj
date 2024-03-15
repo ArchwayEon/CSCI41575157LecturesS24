@@ -155,7 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseObject.h" />
-    <ClInclude Include="Generator.h" />
+    <ClInclude Include="GeneratorFunctions.h" />
     <ClInclude Include="GraphicsObject.h" />
     <ClInclude Include="GraphicsStructures.h" />
     <ClInclude Include="IVertexArray.h" />

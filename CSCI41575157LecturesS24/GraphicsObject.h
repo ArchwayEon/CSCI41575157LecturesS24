@@ -3,7 +3,8 @@
 
 class IVertexArray; // Forward declaration
 
-struct GraphicsObject {
+class GraphicsObject {
+public:
 	std::shared_ptr<IVertexArray> vertexArray = nullptr;
 	VertexDataPCNT* vertexDataPCNT = nullptr;
 	VertexDataPCT* vertexDataPCT = nullptr;
