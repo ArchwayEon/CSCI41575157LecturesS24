@@ -3,35 +3,35 @@
 VertexDataPCNT* CreateCubeVertexData(void)
 {
 	// Front face
-	VertexDataPCNT A = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f} };
-	VertexDataPCNT B = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f} };
-	VertexDataPCNT C = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f} };
-	VertexDataPCNT D = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f} };
+	VertexDataPCNT A = { {}, {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f} };
+	VertexDataPCNT B = { {}, {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f} };
+	VertexDataPCNT C = { {}, { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f} };
+	VertexDataPCNT D = { {}, { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f} };
 	// Right face
-	VertexDataPCNT E = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
-	VertexDataPCNT F = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
-	VertexDataPCNT G = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} };
-	VertexDataPCNT H = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} };
+	VertexDataPCNT E = { {}, { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
+	VertexDataPCNT F = { {}, { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
+	VertexDataPCNT G = { {}, { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} };
+	VertexDataPCNT H = { {}, { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} };
 	// Back face
-	VertexDataPCNT I = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f} };
-	VertexDataPCNT J = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f} };
-	VertexDataPCNT K = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f} };
-	VertexDataPCNT L = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f} };
+	VertexDataPCNT I = { {}, { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f} };
+	VertexDataPCNT J = { {}, { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f} };
+	VertexDataPCNT K = { {}, {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f} };
+	VertexDataPCNT L = { {}, {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f} };
 	// Left face
-	VertexDataPCNT M = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
-	VertexDataPCNT N = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
-	VertexDataPCNT O = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} };
-	VertexDataPCNT P = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} };
+	VertexDataPCNT M = { {}, {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
+	VertexDataPCNT N = { {}, {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
+	VertexDataPCNT O = { {}, {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} };
+	VertexDataPCNT P = { {}, {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} };
 	// Top face
-	VertexDataPCNT Q = { {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f} };
-	VertexDataPCNT R = { {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f} };
-	VertexDataPCNT S = { { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f} };
-	VertexDataPCNT T = { { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f} };
+	VertexDataPCNT Q = { {}, {-5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f} };
+	VertexDataPCNT R = { {}, {-5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f} };
+	VertexDataPCNT S = { {}, { 5.0f, 5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f} };
+	VertexDataPCNT T = { {}, { 5.0f, 5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f} };
 	// Bottom face
-	VertexDataPCNT U = { { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f} };
-	VertexDataPCNT V = { { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f} };
-	VertexDataPCNT W = { {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f} };
-	VertexDataPCNT X = { {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f} };
+	VertexDataPCNT U = { {}, { 5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f} };
+	VertexDataPCNT V = { {}, { 5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f} };
+	VertexDataPCNT W = { {}, {-5.0f,-5.0f, 5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f} };
+	VertexDataPCNT X = { {}, {-5.0f,-5.0f,-5.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f} };
 
 	// 3 vertex per triangle, 2 triangles per face, 6 faces
 	// 3 * 2 * 6 = 36 vertices
@@ -58,10 +58,10 @@ VertexDataPCT* CreateXYPlanePCT(
 	float hw = width / 2;
 	float hh = height / 2;
 	// Front face
-	VertexDataPCT A = { {-hw, hh, 0.0f}, color, {0.0f, tex.t} };
-	VertexDataPCT B = { {-hw,-hh, 0.0f}, color, {0.0f, 0.0f} };
-	VertexDataPCT C = { { hw,-hh, 0.0f}, color, {tex.s, 0.0f} };
-	VertexDataPCT D = { { hw, hh, 0.0f}, color, {tex.s, tex.t} };
+	VertexDataPCT A = { {}, {-hw, hh, 0.0f}, color, {0.0f, tex.t} };
+	VertexDataPCT B = { {}, {-hw,-hh, 0.0f}, color, {0.0f, 0.0f} };
+	VertexDataPCT C = { {}, { hw,-hh, 0.0f}, color, {tex.s, 0.0f} };
+	VertexDataPCT D = { {}, { hw, hh, 0.0f}, color, {tex.s, tex.t} };
 
 	VertexDataPCT* vertexData{ new VertexDataPCT[6]{
 		A, B, C, A, C, D
@@ -76,10 +76,10 @@ VertexDataPCNT* CreateXZPlanePCNT(
 	float z = depth / 2;
 	glm::vec3 normal(0.0f, 1.0f, 0.0f);
 	// Front face
-	VertexDataPCNT A = { {-x, 0.0f,-z}, color, normal, {0.0f, repeatT} };
-	VertexDataPCNT B = { {-x, 0.0f, z}, color, normal, {0.0f, 0.0f} };
-	VertexDataPCNT C = { { x, 0.0f, z}, color, normal, {repeatS, 0.0f} };
-	VertexDataPCNT D = { { x, 0.0f,-z}, color, normal, {repeatS, repeatT} };
+	VertexDataPCNT A = { {}, {-x, 0.0f,-z}, color, normal, {0.0f, repeatT} };
+	VertexDataPCNT B = { {}, {-x, 0.0f, z}, color, normal, {0.0f, 0.0f} };
+	VertexDataPCNT C = { {}, { x, 0.0f, z}, color, normal, {repeatS, 0.0f} };
+	VertexDataPCNT D = { {}, { x, 0.0f,-z}, color, normal, {repeatS, repeatT} };
 
 	VertexDataPCNT* vertexData{ new VertexDataPCNT[6]{
 		A, B, C, A, C, D
@@ -96,7 +96,7 @@ void GenerateXYCirclePCVertexData(
 		thetaRadians = glm::radians(theta);
 		x = radius * cosf(thetaRadians);
 		y = radius * sinf(thetaRadians);
-		data.push_back({ {x, y, 0.0f}, color });
+		data.push_back({ {}, {x, y, 0.0f}, color });
 	}
 }
 
@@ -171,7 +171,7 @@ void GenerateXYSpirographPCVertexData(
 		thetaRadians = glm::radians(theta);
 		x = R * (((1 - k) * cosf(thetaRadians)) + (l * k * cosf(q * thetaRadians)));
 		y = R * (((1 - k) * sinf(thetaRadians)) - (l * k * sinf(q * thetaRadians)));
-		data.push_back({ {x, y, 0.0f}, color });
+		data.push_back({ {}, {x, y, 0.0f}, color });
 	}
 }
 
@@ -197,7 +197,7 @@ void GenerateLinearBezierPC(
 	for (float t = 0; t <= 1; t += tick) {
 		float coef = 1 - t;
 		l = coef * p0 + t * p1;
-		data.push_back({ {l.x, l.y, l.z}, color });
+		data.push_back({ {}, {l.x, l.y, l.z}, color });
 	}
 }
 
@@ -222,7 +222,7 @@ void GenerateQuadraticBezierPC(
 		float coef = 1 - t;
 		float coefSq = coef * coef;
 		q = (coefSq * p0) + (2 * coef * t * p1) + (t * t * p2);
-		data.push_back({ {q.x, q.y, q.z}, color });
+		data.push_back({ {}, {q.x, q.y, q.z}, color });
 	}
 }
 
@@ -254,7 +254,7 @@ void GenerateQuadraticBezierPCMat(
 		float coef = 1 - t;
 		float coefSq = coef * coef;
 		q = pointMat * CM * tv;
-		data.push_back({ {q.x, q.y, q.z}, color });
+		data.push_back({ {}, {q.x, q.y, q.z}, color });
 	}
 }
 
@@ -283,7 +283,7 @@ void GenerateCubicBezierPC(
 			+ (3 * coef2 * t * p1)
 			+ (3 * coef * t * t * p2)
 			+ (t * t * t * p3);
-		data.push_back({ {c.x, c.y, c.z}, color });
+		data.push_back({ {}, {c.x, c.y, c.z}, color });
 	}
 }
 
@@ -316,7 +316,7 @@ void GenerateCubicBezierPCMat(
 		tv[1] = t * t;
 		tv[2] = t;
 		c = pointMat * CM * tv;
-		data.push_back({ {c.x, c.y, c.z}, color });
+		data.push_back({ {}, {c.x, c.y, c.z}, color });
 	}
 }
 
@@ -362,7 +362,7 @@ void GenerateBezierPatch(
 			x = glm::dot(sv, CM * Px * CM * tv);
 			y = glm::dot(sv, CM * Py * CM * tv);
 			z = glm::dot(sv, CM * Pz * CM * tv);
-			data.push_back({ { x, y, z }, color });
+			data.push_back({ {}, { x, y, z }, color });
 		}
 	}
 }

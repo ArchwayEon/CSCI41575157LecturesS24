@@ -6,6 +6,13 @@ IVertexArray::IVertexArray()
 
 }
 
+void IVertexArray::Generate(IVertexDataParams& params)
+{
+	if (generator != nullptr) {
+		generator->GenerateVertices(params);
+	}
+}
+
 void IVertexArray::EnableAttribute(
 	int attribIndex, int elementCount, int sizeInBytes, void* offset)
 {

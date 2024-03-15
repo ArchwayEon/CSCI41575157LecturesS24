@@ -23,5 +23,13 @@ public:
 		std::shared_ptr<GraphicsObject> object, 
 		PCData& pcData, std::size_t maxVertexCount) override;
 
+	void SetAsDynamicGraphicsObject(
+		std::shared_ptr<GraphicsObject> object,
+		std::size_t maxVertexCount) override;
+
+	std::size_t GetVertexSize() override {
+		return sizeof(VertexDataPC);
+	}
+
 };
 

@@ -100,13 +100,28 @@ void PCVertexArray::SetUpDynamicGraphicsObject(
 	object->sizeOfIndexBuffer =
 		object->indexData.size() * sizeof(unsigned short);
 	object->numberOfIndices = object->indexData.size();
-	//object->vao = vao;
-	//object->shaderProgram = shaderProgram;
-	object->isDynamic = true;
 	object->maxSizeOfVertexBuffer = maxVertexCount * sizeof(VertexDataPC);
 	object->maxSizeOfIndexBuffer =
 		object->maxSizeOfVertexBuffer * 2 * sizeof(unsigned short);
-	//object.vbo = AllocateVertexBufferPC(object);
-	//object.ibo = AllocateIndexBuffer(object);
+}
+
+void PCVertexArray::SetAsDynamicGraphicsObject(
+	std::shared_ptr<GraphicsObject> object, std::size_t maxVertexCount)
+{
+	std::vector<VertexDataPC>& vertexData = 
+		reinterpret_cast<std::vector<VertexDataPC>&>
+			(object->vertexArray->GetVertexData());
+	object->isDynamic = true;
+	object->vertexDataPC = vertexData;
+		//object->vertexArray->GetGenerator()->GetVertexData();
+	object->indexData = object->vertexArray->GetIndexData();
+	object->sizeOfVertexBuffer = object->vertexArray->GetVertexDataSize();
+	object->numberOfVertices = object->vertexArray->GetNumberOfVertices();
+	object->sizeOfIndexBuffer = object->vertexArray->GetIndexDataSize();
+	object->numberOfIndices = object->vertexArray->GetNumberOfIndices();
+	object->maxSizeOfVertexBuffer = 
+		maxVertexCount * object->vertexArray->GetVertexSize();
+	object->maxSizeOfIndexBuffer =
+		object->maxSizeOfVertexBuffer * 2 * object->vertexArray->GetIndexSize();
 }
 

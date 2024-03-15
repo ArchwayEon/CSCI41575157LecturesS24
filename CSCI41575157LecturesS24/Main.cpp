@@ -544,11 +544,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	std::shared_ptr<Shader> basicPCShader =
 		std::make_shared<Shader>(pcVertexSource, pcFragmentSource);
 
-	//unsigned int pcShaderProgram;
-	//Result resultPC =
-	//	CreateShaderProgram(pcVertexSource, pcFragmentSource, pcShaderProgram);
-	//std::string message = resultPC.message;
-
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
@@ -563,14 +558,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	basicPCTShader->AddUniform("projection");
 	basicPCTShader->AddUniform("view");
 	basicPCTShader->AddUniform("world");
-
-	//BasicShaderLocation pcLocation;
-	//pcLocation.projectionLoc =
-	//	glGetUniformLocation(pcShaderProgram, "projection");
-	//pcLocation.viewLoc =
-	//	glGetUniformLocation(pcShaderProgram, "view");
-	//pcLocation.worldLoc =
-	//	glGetUniformLocation(pcShaderProgram, "world");
 
 	basicPCShader->AddUniform("projection");
 	basicPCShader->AddUniform("view");
@@ -599,18 +586,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	lightingRenderer->SetShaderProgram(lightingShader);
 	lightingRenderer->SetVertexSize(sizeof(VertexDataPCNT));
 
-	SGraphicsObject cube = std::make_shared<GraphicsObject>();
-	cube->primitive = GL_TRIANGLES;
-	cube->vertexDataPCNT = CreateCubeVertexData();
-	cube->sizeOfVertexBuffer = 36 * sizeof(VertexDataPCNT);
-	cube->numberOfVertices = 36;
-	cube->textureId = customTextureId;
-	cube->material.ambientIntensity = 0.1f;
-	cube->material.specularIntensity = 0.5f;
-	cube->material.shininess = 16.0f;
-	cube->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
-	allObjects["cube"] = cube;
-	lightingRenderer->AddObject(cube);
+	SGraphicsObject litCube = std::make_shared<GraphicsObject>();
+	litCube->primitive = GL_TRIANGLES;
+	litCube->vertexDataPCNT = CreateCubeVertexData();
+	litCube->sizeOfVertexBuffer = 36 * sizeof(VertexDataPCNT);
+	litCube->numberOfVertices = 36;
+	litCube->textureId = customTextureId;
+	litCube->material.ambientIntensity = 0.1f;
+	litCube->material.specularIntensity = 0.5f;
+	litCube->material.shininess = 16.0f;
+	litCube->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
+	allObjects["litCube"] = litCube;
+	lightingRenderer->AddObject(litCube);
 
 	SGraphicsObject floor = std::make_shared<GraphicsObject>();
 	floor->primitive = GL_TRIANGLES;
@@ -645,13 +632,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	basicPCRenderer->SetShaderProgram(basicPCShader);
 	basicPCRenderer->SetVertexSize(sizeof(VertexDataPC));
 
+	std::shared_ptr<PCVertexArray> vaCircle = std::make_shared<PCVertexArray>();
+	vaCircle->SetGenerator(std::make_shared<PCCircleGenerator>());
 	SGraphicsObject circle = std::make_shared<GraphicsObject>();
+	circle->vertexArray = vaCircle;
 	circle->primitive = GL_LINES;
-	int circleSteps = 10;
-	float circleRadius = 5.0f;
-	PCData circlePCData = 
-		CreateXYCirclePC(circleRadius, { 1.0f, 1.0f, 1.0f }, circleSteps);
-	vaPC->SetUpDynamicGraphicsObject(circle, circlePCData, 360);
+	CircleParams circleParams{};
+	circleParams.radius = 5.0f;
+	circleParams.color = { 1.0f, 1.0f, 1.0f };
+	circleParams.steps = 10;
+	circle->vertexArray->Generate(circleParams);
+	circle->vertexArray->SetAsDynamicGraphicsObject(circle, 360);
+	//int circleSteps = 10;
+	//float circleRadius = 5.0f;
+	//PCData circlePCData = 
+	//	CreateXYCirclePC(circleRadius, { 1.0f, 1.0f, 1.0f }, circleSteps);
+	//vaPC->SetUpDynamicGraphicsObject(circle, circlePCData, 360);
 	circle->referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -10.0f, 1.0f);
 	allObjects["circle"] = circle;
 	basicPCRenderer->AddObject(circle);
@@ -874,8 +870,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			GL_STENCIL_BUFFER_BIT);
 
 		deltaAngle = static_cast<float>(speed * elapsedSeconds);
-		cube->referenceFrame = glm::rotate(
-			cube->referenceFrame, glm::radians(deltaAngle), axis);
+		litCube->referenceFrame = glm::rotate(
+			litCube->referenceFrame, glm::radians(deltaAngle), axis);
 
 		if (resetCameraPosition) {
 			cameraFrame = glm::mat4(1.0f);
@@ -936,11 +932,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 		object = allObjects["circle"];
 		if (object->isVisible) {
-			GenerateXYCirclePCVertexData(
-				object->vertexDataPC, circleRadius, { 1.0f, 1.0f, 1.0f },
-				circleSteps);
-			GenerateLinesIndexDataConnected(
-				object->indexData, object->vertexDataPC.size());
+			object->vertexArray->Generate(circleParams);
+			object->vertexDataPC =
+				reinterpret_cast<std::vector<VertexDataPC>&>
+				(object->vertexArray->GetVertexData());
+			object->indexData = object->vertexArray->GetIndexData();
+			//GenerateXYCirclePCVertexData(
+			//	object->vertexDataPC, circleRadius, { 1.0f, 1.0f, 1.0f },
+			//	circleSteps);
+			//GenerateLinesIndexDataConnected(
+			//	object->indexData, object->vertexDataPC.size());
 		}
 		object = allObjects["spirograph"];
 		if (object->isVisible) {
@@ -1030,8 +1031,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::Checkbox("Correct gamma", &correctGamma);
 		ImGui::Checkbox("Show Circle", &showCircle);
 		ImGui::Checkbox("Show Spirograph", &showSpirograph);
-		ImGui::SliderFloat("Radius", &circleRadius, 1, 10);
-		ImGui::SliderInt("Steps", &circleSteps, 10, 120);
+		ImGui::SliderFloat("Radius", &circleParams.radius, 1, 10);
+		ImGui::SliderInt("Steps", &circleParams.steps, 10, 120);
 		ImGui::SliderFloat("Spirograph R", &spirographR, 1, 10);
 		ImGui::SliderFloat("Spirograph l", &spirographl, 0, 1);
 		ImGui::SliderFloat("Spirograph k", &spirographk, 0, 1);

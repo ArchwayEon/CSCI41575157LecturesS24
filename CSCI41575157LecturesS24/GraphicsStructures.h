@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include <memory>
 
 struct Material {
 	float ambientIntensity;  // 0 to 1
@@ -55,18 +56,20 @@ struct Result {
 	Result() : isSuccess(true) {}
 };
 
-struct VertexDataPC {
+struct IVertexData {};
+
+struct VertexDataPC : public IVertexData{
 	glm::vec3 position{};
 	glm::vec3 color{};
 };
 
-struct VertexDataPCT {
+struct VertexDataPCT : public IVertexData {
 	glm::vec3 position;
 	glm::vec3 color;
 	glm::vec2 tex;
 };
 
-struct VertexDataPCNT {
+struct VertexDataPCNT : public IVertexData {
 	glm::vec3 position;
 	glm::vec4 color;
 	glm::vec3 normal;
@@ -78,28 +81,7 @@ struct PCData {
 	std::vector<unsigned short> indexData;
 };
 
-struct GraphicsObject {
-	VertexDataPCNT* vertexDataPCNT = nullptr;
-	VertexDataPCT* vertexDataPCT = nullptr;
-	std::vector<VertexDataPC> vertexDataPC;
-	std::vector<unsigned short> indexData;
-	std::size_t sizeOfVertexBuffer = 0;
-	std::size_t maxSizeOfVertexBuffer = 0;
-	std::size_t sizeOfIndexBuffer = 0;
-	std::size_t maxSizeOfIndexBuffer = 0;
-	std::size_t numberOfVertices = 0;
-	std::size_t numberOfIndices = 0;
-	unsigned int vao = 0;
-	unsigned int vbo = 0;
-	unsigned int ibo = 0;
-	bool isDynamic = false;
-	bool isVisible = true;
-	unsigned int shaderProgram = 0;
-	unsigned int textureId = 0;
-	unsigned int primitive = 0;
-	glm::mat4 referenceFrame = glm::mat4(1.0f);
-	Material material{};
-};
+
 
 struct LightingShaderLocation {
 	unsigned int worldLoc = 0;
@@ -123,3 +105,4 @@ struct BasicShaderLocation {
 	unsigned int projectionLoc = 0;
 	unsigned int viewLoc = 0;
 };
+
