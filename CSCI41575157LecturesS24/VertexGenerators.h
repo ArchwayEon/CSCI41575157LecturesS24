@@ -156,3 +156,91 @@ public:
 	void GenerateVertices(IVertexDataParams& params) override;
 	void GenerateIndices(int type = 1, int steps = 0) override;
 };
+
+class PCNTGenerator : public IVertexGenerator
+{
+protected:
+	std::vector<VertexDataPCNT> vertexData;
+
+public:
+	PCNTGenerator() : IVertexGenerator() {}
+	~PCNTGenerator() = default;
+
+	std::size_t GetNumberOfVertices() override {
+		return vertexData.size();
+	}
+
+	long long GetVertexDataSize() override {
+		return vertexData.size() * sizeof(VertexDataPCNT);
+	}
+
+	std::vector<IVertexData>& GetVertexData() {
+		return reinterpret_cast<std::vector<IVertexData>&>(vertexData);
+	}
+
+	std::vector<VertexDataPCNT>& GetPCNTVertexData() {
+		return vertexData;
+	}
+};
+
+class PCNTCuboidGenerator : public PCNTGenerator
+{
+protected:
+
+public:
+	PCNTCuboidGenerator() : PCNTGenerator() {}
+	~PCNTCuboidGenerator() = default;
+
+	void GenerateVertices(IVertexDataParams& params) override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
+};
+
+class PCNTXZPlaneGenerator : public PCNTGenerator
+{
+protected:
+
+public:
+	PCNTXZPlaneGenerator() : PCNTGenerator() {}
+	~PCNTXZPlaneGenerator() = default;
+
+	void GenerateVertices(IVertexDataParams& params) override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
+};
+
+class PCTGenerator : public IVertexGenerator
+{
+protected:
+	std::vector<VertexDataPCT> vertexData;
+
+public:
+	PCTGenerator() : IVertexGenerator() {}
+	~PCTGenerator() = default;
+
+	std::size_t GetNumberOfVertices() override {
+		return vertexData.size();
+	}
+
+	long long GetVertexDataSize() override {
+		return vertexData.size() * sizeof(VertexDataPCT);
+	}
+
+	std::vector<IVertexData>& GetVertexData() {
+		return reinterpret_cast<std::vector<IVertexData>&>(vertexData);
+	}
+
+	std::vector<VertexDataPCT>& GetPCNTVertexData() {
+		return vertexData;
+	}
+};
+
+class PCTXYPlaneGenerator : public PCTGenerator
+{
+protected:
+
+public:
+	PCTXYPlaneGenerator() : PCTGenerator() {}
+	~PCTXYPlaneGenerator() = default;
+
+	void GenerateVertices(IVertexDataParams& params) override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
+};

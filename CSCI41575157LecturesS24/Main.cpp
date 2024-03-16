@@ -18,13 +18,13 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GraphicsStructures.h"
-#include "GeneratorFunctions.h"
 #include <unordered_map>
 #include "Renderer.h"
 #include "PCNTVertexArray.h"
 #include "Shader.h"
 #include "PCTVertexArray.h"
 #include "PCVertexArray.h"
+#include "GraphicsObject.h"
 
 // Eek! A global mouse!
 MouseParams mouse;
@@ -452,15 +452,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	std::unordered_map<std::string, SGraphicsObject> allObjects;
 
-	std::shared_ptr<PCNTVertexArray> vaPCNT = std::make_shared<PCNTVertexArray>();
-
-	SRenderer lightingRenderer = std::make_shared<Renderer>(vaPCNT);
+	SRenderer lightingRenderer = std::make_shared<Renderer>();
 	lightingRenderer->SetShaderProgram(lightingShader);
 	lightingRenderer->SetVertexSize(sizeof(VertexDataPCNT));
 
+	std::shared_ptr<PCNTVertexArray> vaLitCube = 
+		std::make_shared<PCNTVertexArray>();
+	vaLitCube->SetGenerator(std::make_shared<PCNTCuboidGenerator>());
 	SGraphicsObject litCube = std::make_shared<GraphicsObject>();
+	vaLitCube->SetObject(litCube);
+	litCube->vertexArray = vaLitCube;
 	litCube->primitive = GL_TRIANGLES;
-	litCube->vertexDataPCNT = CreateCubeVertexData();
+	CuboidParams cParams{};
+	cParams.width = 10.0f;
+	cParams.height = 10.0f;
+	cParams.depth = 10.0f;
+	litCube->vertexArray->Generate(cParams);
 	litCube->sizeOfVertexBuffer = 36 * sizeof(VertexDataPCNT);
 	litCube->numberOfVertices = 36;
 	litCube->textureId = customTextureId;
@@ -471,10 +478,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	allObjects["litCube"] = litCube;
 	lightingRenderer->AddObject(litCube);
 
+	std::shared_ptr<PCNTVertexArray> vaFloor =
+		std::make_shared<PCNTVertexArray>();
+	vaFloor->SetGenerator(std::make_shared<PCNTXZPlaneGenerator>());
 	SGraphicsObject floor = std::make_shared<GraphicsObject>();
+	vaFloor->SetObject(floor);
+	floor->vertexArray = vaFloor;
 	floor->primitive = GL_TRIANGLES;
-	floor->vertexDataPCNT =
-		CreateXZPlanePCNT(50.0f, 50.0f, { 1.0f, 1.0f, 1.0f, 1.0f }, 5.0f, 5.0f);
+	XZPlaneParams xzpParams{};
+	xzpParams.width = 50.0f;
+	xzpParams.depth = 50.0f;
+	xzpParams.repeatS = 5.0f;
+	xzpParams.repeatT = 5.0f;
+	floor->vertexArray->Generate(xzpParams);
 	floor->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCNT);
 	floor->numberOfVertices = 6;
 	floor->textureId = CreateTextureFromFile("stone-road-texture.jpg");
@@ -485,28 +501,38 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	allObjects["floor"] = floor;
 	lightingRenderer->AddObject(floor);
 
-	std::shared_ptr<PCTVertexArray> vaPCT = std::make_shared<PCTVertexArray>();
-	SRenderer basicPCTRenderer = std::make_shared<Renderer>(vaPCT);
+	//std::shared_ptr<PCTVertexArray> vaPCT = std::make_shared<PCTVertexArray>();
+	//SRenderer basicPCTRenderer = std::make_shared<Renderer>(vaPCT);
+	SRenderer basicPCTRenderer = std::make_shared<Renderer>();
 	basicPCTRenderer->SetShaderProgram(basicPCTShader);
 	basicPCTRenderer->SetVertexSize(sizeof(VertexDataPCT));
 
+	std::shared_ptr<PCTVertexArray> vaLightBulb = 
+		std::make_shared<PCTVertexArray>();
+	vaLightBulb->SetGenerator(std::make_shared<PCTXYPlaneGenerator>());
 	SGraphicsObject lightBulb = std::make_shared<GraphicsObject>();
+	vaLightBulb->SetObject(lightBulb);
+	lightBulb->vertexArray = vaLightBulb;
 	lightBulb->primitive = GL_TRIANGLES;
-	lightBulb->vertexDataPCT = CreateXYPlanePCT();
+	XYPlaneParams xypParams{};
+	lightBulb->vertexArray->Generate(xypParams);
+	//lightBulb->vertexDataPCT = CreateXYPlanePCT();
 	lightBulb->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCT);
 	lightBulb->numberOfVertices = 6;
 	lightBulb->textureId = CreateTextureFromFile("lightbulb.png");
 	allObjects["lightBulb"] = lightBulb;
 	basicPCTRenderer->AddObject(lightBulb);
 
-	std::shared_ptr<PCVertexArray> vaPC = std::make_shared<PCVertexArray>();
-	SRenderer basicPCRenderer = std::make_shared<Renderer>(vaPC);
+	//std::shared_ptr<PCVertexArray> vaPC = std::make_shared<PCVertexArray>();
+	//SRenderer basicPCRenderer = std::make_shared<Renderer>(vaPC);
+	SRenderer basicPCRenderer = std::make_shared<Renderer>();
 	basicPCRenderer->SetShaderProgram(basicPCShader);
 	basicPCRenderer->SetVertexSize(sizeof(VertexDataPC));
 
 	std::shared_ptr<PCVertexArray> vaCircle = std::make_shared<PCVertexArray>();
 	vaCircle->SetGenerator(std::make_shared<PCCircleGenerator>());
 	SGraphicsObject circle = std::make_shared<GraphicsObject>();
+	vaCircle->SetObject(circle);
 	circle->vertexArray = vaCircle;
 	circle->primitive = GL_LINES;
 	CircleParams circleParams{};
@@ -523,6 +549,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		std::make_shared<PCVertexArray>();
 	vaSpirograph->SetGenerator(std::make_shared<PCSpirographGenerator>());
 	SGraphicsObject spirograph = std::make_shared<GraphicsObject>();
+	vaSpirograph->SetObject(spirograph);
 	spirograph->vertexArray = vaSpirograph;
 	spirograph->primitive = GL_LINES;
 	SpirographParams sParams{};
@@ -543,6 +570,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		std::make_shared<PCVertexArray>();
 	vaLinearBezier->SetGenerator(std::make_shared<PCLinearBezierGenerator>());
 	SGraphicsObject linearBezier = std::make_shared<GraphicsObject>();
+	vaLinearBezier->SetObject(linearBezier);
 	linearBezier->vertexArray = vaLinearBezier;
 	linearBezier->primitive = GL_LINES;
 	LinearBezierParams lbParams{};
@@ -561,6 +589,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	vaQuadraticBezier->SetGenerator(
 		std::make_shared<PCQuadraticBezierGenerator>());
 	SGraphicsObject quadraticBezier = std::make_shared<GraphicsObject>();
+	vaQuadraticBezier->SetObject(quadraticBezier);
 	quadraticBezier->vertexArray = vaQuadraticBezier;
 	quadraticBezier->primitive = GL_LINES;
 	QuadraticBezierParams qbParams{};
@@ -580,6 +609,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	vaQuadraticBezierM->SetGenerator(
 		std::make_shared<PCQuadraticBezierMGenerator>());
 	SGraphicsObject quadraticBezierM = std::make_shared<GraphicsObject>();
+	vaQuadraticBezierM->SetObject(quadraticBezierM);
 	quadraticBezierM->vertexArray = vaQuadraticBezierM;
 	quadraticBezierM->primitive = GL_LINES;
 	QuadraticBezierMParams qbmParams{};
@@ -600,6 +630,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	vaCubicBezier->SetGenerator(
 		std::make_shared<PCCubicBezierGenerator>());
 	SGraphicsObject cubicBezier = std::make_shared<GraphicsObject>();
+	vaCubicBezier->SetObject(cubicBezier);
 	cubicBezier->vertexArray = vaCubicBezier;
 	cubicBezier->primitive = GL_LINES;
 	CubicBezierParams cbParams{};
@@ -621,6 +652,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	vaCubicBezierM->SetGenerator(
 		std::make_shared<PCCubicBezierMGenerator>());
 	SGraphicsObject cubicBezierM = std::make_shared<GraphicsObject>();
+	vaCubicBezierM->SetObject(cubicBezierM);
 	cubicBezierM->vertexArray = vaCubicBezierM;
 	cubicBezierM->primitive = GL_LINES;
 	CubicBezierMParams cbmParams{};
@@ -642,6 +674,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	vaBezierPatch->SetGenerator(
 		std::make_shared<PCBezierPatchGenerator>());
 	SGraphicsObject bezierPatch = std::make_shared<GraphicsObject>();
+	vaBezierPatch->SetObject(bezierPatch);
 	bezierPatch->vertexArray = vaBezierPatch;
 	bezierPatch->primitive = GL_LINES;
 	BezierPatchParams bpParams{};
@@ -667,23 +700,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	bezierPatch->vertexArray->Generate(bpParams);
 	bezierPatch->vertexArray->SetAsDynamicGraphicsObject(
 		bezierPatch, 500);
-	glm::vec3 cpBezier[4][4]{};
-	cpBezier[0][0] = { -10, 1,-10 };
-	cpBezier[0][1] = { -5,  3,-10 };
-	cpBezier[0][2] = {  5, -3,-10 };
-	cpBezier[0][3] = {  10, 2,-10 };
-	cpBezier[1][0] = { -10, 0,-5 };
-	cpBezier[1][1] = { -5,  3,-5 };
-	cpBezier[1][2] = {  5, -3,-5 };
-	cpBezier[1][3] = {  10,-3,-5 };
-	cpBezier[2][0] = { -10, 2, 5 };
-	cpBezier[2][1] = { -5,  3, 5 };
-	cpBezier[2][2] = {  5, -3, 5 };
-	cpBezier[2][3] = {  10, 1, 5 };
-	cpBezier[3][0] = { -10,-2, 10 };
-	cpBezier[3][1] = { -5,  3, 10 };
-	cpBezier[3][2] = {  5, -3, 10 };
-	cpBezier[3][3] = {  10,-2, 10 };
+	//glm::vec3 cpBezier[4][4]{};
+	//cpBezier[0][0] = { -10, 1,-10 };
+	//cpBezier[0][1] = { -5,  3,-10 };
+	//cpBezier[0][2] = {  5, -3,-10 };
+	//cpBezier[0][3] = {  10, 2,-10 };
+	//cpBezier[1][0] = { -10, 0,-5 };
+	//cpBezier[1][1] = { -5,  3,-5 };
+	//cpBezier[1][2] = {  5, -3,-5 };
+	//cpBezier[1][3] = {  10,-3,-5 };
+	//cpBezier[2][0] = { -10, 2, 5 };
+	//cpBezier[2][1] = { -5,  3, 5 };
+	//cpBezier[2][2] = {  5, -3, 5 };
+	//cpBezier[2][3] = {  10, 1, 5 };
+	//cpBezier[3][0] = { -10,-2, 10 };
+	//cpBezier[3][1] = { -5,  3, 10 };
+	//cpBezier[3][2] = {  5, -3, 10 };
+	//cpBezier[3][3] = {  10,-2, 10 };
 	bezierPatch->referenceFrame[3] = glm::vec4(-15.0f, 2.0f, 15.0f, 1.0f);
 	allObjects["bezierPatch"] = bezierPatch;
 	basicPCRenderer->AddObject(bezierPatch);
@@ -693,6 +726,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	vaBezierPatchX->SetGenerator(
 		std::make_shared<PCBezierPatchGenerator>());
 	SGraphicsObject bezierPatchX = std::make_shared<GraphicsObject>();
+	vaBezierPatchX->SetObject(bezierPatchX);
 	bezierPatchX->vertexArray = vaBezierPatchX;
 	bezierPatchX->primitive = GL_LINES;
 	BezierPatchParams bpxParams{};

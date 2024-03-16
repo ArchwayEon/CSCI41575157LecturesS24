@@ -256,3 +256,118 @@ void PCBezierPatchGenerator::GenerateIndices(int type, int steps)
 	if (type == 1) GenerateLinesIndexDataUnconnected();
 	else if (type == 2) GenerateLinesIndexDataForBezierSurface(steps);
 }
+
+void PCNTCuboidGenerator::GenerateVertices(IVertexDataParams& params)
+{
+	CuboidParams& cp =	reinterpret_cast<CuboidParams&>(params);
+	float hw = cp.width / 2.0f;
+	float hh = cp.height / 2.0f;
+	float hd = cp.depth / 2.0f;
+	// Front face
+	VertexDataPCNT A = { {}, {-hw, hh, hd}, cp.color, {0.0f, 0.0f, 1.0f}, {0.0f, cp.repeatT} };
+	VertexDataPCNT B = { {}, {-hw,-hh, hd}, cp.color, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f} };
+	VertexDataPCNT C = { {}, { hw,-hh, hd}, cp.color, {0.0f, 0.0f, 1.0f}, {cp.repeatS, 0.0f} };
+	VertexDataPCNT D = { {}, { hw, hh, hd}, cp.color, {0.0f, 0.0f, 1.0f}, {cp.repeatS, cp.repeatT} };
+	// Right face				   hh  hd	cp.color
+	VertexDataPCNT E = { {}, { hw, hh, hd}, cp.color, {1.0f, 0.0f, 0.0f}, {0.0f, cp.repeatT} };
+	VertexDataPCNT F = { {}, { hw,-hh, hd}, cp.color, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
+	VertexDataPCNT G = { {}, { hw,-hh,-hd}, cp.color, {1.0f, 0.0f, 0.0f}, {cp.repeatS, 0.0f} };
+	VertexDataPCNT H = { {}, { hw, hh,-hd}, cp.color, {1.0f, 0.0f, 0.0f}, {cp.repeatS, cp.repeatT} };
+	// Back face				   hh  hd	cp.color
+	VertexDataPCNT I = { {}, { hw, hh,-hd}, cp.color, {0.0f, 0.0f, -1.0f}, {0.0f, cp.repeatT} };
+	VertexDataPCNT J = { {}, { hw,-hh,-hd}, cp.color, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f} };
+	VertexDataPCNT K = { {}, {-hw,-hh,-hd}, cp.color, {0.0f, 0.0f, -1.0f}, {cp.repeatS, 0.0f} };
+	VertexDataPCNT L = { {}, {-hw, hh,-hd}, cp.color, {0.0f, 0.0f, -1.0f}, {cp.repeatS, cp.repeatT} };
+	// Left face				   hh  hd	cp.color
+	VertexDataPCNT M = { {}, {-hw, hh,-hd}, cp.color, {-1.0f, 0.0f, 0.0f}, {0.0f, cp.repeatT} };
+	VertexDataPCNT N = { {}, {-hw,-hh,-hd}, cp.color, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} };
+	VertexDataPCNT O = { {}, {-hw,-hh, hd}, cp.color, {-1.0f, 0.0f, 0.0f}, {cp.repeatS, 0.0f} };
+	VertexDataPCNT P = { {}, {-hw, hh, hd}, cp.color, {-1.0f, 0.0f, 0.0f}, {cp.repeatS, cp.repeatT} };
+	// Top face					   hh  hd	cp.color
+	VertexDataPCNT Q = { {}, {-hw, hh,-hd}, cp.color, {0.0f, 1.0f, 0.0f}, {0.0f, cp.repeatT} };
+	VertexDataPCNT R = { {}, {-hw, hh, hd}, cp.color, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f} };
+	VertexDataPCNT S = { {}, { hw, hh, hd}, cp.color, {0.0f, 1.0f, 0.0f}, {cp.repeatS, 0.0f} };
+	VertexDataPCNT T = { {}, { hw, hh,-hd}, cp.color, {0.0f, 1.0f, 0.0f}, {cp.repeatS, cp.repeatT} };
+	// Bottom face				   hh  hd	cp.color
+	VertexDataPCNT U = { {}, { hw,-hh,-hd}, cp.color, {0.0f, -1.0f, 0.0f}, {0.0f, cp.repeatT} };
+	VertexDataPCNT V = { {}, { hw,-hh, hd}, cp.color, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f} };
+	VertexDataPCNT W = { {}, {-hw,-hh, hd}, cp.color, {0.0f, -1.0f, 0.0f}, {cp.repeatS, 0.0f} };
+	VertexDataPCNT X = { {}, {-hw,-hh,-hd}, cp.color, {0.0f, -1.0f, 0.0f}, {cp.repeatS, cp.repeatT} };
+
+	// 3 vertex per triangle, 2 triangles per face, 6 faces
+	// 3 * 2 * 6 = 36 vertices
+	VertexDataPCNT data[36] = {
+		// Front face
+		A, B, C, A, C, D,
+		// Right face
+		E, F, G, E, G, H,
+		// Back face
+		I, J, K, I, K, L,
+		// Left face
+		M, N, O, M, O, P,
+		// Top face
+		Q, R, S, Q, S, T,
+		// Bottom face
+		U, V, W, U, W, X
+	};
+	vertexData.clear();
+	for (int i = 0; i < 36; i++) {
+		vertexData.push_back(data[i]);
+	}
+}
+
+void PCNTCuboidGenerator::GenerateIndices(int type, int steps)
+{
+	// nop
+}
+
+void PCNTXZPlaneGenerator::GenerateVertices(IVertexDataParams& params)
+{
+	XZPlaneParams& xzpp = reinterpret_cast<XZPlaneParams&>(params);
+	float hw = xzpp.width / 2;
+	float hd = xzpp.depth / 2;
+	glm::vec3 normal(0.0f, 1.0f, 0.0f);
+	// Front face
+	VertexDataPCNT A = { {}, {-hw, 0.0f,-hd}, xzpp.color, normal, {0.0f, xzpp.repeatT} };
+	VertexDataPCNT B = { {}, {-hw, 0.0f, hd}, xzpp.color, normal, {0.0f, 0.0f} };
+	VertexDataPCNT C = { {}, { hw, 0.0f, hd}, xzpp.color, normal, {xzpp.repeatS, 0.0f} };
+	VertexDataPCNT D = { {}, { hw, 0.0f,-hd}, xzpp.color, normal, {xzpp.repeatS, xzpp.repeatT} };
+
+	vertexData.clear();
+	vertexData.push_back(A);
+	vertexData.push_back(B);
+	vertexData.push_back(C);
+	vertexData.push_back(A);
+	vertexData.push_back(C);
+	vertexData.push_back(D);
+}
+
+void PCNTXZPlaneGenerator::GenerateIndices(int type, int steps)
+{
+	// nop
+}
+
+void PCTXYPlaneGenerator::GenerateVertices(IVertexDataParams& params)
+{
+	XYPlaneParams& xypp = reinterpret_cast<XYPlaneParams&>(params);
+	float hw = xypp.width / 2;
+	float hh = xypp.height / 2;
+	// Front face
+	VertexDataPCT A = { {}, {-hw, hh, 0.0f}, xypp.color, {0.0f, xypp.repeatT} };
+	VertexDataPCT B = { {}, {-hw,-hh, 0.0f}, xypp.color, {0.0f, 0.0f} };
+	VertexDataPCT C = { {}, { hw,-hh, 0.0f}, xypp.color, {xypp.repeatS, 0.0f} };
+	VertexDataPCT D = { {}, { hw, hh, 0.0f}, xypp.color, {xypp.repeatS, xypp.repeatT} };
+
+	vertexData.clear();
+	vertexData.push_back(A);
+	vertexData.push_back(B);
+	vertexData.push_back(C);
+	vertexData.push_back(A);
+	vertexData.push_back(C);
+	vertexData.push_back(D);
+}
+
+void PCTXYPlaneGenerator::GenerateIndices(int type, int steps)
+{
+	// nop
+}

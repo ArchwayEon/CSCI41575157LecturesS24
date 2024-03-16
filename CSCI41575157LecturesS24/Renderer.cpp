@@ -1,18 +1,27 @@
 #include "Renderer.h"
-#include <glad/glad.h> 
+#include <glad/glad.h>
+#include "GraphicsObject.h"
 
-Renderer::Renderer(std::shared_ptr<IVertexArray> va) : 
+//Renderer::Renderer(std::shared_ptr<IVertexArray> va) : 
+//	shader(0), vertexSize(0), vao(0)
+//{
+//	glGenVertexArrays(1, &vao);
+//	this->va = va;
+//}
+
+Renderer::Renderer() :
 	shader(0), vertexSize(0), vao(0)
 {
 	glGenVertexArrays(1, &vao);
-	this->va = va;
 }
 
 void Renderer::AddObject(std::shared_ptr<GraphicsObject> object)
 {
 	object->shaderProgram = shader->GetShaderProgram();
-	object->vbo = va->AllocateVertexBuffer(vao, object);
-	object->ibo = va->AllocateIndexBuffer(vao, object);
+	object->vertexArray->AllocateVertexBuffer(vao);
+	object->vertexArray->AllocateIndexBuffer(vao);
+	//object->vbo = va->AllocateVertexBuffer(vao, object);
+	//object->ibo = va->AllocateIndexBuffer(vao, object);
 	objectMap.push_back(object);
 }
 
@@ -41,8 +50,8 @@ void Renderer::Render()
 {
 	for (const auto& object : objectMap) {
 		if (object->isVisible) {
-			va->SendObjectUniforms(object, shader);
-			va->RenderObject(object);
+			object->vertexArray->SendObjectUniforms(shader);
+			object->vertexArray->RenderObject();
 		}
 	}
 }

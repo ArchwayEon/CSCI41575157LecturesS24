@@ -3,12 +3,15 @@
 #include "GraphicsStructures.h"
 #include "Shader.h"
 #include "VertexGenerators.h"
-#include "GraphicsObject.h"
+//#include "GraphicsObject.h"
+
+class GraphicsObject;
 
 class IVertexArray
 {
 protected:
 	std::shared_ptr<IVertexGenerator> generator = nullptr;
+	std::shared_ptr<GraphicsObject> object = nullptr;
 
 public:
 	IVertexArray();
@@ -20,20 +23,20 @@ public:
 	std::shared_ptr<IVertexGenerator>& GetGenerator() {
 		return generator;
 	}
+	void SetObject(std::shared_ptr<GraphicsObject> object) {
+		this->object = object;
+	}
 
-	virtual void RenderObject(std::shared_ptr<GraphicsObject> object) = 0;
+	virtual void RenderObject() = 0;
 
-	virtual unsigned int AllocateVertexBuffer(
-		unsigned int vao, std::shared_ptr<GraphicsObject> object) = 0;
-	virtual unsigned int AllocateIndexBuffer(
-		unsigned int vao, std::shared_ptr<GraphicsObject> object) {
+	virtual unsigned int AllocateVertexBuffer(unsigned int vao) = 0;
+	virtual unsigned int AllocateIndexBuffer(unsigned int vao) {
 		return 0;
 	};
 
 	virtual void EnableAttributes() = 0;
 
-	virtual void SendObjectUniforms(
-		std::shared_ptr<GraphicsObject> object, std::shared_ptr<Shader> shader) = 0;
+	virtual void SendObjectUniforms(std::shared_ptr<Shader> shader) = 0;
 
 	virtual void SetUpDynamicGraphicsObject(
 		std::shared_ptr<GraphicsObject> object, PCData& pcData, 

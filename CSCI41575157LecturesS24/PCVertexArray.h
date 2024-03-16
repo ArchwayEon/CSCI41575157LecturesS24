@@ -3,25 +3,19 @@
 class PCVertexArray :  public IVertexArray
 {
 protected:
+	std::vector<VertexDataPC> vertexData;
 public:
 	PCVertexArray();
 	~PCVertexArray() = default;
 
-	void RenderObject(std::shared_ptr<GraphicsObject> object) override;
+	void RenderObject() override;
 
-	unsigned int AllocateVertexBuffer(
-		unsigned int vao, std::shared_ptr<GraphicsObject> object) override;
-	unsigned int AllocateIndexBuffer(
-		unsigned int vao, std::shared_ptr<GraphicsObject> object) override;
+	unsigned int AllocateVertexBuffer(unsigned int vao) override;
+	unsigned int AllocateIndexBuffer(unsigned int vao) override;
 
 	void EnableAttributes() override;
 
-	void SendObjectUniforms(
-		std::shared_ptr<GraphicsObject> object, std::shared_ptr<Shader> shader) override;
-
-	void SetUpDynamicGraphicsObject(
-		std::shared_ptr<GraphicsObject> object, 
-		PCData& pcData, std::size_t maxVertexCount) override;
+	void SendObjectUniforms(std::shared_ptr<Shader> shader) override;
 
 	void SetAsDynamicGraphicsObject(
 		std::shared_ptr<GraphicsObject> object,
@@ -31,5 +25,6 @@ public:
 		return sizeof(VertexDataPC);
 	}
 
+	void Generate(IVertexDataParams& params) override;
 };
 

@@ -1,11 +1,12 @@
 #include "PCTVertexArray.h"
 #include <glad/glad.h> 
+#include "GraphicsObject.h"
 
 PCTVertexArray::PCTVertexArray() : IVertexArray()
 {
 }
 
-void PCTVertexArray::RenderObject(std::shared_ptr<GraphicsObject> object)
+void PCTVertexArray::RenderObject()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
 	EnableAttributes();
@@ -14,22 +15,20 @@ void PCTVertexArray::RenderObject(std::shared_ptr<GraphicsObject> object)
 	glDrawArrays(object->primitive, 0, (int)object->numberOfVertices);
 }
 
-unsigned int PCTVertexArray::AllocateVertexBuffer(
-	unsigned int vao, std::shared_ptr<GraphicsObject> object)
+unsigned int PCTVertexArray::AllocateVertexBuffer(unsigned int vao)
 {
 	glBindVertexArray(vao);
-	unsigned int vbo;
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glGenBuffers(1, &object->vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
 	glBufferData(
 		GL_ARRAY_BUFFER,
-		object->sizeOfVertexBuffer, object->vertexDataPCT,
+		vertexData.size() * sizeof(VertexDataPCT),
+		vertexData.data(),
 		GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	delete[] object->vertexDataPCT;
-	object->vertexDataPCT = nullptr;
+	vertexData.clear();
 	glBindVertexArray(0);
-	return vbo;
+	return object->vbo;
 }
 
 void PCTVertexArray::EnableAttributes()
@@ -42,7 +41,16 @@ void PCTVertexArray::EnableAttributes()
 	EnableAttribute(2, 2, sizeof(VertexDataPCT), (void*)(sizeof(float) * 6));
 }
 
-void PCTVertexArray::SendObjectUniforms(std::shared_ptr<GraphicsObject> object, std::shared_ptr<Shader> shader)
+void PCTVertexArray::SendObjectUniforms(std::shared_ptr<Shader> shader)
 {
 	shader->SendMat4Uniform("world", object->referenceFrame);
+}
+
+void PCTVertexArray::Generate(IVertexDataParams& params)
+{
+	IVertexArray::Generate(params);
+	auto& data = reinterpret_cast<std::vector<VertexDataPCT>&>(
+		generator->GetVertexData());
+	vertexData = data;
+	data.clear();
 }

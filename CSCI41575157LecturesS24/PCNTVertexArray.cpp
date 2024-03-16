@@ -1,11 +1,14 @@
 #include "PCNTVertexArray.h"
 #include <glad/glad.h> 
+#include "GraphicsObject.h"
+#include <vector>
+#include <algorithm>
 
 PCNTVertexArray::PCNTVertexArray() : IVertexArray()
 {
 }
 
-void PCNTVertexArray::RenderObject(std::shared_ptr<GraphicsObject> object)
+void PCNTVertexArray::RenderObject()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
 	EnableAttributes();
@@ -14,22 +17,20 @@ void PCNTVertexArray::RenderObject(std::shared_ptr<GraphicsObject> object)
 	glDrawArrays(object->primitive, 0, (int)object->numberOfVertices);
 }
 
-unsigned int PCNTVertexArray::AllocateVertexBuffer(
-	unsigned int vao, std::shared_ptr<GraphicsObject> object)
+unsigned int PCNTVertexArray::AllocateVertexBuffer(unsigned int vao)
 {
 	glBindVertexArray(vao);
-	unsigned int vbo;
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glGenBuffers(1, &object->vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
 	glBufferData(
-		GL_ARRAY_BUFFER, 
-		object->sizeOfVertexBuffer, object->vertexDataPCNT, 
+		GL_ARRAY_BUFFER,
+		vertexData.size() * sizeof(VertexDataPCNT),
+		vertexData.data(),
 		GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	delete[] object->vertexDataPCNT;
-	object->vertexDataPCNT = nullptr;
+	vertexData.clear();
 	glBindVertexArray(0);
-	return vbo;
+	return object->vbo;
 }
 
 void PCNTVertexArray::EnableAttributes()
@@ -44,7 +45,7 @@ void PCNTVertexArray::EnableAttributes()
 	EnableAttribute(3, 2, sizeof(VertexDataPCNT), (void*)(sizeof(float) * 10));
 }
 
-void PCNTVertexArray::SendObjectUniforms(std::shared_ptr<GraphicsObject> object, std::shared_ptr<Shader> shader)
+void PCNTVertexArray::SendObjectUniforms(std::shared_ptr<Shader> shader)
 {
 	shader->SendMat4Uniform("world", object->referenceFrame);
 	shader->SendFloatUniform(
@@ -53,4 +54,13 @@ void PCNTVertexArray::SendObjectUniforms(std::shared_ptr<GraphicsObject> object,
 		"materialSpecularIntensity", object->material.specularIntensity);
 	shader->SendFloatUniform(
 		"materialShininess", object->material.shininess);
+}
+
+void PCNTVertexArray::Generate(IVertexDataParams& params)
+{
+	IVertexArray::Generate(params);
+	auto& data = reinterpret_cast<std::vector<VertexDataPCNT>&>(
+		generator->GetVertexData());
+	vertexData = data;
+	data.clear();
 }

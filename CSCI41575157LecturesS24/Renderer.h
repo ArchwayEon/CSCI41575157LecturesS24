@@ -4,6 +4,8 @@
 #include <vector>
 #include "Shader.h"
 
+class GraphicsObject;
+
 class Renderer
 {
 protected:
@@ -11,11 +13,12 @@ protected:
 	std::shared_ptr<Shader> shader;
 	std::size_t vertexSize;
 
-	std::shared_ptr<IVertexArray> va;
+	//std::shared_ptr<IVertexArray> va;
 	std::vector<std::shared_ptr<GraphicsObject>> objectMap;
 
 public:
-	Renderer(std::shared_ptr<IVertexArray> va);
+	//Renderer(std::shared_ptr<IVertexArray> va);
+	Renderer();
 
 	void SetShaderProgram(std::shared_ptr<Shader> sp) { shader = sp; }
 	std::shared_ptr<Shader> GetShaderProgram() const { return shader; }

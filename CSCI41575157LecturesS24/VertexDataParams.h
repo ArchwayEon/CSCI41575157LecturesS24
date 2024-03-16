@@ -61,3 +61,24 @@ struct BezierPatchParams : public IVertexDataParams {
 	glm::vec3 cpBezier[4][4]{};
 	int indexType = 1; // 1 = continous line, 2 = criss cross
 };
+
+struct CuboidParams : public IVertexDataParams {
+	float width = 1.0f, height = 1.0f, depth = 1.0f;
+	glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
+	float repeatS = 1.0f;
+	float repeatT = 1.0f;
+};
+
+struct XZPlaneParams : public IVertexDataParams {
+	float width = 1.0f, depth = 1.0f;
+	glm::vec4 color{ 1.0f, 1.0f, 1.0f, 1.0f };
+	float repeatS = 1.0f;
+	float repeatT = 1.0f;
+};
+
+struct XYPlaneParams : public IVertexDataParams {
+	float width = 1.0f, height = 1.0f;
+	glm::vec3 color{ 1.0f, 1.0f, 1.0f };
+	float repeatS = 1.0f;
+	float repeatT = 1.0f;
+};

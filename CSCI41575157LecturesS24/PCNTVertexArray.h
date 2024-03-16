@@ -4,19 +4,19 @@
 class PCNTVertexArray : public IVertexArray
 {
 protected:
+	std::vector<VertexDataPCNT> vertexData;
 public:
 	PCNTVertexArray();
 	~PCNTVertexArray() = default;
 
-	void RenderObject(std::shared_ptr<GraphicsObject> object) override;
+	void RenderObject() override;
 
-	unsigned int AllocateVertexBuffer(
-		unsigned int vao, std::shared_ptr<GraphicsObject> object) override;
+	unsigned int AllocateVertexBuffer(unsigned int vao) override;
 
 	void EnableAttributes() override;
 
-	void SendObjectUniforms(
-		std::shared_ptr<GraphicsObject> object, 
-		std::shared_ptr<Shader> shader) override;
+	void SendObjectUniforms(std::shared_ptr<Shader> shader) override;
+
+	void Generate(IVertexDataParams& params) override;
 };
 
