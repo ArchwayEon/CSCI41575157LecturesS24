@@ -17,10 +17,6 @@ void PCIVertexArray::RenderObject()
 			vertexData.size() * sizeof(VertexDataPC),
 			vertexData.data());
 	}
-	// Positions
-	EnableAttribute(0, 3, sizeof(VertexDataPC), (void*)0);
-	// Colors
-	EnableAttribute(1, 3, sizeof(VertexDataPC), (void*)(sizeof(float) * 3));
 	
 	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
 	if (object->isDynamic) {
@@ -29,9 +25,6 @@ void PCIVertexArray::RenderObject()
 			worldPositions.size() * sizeof(glm::vec3) * object->instances,
 			worldPositions.data());
 	}
-	// World Positions
-	EnableAttribute(2, 3, sizeof(glm::vec3), (void*)0);
-	glVertexAttribDivisor(2, 1);
 
 	int indexDataSize = static_cast<int>(GetIndexDataSize());
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object->ibo);
@@ -69,6 +62,10 @@ unsigned int PCIVertexArray::AllocateVertexBuffer(unsigned int vao)
 			GetMaxSizeOfVertices(sizeof(VertexDataPC)),
 			nullptr,
 			GL_DYNAMIC_DRAW);
+		// Positions
+		EnableAttribute(0, 3, sizeof(VertexDataPC), (void*)0);
+		// Colors
+		EnableAttribute(1, 3, sizeof(VertexDataPC), (void*)(sizeof(float) * 3));
 		
 		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
 		glBufferData(
@@ -76,6 +73,9 @@ unsigned int PCIVertexArray::AllocateVertexBuffer(unsigned int vao)
 			worldPositions.size() * sizeof(glm::vec3) * object->instances,
 			nullptr,
 			GL_DYNAMIC_DRAW);
+		// World Positions
+		EnableAttribute(2, 3, sizeof(glm::vec3), (void*)0);
+		glVertexAttribDivisor(2, 1);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
