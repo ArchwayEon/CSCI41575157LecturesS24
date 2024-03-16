@@ -616,25 +616,57 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	allObjects["cubicBezier"] = cubicBezier;
 	basicPCRenderer->AddObject(cubicBezier);
 
+	std::shared_ptr<PCVertexArray> vaCubicBezierM =
+		std::make_shared<PCVertexArray>();
+	vaCubicBezierM->SetGenerator(
+		std::make_shared<PCCubicBezierMGenerator>());
 	SGraphicsObject cubicBezierM = std::make_shared<GraphicsObject>();
+	cubicBezierM->vertexArray = vaCubicBezierM;
 	cubicBezierM->primitive = GL_LINES;
-	int cubicBezierMSteps = 20;
-	glm::mat4 cpM{};
-	cpM[0] = { -5.0f, 0.0f, 0.0f, 1.0f };
-	cpM[1] = { 0.0f, 8.0f, 0.0f, 1.0f };
-	cpM[2] = { 5.0f, -8.0f, 0.0f, 1.0f };
-	cpM[3] = { 5.0f, 0.0f, 0.0f, 1.0f };
-	PCData cubicBezierPCMatData =
-		CreateCubicBezierPCMat(
-			cpM, { 1.0f, 1.0f, 0.0f }, cubicBezierMSteps);
-	vaPC->SetUpDynamicGraphicsObject(
-		cubicBezierM, cubicBezierPCMatData, 50);
+	CubicBezierMParams cbmParams{};
+	cbmParams.steps = 20;
+	cbmParams.color = { 0.2f, 0.8f, 0.1f };
+	cbmParams.pM[0] = { -5.0f, 0.0f, 0.0f, 1.0f };
+	cbmParams.pM[1] = { 0.0f, 8.0f, 0.0f, 1.0f };
+	cbmParams.pM[2] = { 5.0f, -8.0f, 0.0f, 1.0f };
+	cbmParams.pM[3] = { 5.0f, 0.0f, 0.0f, 1.0f };
+	cubicBezierM->vertexArray->Generate(cbmParams);
+	cubicBezierM->vertexArray->SetAsDynamicGraphicsObject(
+		cubicBezierM, 50);
 	cubicBezierM->referenceFrame[3] = glm::vec4(-8.0f, 0.0f, 0.0f, 1.0f);
 	allObjects["cubicBezierM"] = cubicBezierM;
 	basicPCRenderer->AddObject(cubicBezierM);
 
+	std::shared_ptr<PCVertexArray> vaBezierPatch =
+		std::make_shared<PCVertexArray>();
+	vaBezierPatch->SetGenerator(
+		std::make_shared<PCBezierPatchGenerator>());
 	SGraphicsObject bezierPatch = std::make_shared<GraphicsObject>();
+	bezierPatch->vertexArray = vaBezierPatch;
 	bezierPatch->primitive = GL_LINES;
+	BezierPatchParams bpParams{};
+	bpParams.steps = 20;
+	bpParams.color = { 0.0f, 0.8f, 0.0f };
+	bpParams.indexType = 1;
+	bpParams.cpBezier[0][0] = { -10, 1,-10 };
+	bpParams.cpBezier[0][1] = { -5,  3,-10 };
+	bpParams.cpBezier[0][2] = { 5, -3,-10 };
+	bpParams.cpBezier[0][3] = { 10, 2,-10 };
+	bpParams.cpBezier[1][0] = { -10, 0,-5 };
+	bpParams.cpBezier[1][1] = { -5,  3,-5 };
+	bpParams.cpBezier[1][2] = { 5, -3,-5 };
+	bpParams.cpBezier[1][3] = { 10,-3,-5 };
+	bpParams.cpBezier[2][0] = { -10, 2, 5 };
+	bpParams.cpBezier[2][1] = { -5,  3, 5 };
+	bpParams.cpBezier[2][2] = { 5, -3, 5 };
+	bpParams.cpBezier[2][3] = { 10, 1, 5 };
+	bpParams.cpBezier[3][0] = { -10,-2, 10 };
+	bpParams.cpBezier[3][1] = { -5,  3, 10 };
+	bpParams.cpBezier[3][2] = { 5, -3, 10 };
+	bpParams.cpBezier[3][3] = { 10,-2, 10 };
+	bezierPatch->vertexArray->Generate(bpParams);
+	bezierPatch->vertexArray->SetAsDynamicGraphicsObject(
+		bezierPatch, 500);
 	glm::vec3 cpBezier[4][4]{};
 	cpBezier[0][0] = { -10, 1,-10 };
 	cpBezier[0][1] = { -5,  3,-10 };
@@ -652,23 +684,40 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	cpBezier[3][1] = { -5,  3, 10 };
 	cpBezier[3][2] = {  5, -3, 10 };
 	cpBezier[3][3] = {  10,-2, 10 };
-	int bezierPatchSteps = 20;
-	PCData bezierPatchPCData =
-		CreateBezierPatch(cpBezier, { 0.0f, 1.0f, 0.0f }, bezierPatchSteps);
-	vaPC->SetUpDynamicGraphicsObject(
-		bezierPatch, bezierPatchPCData, 500);
 	bezierPatch->referenceFrame[3] = glm::vec4(-15.0f, 2.0f, 15.0f, 1.0f);
 	allObjects["bezierPatch"] = bezierPatch;
 	basicPCRenderer->AddObject(bezierPatch);
 
+	std::shared_ptr<PCVertexArray> vaBezierPatchX =
+		std::make_shared<PCVertexArray>();
+	vaBezierPatchX->SetGenerator(
+		std::make_shared<PCBezierPatchGenerator>());
 	SGraphicsObject bezierPatchX = std::make_shared<GraphicsObject>();
+	bezierPatchX->vertexArray = vaBezierPatchX;
 	bezierPatchX->primitive = GL_LINES;
-	int bezierPatchStepsX = 20;
-	PCData bezierPatchXPCData =
-		CreateBezierPatchCrissCross(
-			cpBezier, { 0.0f, 1.0f, 1.0f }, bezierPatchStepsX);
-	vaPC->SetUpDynamicGraphicsObject(
-		bezierPatchX, bezierPatchXPCData, bezierPatchStepsX * bezierPatchStepsX);
+	BezierPatchParams bpxParams{};
+	bpxParams.steps = 20;
+	bpxParams.color = { 0.0f, 0.8f, 0.0f };
+	bpxParams.indexType = 2;
+	bpxParams.cpBezier[0][0] = { -10, 1,-10 };
+	bpxParams.cpBezier[0][1] = { -5,  3,-10 };
+	bpxParams.cpBezier[0][2] = { 5, -3,-10 };
+	bpxParams.cpBezier[0][3] = { 10, 2,-10 };
+	bpxParams.cpBezier[1][0] = { -10, 0,-5 };
+	bpxParams.cpBezier[1][1] = { -5,  3,-5 };
+	bpxParams.cpBezier[1][2] = { 5, -3,-5 };
+	bpxParams.cpBezier[1][3] = { 10,-3,-5 };
+	bpxParams.cpBezier[2][0] = { -10, 2, 5 };
+	bpxParams.cpBezier[2][1] = { -5,  3, 5 };
+	bpxParams.cpBezier[2][2] = { 5, -3, 5 };
+	bpxParams.cpBezier[2][3] = { 10, 1, 5 };
+	bpxParams.cpBezier[3][0] = { -10,-2, 10 };
+	bpxParams.cpBezier[3][1] = { -5,  3, 10 };
+	bpxParams.cpBezier[3][2] = { 5, -3, 10 };
+	bpxParams.cpBezier[3][3] = { 10,-2, 10 };
+	bezierPatchX->vertexArray->Generate(bpxParams);
+	bezierPatchX->vertexArray->SetAsDynamicGraphicsObject(
+		bezierPatchX, 500);
 	bezierPatchX->referenceFrame[3] = glm::vec4(15.0f, 2.0f, 15.0f, 1.0f);
 	allObjects["bezierPatchX"] = bezierPatchX;
 	basicPCRenderer->AddObject(bezierPatchX);
@@ -863,36 +912,30 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				reinterpret_cast<std::vector<VertexDataPC>&>
 				(object->vertexArray->GetVertexData());
 			object->indexData = object->vertexArray->GetIndexData();
-			//GenerateCubicBezierPC(
-			//	object->vertexDataPC, cbP0, cbP1, cbP2, cbP3,
-			//	{ 1.0f, 1.0f, 1.0f }, cubicBezierSteps);
-			//GenerateLinesIndexDataUnconnected(
-			//	object->indexData, object->vertexDataPC.size());
 		}
 		object = allObjects["cubicBezierM"];
 		if (object->isVisible) {
-			GenerateCubicBezierPCMat(
-				object->vertexDataPC, cpM, { 1.0f, 1.0f, 0.0f }, 
-				cubicBezierMSteps);
-			GenerateLinesIndexDataUnconnected(
-				object->indexData, object->vertexDataPC.size());
+			object->vertexArray->Generate(cbmParams);
+			object->vertexDataPC =
+				reinterpret_cast<std::vector<VertexDataPC>&>
+				(object->vertexArray->GetVertexData());
+			object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["bezierPatch"];
 		if (object->isVisible) {
-			GenerateBezierPatch(
-				object->vertexDataPC, cpBezier, { 0.0f, 1.0f, 0.0f }, 
-				bezierPatchSteps);
-			GenerateLinesIndexDataUnconnected(
-				object->indexData, object->vertexDataPC.size());
+			object->vertexArray->Generate(bpParams);
+			object->vertexDataPC =
+				reinterpret_cast<std::vector<VertexDataPC>&>
+				(object->vertexArray->GetVertexData());
+			object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["bezierPatchX"];
 		if (object->isVisible) {
-			GenerateBezierPatch(
-				object->vertexDataPC, cpBezier, { 0.0f, 1.0f, 1.0f }, 
-				bezierPatchStepsX);
-			GenerateLinesIndexDataForBezierSurface(
-				object->indexData, object->vertexDataPC.size(), 
-				bezierPatchStepsX);
+			object->vertexArray->Generate(bpxParams);
+			object->vertexDataPC =
+				reinterpret_cast<std::vector<VertexDataPC>&>
+				(object->vertexArray->GetVertexData());
+			object->indexData = object->vertexArray->GetIndexData();
 		}
 
 		basicPCRenderer->Render();
@@ -927,7 +970,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::DragFloat3("QB Point 1", &qbParams.p0.x, 0.1f);
 		ImGui::DragFloat3("QB Point 2", &qbParams.p1.x, 0.1f);
 		ImGui::DragFloat3("QB Point 3", &qbParams.p2.x, 0.1f);
-		ImGui::SliderInt("Patch Steps", &bezierPatchSteps, 5, 20);
+		ImGui::SliderInt("Patch Steps", &bpParams.steps, 5, 20);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

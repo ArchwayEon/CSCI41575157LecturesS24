@@ -24,6 +24,29 @@ void IVertexGenerator::GenerateLinesIndexDataUnconnected()
 	}
 }
 
+void IVertexGenerator::GenerateLinesIndexDataForBezierSurface(int steps)
+{
+	indexData.clear();
+	unsigned short index = 0;
+	unsigned short nextIndex;
+	for (int col = 0; col < steps; col++) {
+		for (int row = 0; row < steps - 1; row++) {
+			index = (col * steps) + row;
+			indexData.push_back(index);
+			nextIndex = index + 1;
+			indexData.push_back(nextIndex);
+		}
+	}
+	for (int row = 0; row < steps; row++) {
+		for (int col = 0; col < steps - 1; col++) {
+			index = (col * steps) + row;
+			indexData.push_back(index);
+			nextIndex = (col + 1) * steps + row;
+			indexData.push_back(nextIndex);
+		}
+	}
+}
+
 void PCCircleGenerator::GenerateVertices(IVertexDataParams& params)
 {
 	CircleParams& cp = reinterpret_cast<CircleParams&>(params);
@@ -39,7 +62,7 @@ void PCCircleGenerator::GenerateVertices(IVertexDataParams& params)
 	GenerateIndices();
 }
 
-void PCCircleGenerator::GenerateIndices()
+void PCCircleGenerator::GenerateIndices(int type, int steps)
 {
 	GenerateLinesIndexDataConnected();
 }
@@ -63,7 +86,7 @@ void PCSpirographGenerator::GenerateVertices(IVertexDataParams& params)
 	GenerateIndices();
 }
 
-void PCSpirographGenerator::GenerateIndices()
+void PCSpirographGenerator::GenerateIndices(int type, int steps)
 {
 	GenerateLinesIndexDataUnconnected();
 }
@@ -82,7 +105,7 @@ void PCLinearBezierGenerator::GenerateVertices(IVertexDataParams& params)
 	GenerateIndices();
 }
 
-void PCLinearBezierGenerator::GenerateIndices()
+void PCLinearBezierGenerator::GenerateIndices(int type, int steps)
 {
 	GenerateLinesIndexDataUnconnected();
 }
@@ -103,7 +126,7 @@ void PCQuadraticBezierGenerator::GenerateVertices(IVertexDataParams& params)
 	GenerateIndices();
 }
 
-void PCQuadraticBezierGenerator::GenerateIndices()
+void PCQuadraticBezierGenerator::GenerateIndices(int type, int steps)
 {
 	GenerateLinesIndexDataUnconnected();
 }
@@ -131,7 +154,7 @@ void PCQuadraticBezierMGenerator::GenerateVertices(IVertexDataParams& params)
 	GenerateIndices();
 }
 
-void PCQuadraticBezierMGenerator::GenerateIndices()
+void PCQuadraticBezierMGenerator::GenerateIndices(int type, int steps)
 {
 	GenerateLinesIndexDataUnconnected();
 }
@@ -156,7 +179,80 @@ void PCCubicBezierGenerator::GenerateVertices(IVertexDataParams& params)
 	GenerateIndices();
 }
 
-void PCCubicBezierGenerator::GenerateIndices()
+void PCCubicBezierGenerator::GenerateIndices(int type, int steps)
 {
 	GenerateLinesIndexDataUnconnected();
+}
+
+void PCCubicBezierMGenerator::GenerateVertices(IVertexDataParams& params)
+{
+	CubicBezierMParams& cbmp =
+		reinterpret_cast<CubicBezierMParams&>(params);
+	vertexData.clear();
+	glm::mat4 CM{};
+	CM[0] = glm::vec4(-1, 3, -3, 1);
+	CM[1] = glm::vec4(3, -6, 3, 0);
+	CM[2] = glm::vec4(-3, 3, 0, 0);
+	CM[3] = glm::vec4(1, 0, 0, 0);
+	glm::vec4 tv = { 0, 0, 0, 1 };
+	glm::vec4 c{};
+	float tick = 1.0f / cbmp.steps;
+	for (float t = 0; t <= 1; t += tick) {
+		tv[0] = t * t * t;
+		tv[1] = t * t;
+		tv[2] = t;
+		c = cbmp.pM * CM * tv;
+		vertexData.push_back({ {}, {c.x, c.y, c.z}, cbmp.color });
+	}
+	GenerateIndices();
+}
+
+void PCCubicBezierMGenerator::GenerateIndices(int type, int steps)
+{
+	GenerateLinesIndexDataUnconnected();
+}
+
+void PCBezierPatchGenerator::GenerateVertices(IVertexDataParams& params)
+{
+	BezierPatchParams& bpp =
+		reinterpret_cast<BezierPatchParams&>(params);
+	vertexData.clear();
+	glm::mat4 CM{};
+	CM[0] = glm::vec4(-1, 3, -3, 1);
+	CM[1] = glm::vec4(3, -6, 3, 0);
+	CM[2] = glm::vec4(-3, 3, 0, 0);
+	CM[3] = glm::vec4(1, 0, 0, 0);
+	glm::mat4 Px{}, Py{}, Pz{};
+	for (auto row = 0; row < 4; row++) {
+		for (auto col = 0; col < 4; col++) {
+			Px[row][col] = bpp.cpBezier[row][col].x;
+			Py[row][col] = bpp.cpBezier[row][col].y;
+			Pz[row][col] = bpp.cpBezier[row][col].z;
+		}
+	}
+	glm::vec4 sv = { 0, 0, 0, 1 };
+	glm::vec4 tv = { 0, 0, 0, 1 };
+	float x, y, z;
+	float tick = 1.0f / bpp.steps;
+	for (float s = 0; s <= 1; s += tick) {
+		sv[0] = s * s * s;
+		sv[1] = s * s;
+		sv[2] = s;
+		for (float t = 0; t <= 1; t += tick) {
+			tv[0] = t * t * t;
+			tv[1] = t * t;
+			tv[2] = t;
+			x = glm::dot(sv, CM * Px * CM * tv);
+			y = glm::dot(sv, CM * Py * CM * tv);
+			z = glm::dot(sv, CM * Pz * CM * tv);
+			vertexData.push_back({ {}, { x, y, z }, bpp.color });
+		}
+	}
+	GenerateIndices(bpp.indexType, bpp.steps);
+}
+
+void PCBezierPatchGenerator::GenerateIndices(int type, int steps)
+{
+	if (type == 1) GenerateLinesIndexDataUnconnected();
+	else if (type == 2) GenerateLinesIndexDataForBezierSurface(steps);
 }

@@ -15,7 +15,7 @@ public:
 
 	virtual std::size_t GetNumberOfVertices() = 0;
 	virtual void GenerateVertices(IVertexDataParams& params) = 0;
-	virtual void GenerateIndices() {}
+	virtual void GenerateIndices(int type=1, int steps=0) {}
 
 	std::vector<unsigned short>& GetIndexData() {
 		return indexData;
@@ -36,6 +36,7 @@ public:
 protected: 
 	virtual void GenerateLinesIndexDataConnected();
 	virtual void GenerateLinesIndexDataUnconnected();
+	virtual void GenerateLinesIndexDataForBezierSurface(int steps);
 };
 
 class PCGenerator : public IVertexGenerator
@@ -69,7 +70,7 @@ public:
 	~PCCircleGenerator() = default;
 
 	void GenerateVertices(IVertexDataParams& params) override;
-	void GenerateIndices() override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
 };
 
 class PCSpirographGenerator : public PCGenerator
@@ -81,7 +82,7 @@ public:
 	~PCSpirographGenerator() = default;
 
 	void GenerateVertices(IVertexDataParams& params) override;
-	void GenerateIndices() override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
 };
 
 class PCLinearBezierGenerator : public PCGenerator
@@ -93,7 +94,7 @@ public:
 	~PCLinearBezierGenerator() = default;
 
 	void GenerateVertices(IVertexDataParams& params) override;
-	void GenerateIndices() override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
 };
 
 class PCQuadraticBezierGenerator : public PCGenerator
@@ -105,7 +106,7 @@ public:
 	~PCQuadraticBezierGenerator() = default;
 
 	void GenerateVertices(IVertexDataParams& params) override;
-	void GenerateIndices() override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
 };
 
 class PCQuadraticBezierMGenerator : public PCGenerator
@@ -117,7 +118,7 @@ public:
 	~PCQuadraticBezierMGenerator() = default;
 
 	void GenerateVertices(IVertexDataParams& params) override;
-	void GenerateIndices() override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
 };
 
 class PCCubicBezierGenerator : public PCGenerator
@@ -129,5 +130,29 @@ public:
 	~PCCubicBezierGenerator() = default;
 
 	void GenerateVertices(IVertexDataParams& params) override;
-	void GenerateIndices() override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
+};
+
+class PCCubicBezierMGenerator : public PCGenerator
+{
+protected:
+
+public:
+	PCCubicBezierMGenerator() : PCGenerator() {}
+	~PCCubicBezierMGenerator() = default;
+
+	void GenerateVertices(IVertexDataParams& params) override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
+};
+
+class PCBezierPatchGenerator : public PCGenerator
+{
+protected:
+
+public:
+	PCBezierPatchGenerator() : PCGenerator() {}
+	~PCBezierPatchGenerator() = default;
+
+	void GenerateVertices(IVertexDataParams& params) override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
 };

@@ -48,3 +48,16 @@ struct CubicBezierParams : public IVertexDataParams {
 	glm::vec3 p2{};
 	glm::vec3 p3{};
 };
+
+struct CubicBezierMParams : public IVertexDataParams {
+	int steps = 10;
+	glm::vec3 color{};
+	glm::mat4 pM{};
+};
+
+struct BezierPatchParams : public IVertexDataParams {
+	int steps = 10;
+	glm::vec3 color{};
+	glm::vec3 cpBezier[4][4]{};
+	int indexType = 1; // 1 = continous line, 2 = criss cross
+};
