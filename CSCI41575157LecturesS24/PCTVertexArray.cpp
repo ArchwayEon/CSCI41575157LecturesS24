@@ -12,7 +12,7 @@ void PCTVertexArray::RenderObject()
 	EnableAttributes();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, object->textureId);
-	glDrawArrays(object->primitive, 0, (int)object->numberOfVertices);
+	glDrawArrays(object->primitive, 0, numberOfVertices);
 }
 
 unsigned int PCTVertexArray::AllocateVertexBuffer(unsigned int vao)
@@ -26,6 +26,7 @@ unsigned int PCTVertexArray::AllocateVertexBuffer(unsigned int vao)
 		vertexData.data(),
 		GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	numberOfVertices = (int)vertexData.size();
 	vertexData.clear();
 	glBindVertexArray(0);
 	return object->vbo;
@@ -52,5 +53,7 @@ void PCTVertexArray::Generate(IVertexDataParams& params)
 	auto& data = reinterpret_cast<std::vector<VertexDataPCT>&>(
 		generator->GetVertexData());
 	vertexData = data;
+	indexData = generator->GetIndexData();
 	data.clear();
+	generator->GetIndexData().clear();
 }

@@ -2,13 +2,6 @@
 #include <glad/glad.h>
 #include "GraphicsObject.h"
 
-//Renderer::Renderer(std::shared_ptr<IVertexArray> va) : 
-//	shader(0), vertexSize(0), vao(0)
-//{
-//	glGenVertexArrays(1, &vao);
-//	this->va = va;
-//}
-
 Renderer::Renderer() :
 	shader(0), vertexSize(0), vao(0)
 {
@@ -20,8 +13,6 @@ void Renderer::AddObject(std::shared_ptr<GraphicsObject> object)
 	object->shaderProgram = shader->GetShaderProgram();
 	object->vertexArray->AllocateVertexBuffer(vao);
 	object->vertexArray->AllocateIndexBuffer(vao);
-	//object->vbo = va->AllocateVertexBuffer(vao, object);
-	//object->ibo = va->AllocateIndexBuffer(vao, object);
 	objectMap.push_back(object);
 }
 

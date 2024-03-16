@@ -6,16 +6,16 @@ class IVertexArray; // Forward declaration
 class GraphicsObject {
 public:
 	std::shared_ptr<IVertexArray> vertexArray = nullptr;
-	VertexDataPCNT* vertexDataPCNT = nullptr;
-	VertexDataPCT* vertexDataPCT = nullptr;
-	std::vector<VertexDataPC> vertexDataPC;
-	std::vector<unsigned short> indexData;
-	std::size_t sizeOfVertexBuffer = 0;
+	//VertexDataPCNT* vertexDataPCNT = nullptr;
+	//VertexDataPCT* vertexDataPCT = nullptr;
+	//std::vector<VertexDataPC> vertexDataPC;
+	//std::vector<unsigned short> indexData;
+	//std::size_t sizeOfVertexBuffer = 0;
 	std::size_t maxSizeOfVertexBuffer = 0;
-	std::size_t sizeOfIndexBuffer = 0;
+	//std::size_t sizeOfIndexBuffer = 0;
 	std::size_t maxSizeOfIndexBuffer = 0;
-	std::size_t numberOfVertices = 0;
-	std::size_t numberOfIndices = 0;
+	//std::size_t numberOfVertices = 0;
+	//std::size_t numberOfIndices = 0;
 	unsigned int vao = 0;
 	unsigned int vbo = 0;
 	unsigned int ibo = 0;

@@ -16,16 +16,17 @@ void PCVertexArray::RenderObject()
 			vertexData.data());
 	}
 	EnableAttributes();
+	int indexDataSize = static_cast<int>(GetIndexDataSize());
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object->ibo);
 	if (object->isDynamic) {
 		glBufferSubData(
 			GL_ELEMENT_ARRAY_BUFFER, 0,
-			object->sizeOfIndexBuffer,
-			object->indexData.data());
+			indexDataSize,
+			indexData.data());
 	}
 	glDrawElements(
 		object->primitive, 
-		(int)object->indexData.size(), GL_UNSIGNED_SHORT, nullptr);
+		indexDataSize, GL_UNSIGNED_SHORT, nullptr);
 }
 
 unsigned int PCVertexArray::AllocateVertexBuffer(unsigned int vao)
@@ -60,17 +61,21 @@ unsigned int PCVertexArray::AllocateIndexBuffer(unsigned int vao)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object->ibo);
 	if (object->isDynamic == false) {
 		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER, object->sizeOfIndexBuffer,
-			object->indexData.data(), GL_STATIC_DRAW);
+			GL_ELEMENT_ARRAY_BUFFER, 
+			GetIndexDataSize(),
+			indexData.data(), 
+			GL_STATIC_DRAW);
 	}
 	else {
 		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER, object->maxSizeOfIndexBuffer,
-			nullptr, GL_STATIC_DRAW);
+			GL_ELEMENT_ARRAY_BUFFER, 
+			object->maxSizeOfIndexBuffer,
+			nullptr, 
+			GL_STATIC_DRAW);
 	}
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	object->indexData.clear();
+	indexData.clear();
 	glBindVertexArray(0);
 	return object->ibo;
 }
@@ -95,12 +100,12 @@ void PCVertexArray::SetAsDynamicGraphicsObject(
 		reinterpret_cast<std::vector<VertexDataPC>&>
 			(object->vertexArray->GetVertexData());
 	object->isDynamic = true;
-	object->vertexDataPC = vertexData;
-	object->indexData = object->vertexArray->GetIndexData();
-	object->sizeOfVertexBuffer = object->vertexArray->GetVertexDataSize();
-	object->numberOfVertices = object->vertexArray->GetNumberOfVertices();
-	object->sizeOfIndexBuffer = object->vertexArray->GetIndexDataSize();
-	object->numberOfIndices = object->vertexArray->GetNumberOfIndices();
+	//object->vertexDataPC = vertexData;
+	//object->indexData = object->vertexArray->GetIndexData();
+	//object->sizeOfVertexBuffer = object->vertexArray->GetVertexDataSize();
+	//object->numberOfVertices = object->vertexArray->GetNumberOfVertices();
+	//object->sizeOfIndexBuffer = object->vertexArray->GetIndexDataSize();
+	//object->numberOfIndices = object->vertexArray->GetNumberOfIndices();
 	object->maxSizeOfVertexBuffer = 
 		maxVertexCount * object->vertexArray->GetVertexSize();
 	object->maxSizeOfIndexBuffer =
@@ -113,6 +118,8 @@ void PCVertexArray::Generate(IVertexDataParams& params)
 	auto& data = reinterpret_cast<std::vector<VertexDataPC>&>(
 		generator->GetVertexData());
 	vertexData = data;
+	indexData = generator->GetIndexData();
 	data.clear();
+	generator->GetIndexData().clear();
 }
 

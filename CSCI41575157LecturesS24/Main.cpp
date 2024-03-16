@@ -468,8 +468,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	cParams.height = 10.0f;
 	cParams.depth = 10.0f;
 	litCube->vertexArray->Generate(cParams);
-	litCube->sizeOfVertexBuffer = 36 * sizeof(VertexDataPCNT);
-	litCube->numberOfVertices = 36;
+	//litCube->sizeOfVertexBuffer = 36 * sizeof(VertexDataPCNT);
+	//litCube->numberOfVertices = 36;
 	litCube->textureId = customTextureId;
 	litCube->material.ambientIntensity = 0.1f;
 	litCube->material.specularIntensity = 0.5f;
@@ -491,8 +491,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	xzpParams.repeatS = 5.0f;
 	xzpParams.repeatT = 5.0f;
 	floor->vertexArray->Generate(xzpParams);
-	floor->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCNT);
-	floor->numberOfVertices = 6;
+	//floor->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCNT);
+	//floor->numberOfVertices = 6;
 	floor->textureId = CreateTextureFromFile("stone-road-texture.jpg");
 	floor->referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
 	floor->material.ambientIntensity = 0.1f;
@@ -517,8 +517,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	XYPlaneParams xypParams{};
 	lightBulb->vertexArray->Generate(xypParams);
 	//lightBulb->vertexDataPCT = CreateXYPlanePCT();
-	lightBulb->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCT);
-	lightBulb->numberOfVertices = 6;
+	//lightBulb->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCT);
+	//lightBulb->numberOfVertices = 6;
 	lightBulb->textureId = CreateTextureFromFile("lightbulb.png");
 	allObjects["lightBulb"] = lightBulb;
 	basicPCTRenderer->AddObject(lightBulb);
@@ -902,74 +902,74 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		object = allObjects["circle"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(circleParams);
-			object->vertexDataPC =
-				reinterpret_cast<std::vector<VertexDataPC>&>
-				(object->vertexArray->GetVertexData());
-			object->indexData = object->vertexArray->GetIndexData();
+			//object->vertexDataPC =
+			//	reinterpret_cast<std::vector<VertexDataPC>&>
+			//	(object->vertexArray->GetVertexData());
+			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["spirograph"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(sParams);
-			object->vertexDataPC =
-				reinterpret_cast<std::vector<VertexDataPC>&>
-				(object->vertexArray->GetVertexData());
-			object->indexData = object->vertexArray->GetIndexData();
+			//object->vertexDataPC =
+			//	reinterpret_cast<std::vector<VertexDataPC>&>
+			//	(object->vertexArray->GetVertexData());
+			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["linearBezier"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(lbParams);
-			object->vertexDataPC =
-				reinterpret_cast<std::vector<VertexDataPC>&>
-				(object->vertexArray->GetVertexData());
-			object->indexData = object->vertexArray->GetIndexData();
+			//object->vertexDataPC =
+			//	reinterpret_cast<std::vector<VertexDataPC>&>
+			//	(object->vertexArray->GetVertexData());
+			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["quadraticBezier"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(qbParams);
-			object->vertexDataPC =
-				reinterpret_cast<std::vector<VertexDataPC>&>
-				(object->vertexArray->GetVertexData());
-			object->indexData = object->vertexArray->GetIndexData();
+			//object->vertexDataPC =
+			//	reinterpret_cast<std::vector<VertexDataPC>&>
+			//	(object->vertexArray->GetVertexData());
+			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["quadraticBezierM"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(qbmParams);
-			object->vertexDataPC =
-				reinterpret_cast<std::vector<VertexDataPC>&>
-				(object->vertexArray->GetVertexData());
-			object->indexData = object->vertexArray->GetIndexData();
+			//object->vertexDataPC =
+			//	reinterpret_cast<std::vector<VertexDataPC>&>
+			//	(object->vertexArray->GetVertexData());
+			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["cubicBezier"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(cbParams);
-			object->vertexDataPC =
-				reinterpret_cast<std::vector<VertexDataPC>&>
-				(object->vertexArray->GetVertexData());
-			object->indexData = object->vertexArray->GetIndexData();
+			//object->vertexDataPC =
+			//	reinterpret_cast<std::vector<VertexDataPC>&>
+			//	(object->vertexArray->GetVertexData());
+			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["cubicBezierM"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(cbmParams);
-			object->vertexDataPC =
-				reinterpret_cast<std::vector<VertexDataPC>&>
-				(object->vertexArray->GetVertexData());
-			object->indexData = object->vertexArray->GetIndexData();
+			//object->vertexDataPC =
+			//	reinterpret_cast<std::vector<VertexDataPC>&>
+			//	(object->vertexArray->GetVertexData());
+			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["bezierPatch"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(bpParams);
-			object->vertexDataPC =
-				reinterpret_cast<std::vector<VertexDataPC>&>
-				(object->vertexArray->GetVertexData());
-			object->indexData = object->vertexArray->GetIndexData();
+			//object->vertexDataPC =
+			//	reinterpret_cast<std::vector<VertexDataPC>&>
+			//	(object->vertexArray->GetVertexData());
+			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["bezierPatchX"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(bpxParams);
-			object->vertexDataPC =
-				reinterpret_cast<std::vector<VertexDataPC>&>
-				(object->vertexArray->GetVertexData());
-			object->indexData = object->vertexArray->GetIndexData();
+			//object->vertexDataPC =
+			//	reinterpret_cast<std::vector<VertexDataPC>&>
+			//	(object->vertexArray->GetVertexData());
+			//object->indexData = object->vertexArray->GetIndexData();
 		}
 
 		basicPCRenderer->Render();

@@ -12,6 +12,9 @@ class IVertexArray
 protected:
 	std::shared_ptr<IVertexGenerator> generator = nullptr;
 	std::shared_ptr<GraphicsObject> object = nullptr;
+	std::vector<unsigned short> indexData;
+	int numberOfVertices = 0;
+	int numberOfIndices = 0;
 
 public:
 	IVertexArray();
@@ -54,10 +57,7 @@ public:
 	}
 
 	virtual std::size_t GetNumberOfIndices() {
-		if (generator != nullptr) {
-			return generator->GetNumberOfIndices();
-		}
-		return 0;
+		return indexData.size();
 	}
 
 	virtual long long GetVertexDataSize() {
@@ -68,10 +68,7 @@ public:
 	}
 
 	virtual long long GetIndexDataSize() {
-		if (generator != nullptr) {
-			return generator->GetIndexDataSize();
-		}
-		return 0;
+		return indexData.size() * sizeof(unsigned short);
 	}
 
 	virtual std::size_t GetVertexSize() {
@@ -88,7 +85,7 @@ public:
 	}
 
 	virtual std::vector<unsigned short>& GetIndexData() {
-		return generator->GetIndexData();
+		return indexData;
 	}
 
 protected:
