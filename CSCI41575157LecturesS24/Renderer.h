@@ -13,11 +13,9 @@ protected:
 	std::shared_ptr<Shader> shader;
 	std::size_t vertexSize;
 
-	//std::shared_ptr<IVertexArray> va;
 	std::vector<std::shared_ptr<GraphicsObject>> objectMap;
 
 public:
-	//Renderer(std::shared_ptr<IVertexArray> va);
 	Renderer();
 
 	void SetShaderProgram(std::shared_ptr<Shader> sp) { shader = sp; }
@@ -35,5 +33,7 @@ public:
 	void Send(const std::string& uniformName, float value);
 
 	void Render();
+
+	void SetObjectsVisibility(bool visibility);
 };
 

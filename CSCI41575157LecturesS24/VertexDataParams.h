@@ -82,3 +82,8 @@ struct XYPlaneParams : public IVertexDataParams {
 	float repeatS = 1.0f;
 	float repeatT = 1.0f;
 };
+
+struct LineCuboidParams : public IVertexDataParams {
+	float width = 1.0f, height = 1.0f, depth = 1.0f;
+	glm::vec3 color{ 1.0f, 1.0f, 1.0f};
+};

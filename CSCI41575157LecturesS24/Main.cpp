@@ -25,6 +25,7 @@
 #include "PCTVertexArray.h"
 #include "PCVertexArray.h"
 #include "GraphicsObject.h"
+#include "PCIVertexArray.h"
 
 // Eek! A global mouse!
 MouseParams mouse;
@@ -416,6 +417,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	std::shared_ptr<Shader> basicPCShader =
 		std::make_shared<Shader>(pcVertexSource, pcFragmentSource);
 
+	std::string pciVertexSource = ReadFromFile("pci.vert.glsl");
+	std::string pciFragmentSource = ReadFromFile("pc.frag.glsl");
+	std::shared_ptr<Shader> basicPCIShader =
+		std::make_shared<Shader>(pciVertexSource, pciFragmentSource);
+
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
@@ -435,6 +441,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	basicPCShader->AddUniform("view");
 	basicPCShader->AddUniform("world");
 
+	basicPCIShader->AddUniform("projection");
+	basicPCIShader->AddUniform("view");
+	basicPCIShader->AddUniform("world");
+
 	// Create the texture data
 	unsigned char* textureData = new unsigned char[] {
 		0, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 0, 255,
@@ -446,6 +456,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	unsigned int customTextureId = Create2DTexture(textureData, 4, 4);
 	delete[] textureData;
 	textureData = nullptr;
+
+	int maxNumberOfVertices = 0;
+	int maxNumberOfIndices = 0;
 
 	typedef std::shared_ptr<Renderer> SRenderer;
 	typedef std::shared_ptr<GraphicsObject> SGraphicsObject;
@@ -468,8 +481,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	cParams.height = 10.0f;
 	cParams.depth = 10.0f;
 	litCube->vertexArray->Generate(cParams);
-	//litCube->sizeOfVertexBuffer = 36 * sizeof(VertexDataPCNT);
-	//litCube->numberOfVertices = 36;
 	litCube->textureId = customTextureId;
 	litCube->material.ambientIntensity = 0.1f;
 	litCube->material.specularIntensity = 0.5f;
@@ -491,8 +502,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	xzpParams.repeatS = 5.0f;
 	xzpParams.repeatT = 5.0f;
 	floor->vertexArray->Generate(xzpParams);
-	//floor->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCNT);
-	//floor->numberOfVertices = 6;
 	floor->textureId = CreateTextureFromFile("stone-road-texture.jpg");
 	floor->referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
 	floor->material.ambientIntensity = 0.1f;
@@ -501,8 +510,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	allObjects["floor"] = floor;
 	lightingRenderer->AddObject(floor);
 
-	//std::shared_ptr<PCTVertexArray> vaPCT = std::make_shared<PCTVertexArray>();
-	//SRenderer basicPCTRenderer = std::make_shared<Renderer>(vaPCT);
 	SRenderer basicPCTRenderer = std::make_shared<Renderer>();
 	basicPCTRenderer->SetShaderProgram(basicPCTShader);
 	basicPCTRenderer->SetVertexSize(sizeof(VertexDataPCT));
@@ -516,15 +523,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	lightBulb->primitive = GL_TRIANGLES;
 	XYPlaneParams xypParams{};
 	lightBulb->vertexArray->Generate(xypParams);
-	//lightBulb->vertexDataPCT = CreateXYPlanePCT();
-	//lightBulb->sizeOfVertexBuffer = 6 * sizeof(VertexDataPCT);
-	//lightBulb->numberOfVertices = 6;
 	lightBulb->textureId = CreateTextureFromFile("lightbulb.png");
 	allObjects["lightBulb"] = lightBulb;
 	basicPCTRenderer->AddObject(lightBulb);
 
-	//std::shared_ptr<PCVertexArray> vaPC = std::make_shared<PCVertexArray>();
-	//SRenderer basicPCRenderer = std::make_shared<Renderer>(vaPC);
 	SRenderer basicPCRenderer = std::make_shared<Renderer>();
 	basicPCRenderer->SetShaderProgram(basicPCShader);
 	basicPCRenderer->SetVertexSize(sizeof(VertexDataPC));
@@ -540,7 +542,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	circleParams.color = { 1.0f, 1.0f, 1.0f };
 	circleParams.steps = 10;
 	circle->vertexArray->Generate(circleParams);
-	circle->vertexArray->SetAsDynamicGraphicsObject(circle, 360);
+	maxNumberOfVertices = 360;
+	maxNumberOfIndices = maxNumberOfVertices * 2;
+	circle->vertexArray->SetAsDynamicGraphicsObject(
+		maxNumberOfVertices, maxNumberOfIndices);
 	circle->referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -10.0f, 1.0f);
 	allObjects["circle"] = circle;
 	basicPCRenderer->AddObject(circle);
@@ -560,8 +565,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	sParams.revolutions = 20.0f;
 	sParams.steps = 10;
 	spirograph->vertexArray->Generate(sParams);
+	maxNumberOfVertices = static_cast<int>(360 * sParams.revolutions);
+	maxNumberOfIndices = maxNumberOfVertices * 2;
 	spirograph->vertexArray->SetAsDynamicGraphicsObject(
-		spirograph, static_cast<long long>(360 * sParams.revolutions));
+		maxNumberOfVertices, maxNumberOfIndices);
 	spirograph->referenceFrame[3] = glm::vec4(-10.0f, 0.0f, -10.0f, 1.0f);
 	allObjects["spirograph"] = spirograph;
 	basicPCRenderer->AddObject(spirograph);
@@ -579,7 +586,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	lbParams.p1 = { 5.0f, 0.0f, 0.0f };
 	lbParams.color = { 1.0f, 1.0f, 1.0f };
 	linearBezier->vertexArray->Generate(lbParams);
-	linearBezier->vertexArray->SetAsDynamicGraphicsObject(linearBezier, 50);
+	maxNumberOfVertices = 50;
+	maxNumberOfIndices = maxNumberOfVertices * 2;
+	linearBezier->vertexArray->SetAsDynamicGraphicsObject(
+		maxNumberOfVertices, maxNumberOfIndices);
+	//linearBezier->vertexArray->SetAsDynamicGraphicsObject(linearBezier, 50);
 	linearBezier->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -10.0f, 1.0f);
 	allObjects["linearBezier"] = linearBezier;
 	basicPCRenderer->AddObject(linearBezier);
@@ -599,7 +610,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	qbParams.p2 = { 5.0f, -8.0f, 0.0f };
 	qbParams.color = { 1.0f, 0.0f, 1.0f };
 	quadraticBezier->vertexArray->Generate(qbParams);
-	quadraticBezier->vertexArray->SetAsDynamicGraphicsObject(quadraticBezier, 50);
+	maxNumberOfVertices = 50;
+	maxNumberOfIndices = maxNumberOfVertices * 2;
+	quadraticBezier->vertexArray->SetAsDynamicGraphicsObject(
+		maxNumberOfVertices, maxNumberOfIndices);
+	//quadraticBezier->vertexArray->SetAsDynamicGraphicsObject(quadraticBezier, 50);
 	quadraticBezier->referenceFrame[3] = glm::vec4(10.0f, 0.0f, -10.0f, 1.0f);
 	allObjects["quadraticBezier"] = quadraticBezier;
 	basicPCRenderer->AddObject(quadraticBezier);
@@ -619,8 +634,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	qbmParams.pM[1] = { 0.0f, 8.0f, 0.0f };
 	qbmParams.pM[2] = { 5.0f, -8.0f, 0.0f };
 	quadraticBezierM->vertexArray->Generate(qbmParams);
+	maxNumberOfVertices = 50;
+	maxNumberOfIndices = maxNumberOfVertices * 2;
 	quadraticBezierM->vertexArray->SetAsDynamicGraphicsObject(
-		quadraticBezierM, 50);
+		maxNumberOfVertices, maxNumberOfIndices);
+	//quadraticBezierM->vertexArray->SetAsDynamicGraphicsObject(
+	//	quadraticBezierM, 50);
 	quadraticBezierM->referenceFrame[3] = glm::vec4(20.0f, 0.0f, -10.0f, 1.0f);
 	allObjects["quadraticBezierM"] = quadraticBezierM;
 	basicPCRenderer->AddObject(quadraticBezierM);
@@ -641,8 +660,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	cbParams.p2 = { 5.0f, -8.0f, 0.0f };
 	cbParams.p3 = { 5.0f, 0.0f, 0.0f };
 	cubicBezier->vertexArray->Generate(cbParams);
+	maxNumberOfVertices = 50;
+	maxNumberOfIndices = maxNumberOfVertices * 2;
 	cubicBezier->vertexArray->SetAsDynamicGraphicsObject(
-		cubicBezier, 50);
+		maxNumberOfVertices, maxNumberOfIndices);
 	cubicBezier->referenceFrame[3] = glm::vec4(-20.0f, 0.0f, 0.0f, 1.0f);
 	allObjects["cubicBezier"] = cubicBezier;
 	basicPCRenderer->AddObject(cubicBezier);
@@ -663,8 +684,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	cbmParams.pM[2] = { 5.0f, -8.0f, 0.0f, 1.0f };
 	cbmParams.pM[3] = { 5.0f, 0.0f, 0.0f, 1.0f };
 	cubicBezierM->vertexArray->Generate(cbmParams);
+	maxNumberOfVertices = 50;
+	maxNumberOfIndices = maxNumberOfVertices * 2;
 	cubicBezierM->vertexArray->SetAsDynamicGraphicsObject(
-		cubicBezierM, 50);
+		maxNumberOfVertices, maxNumberOfIndices);
 	cubicBezierM->referenceFrame[3] = glm::vec4(-8.0f, 0.0f, 0.0f, 1.0f);
 	allObjects["cubicBezierM"] = cubicBezierM;
 	basicPCRenderer->AddObject(cubicBezierM);
@@ -698,25 +721,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	bpParams.cpBezier[3][2] = { 5, -3, 10 };
 	bpParams.cpBezier[3][3] = { 10,-2, 10 };
 	bezierPatch->vertexArray->Generate(bpParams);
-	bezierPatch->vertexArray->SetAsDynamicGraphicsObject(
-		bezierPatch, 500);
-	//glm::vec3 cpBezier[4][4]{};
-	//cpBezier[0][0] = { -10, 1,-10 };
-	//cpBezier[0][1] = { -5,  3,-10 };
-	//cpBezier[0][2] = {  5, -3,-10 };
-	//cpBezier[0][3] = {  10, 2,-10 };
-	//cpBezier[1][0] = { -10, 0,-5 };
-	//cpBezier[1][1] = { -5,  3,-5 };
-	//cpBezier[1][2] = {  5, -3,-5 };
-	//cpBezier[1][3] = {  10,-3,-5 };
-	//cpBezier[2][0] = { -10, 2, 5 };
-	//cpBezier[2][1] = { -5,  3, 5 };
-	//cpBezier[2][2] = {  5, -3, 5 };
-	//cpBezier[2][3] = {  10, 1, 5 };
-	//cpBezier[3][0] = { -10,-2, 10 };
-	//cpBezier[3][1] = { -5,  3, 10 };
-	//cpBezier[3][2] = {  5, -3, 10 };
-	//cpBezier[3][3] = {  10,-2, 10 };
+	maxNumberOfVertices = 500;
+	maxNumberOfIndices = maxNumberOfVertices * 2;
+	cubicBezierM->vertexArray->SetAsDynamicGraphicsObject(
+		maxNumberOfVertices, maxNumberOfIndices);
 	bezierPatch->referenceFrame[3] = glm::vec4(-15.0f, 2.0f, 15.0f, 1.0f);
 	allObjects["bezierPatch"] = bezierPatch;
 	basicPCRenderer->AddObject(bezierPatch);
@@ -750,11 +758,50 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	bpxParams.cpBezier[3][2] = { 5, -3, 10 };
 	bpxParams.cpBezier[3][3] = { 10,-2, 10 };
 	bezierPatchX->vertexArray->Generate(bpxParams);
-	bezierPatchX->vertexArray->SetAsDynamicGraphicsObject(
-		bezierPatchX, 500);
-	bezierPatchX->referenceFrame[3] = glm::vec4(15.0f, 2.0f, 15.0f, 1.0f);
+	maxNumberOfVertices = 500;
+	maxNumberOfIndices = maxNumberOfVertices * 2;
+	cubicBezierM->vertexArray->SetAsDynamicGraphicsObject(
+		maxNumberOfVertices, maxNumberOfIndices);
+	//bezierPatchX->referenceFrame[3] = glm::vec4(15.0f, 2.0f, 15.0f, 1.0f);
 	allObjects["bezierPatchX"] = bezierPatchX;
 	basicPCRenderer->AddObject(bezierPatchX);
+
+	basicPCRenderer->SetObjectsVisibility(false);
+
+	allObjects["bezierPatchX"]->isVisible = true;
+
+	std::vector<glm::vec3> worldPositions;
+	for (int row = 0; row < 4; row++) {
+		for (int col = 0; col < 4; col++) {
+			worldPositions.push_back(bpxParams.cpBezier[row][col]);
+		}
+	}
+
+	SRenderer basicPCIRenderer = std::make_shared<Renderer>();
+	basicPCIRenderer->SetShaderProgram(basicPCIShader);
+
+	std::shared_ptr<PCIVertexArray> vaLineCuboid = 
+		std::make_shared<PCIVertexArray>(worldPositions);
+	std::shared_ptr<PCLineCuboidGenerator> lineCuboidGenerator =
+		std::make_shared<PCLineCuboidGenerator>();
+	vaLineCuboid->SetGenerator(lineCuboidGenerator);
+	SGraphicsObject lineCuboid = std::make_shared<GraphicsObject>();
+	vaLineCuboid->SetObject(lineCuboid);
+	lineCuboid->vertexArray = vaLineCuboid;
+	lineCuboid->primitive = GL_LINES;
+	lineCuboid->instances = 16;
+	LineCuboidParams lcParams{};
+	lcParams.width = 0.5f;
+	lcParams.height = 0.5f;
+	lcParams.depth = 0.5f;
+	lineCuboid->vertexArray->Generate(lcParams);
+	maxNumberOfVertices = 8;
+	maxNumberOfIndices = 24;
+	lineCuboid->vertexArray->SetAsDynamicGraphicsObject(
+		maxNumberOfVertices, maxNumberOfIndices);
+	lineCuboid->referenceFrame[3] = glm::vec4(bpxParams.cpBezier[0][0], 1.0f);
+	allObjects["lineCuboid"] = lineCuboid;
+	basicPCIRenderer->AddObject(lineCuboid);
 
 	float cubeYAngle = 0;
 	float cubeXAngle = 0;
@@ -902,83 +949,52 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		object = allObjects["circle"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(circleParams);
-			//object->vertexDataPC =
-			//	reinterpret_cast<std::vector<VertexDataPC>&>
-			//	(object->vertexArray->GetVertexData());
-			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["spirograph"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(sParams);
-			//object->vertexDataPC =
-			//	reinterpret_cast<std::vector<VertexDataPC>&>
-			//	(object->vertexArray->GetVertexData());
-			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["linearBezier"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(lbParams);
-			//object->vertexDataPC =
-			//	reinterpret_cast<std::vector<VertexDataPC>&>
-			//	(object->vertexArray->GetVertexData());
-			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["quadraticBezier"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(qbParams);
-			//object->vertexDataPC =
-			//	reinterpret_cast<std::vector<VertexDataPC>&>
-			//	(object->vertexArray->GetVertexData());
-			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["quadraticBezierM"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(qbmParams);
-			//object->vertexDataPC =
-			//	reinterpret_cast<std::vector<VertexDataPC>&>
-			//	(object->vertexArray->GetVertexData());
-			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["cubicBezier"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(cbParams);
-			//object->vertexDataPC =
-			//	reinterpret_cast<std::vector<VertexDataPC>&>
-			//	(object->vertexArray->GetVertexData());
-			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["cubicBezierM"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(cbmParams);
-			//object->vertexDataPC =
-			//	reinterpret_cast<std::vector<VertexDataPC>&>
-			//	(object->vertexArray->GetVertexData());
-			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["bezierPatch"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(bpParams);
-			//object->vertexDataPC =
-			//	reinterpret_cast<std::vector<VertexDataPC>&>
-			//	(object->vertexArray->GetVertexData());
-			//object->indexData = object->vertexArray->GetIndexData();
 		}
 		object = allObjects["bezierPatchX"];
 		if (object->isVisible) {
 			object->vertexArray->Generate(bpxParams);
-			//object->vertexDataPC =
-			//	reinterpret_cast<std::vector<VertexDataPC>&>
-			//	(object->vertexArray->GetVertexData());
-			//object->indexData = object->vertexArray->GetIndexData();
 		}
 
 		basicPCRenderer->Render();
+
+		basicPCIRenderer->Select();
+		basicPCIRenderer->Send("projection", projection);
+		basicPCIRenderer->Send("view", view);
+		basicPCIRenderer->Render();
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::Begin("Computing Interactive Graphics");
-		//ImGui::Text(message.c_str());
+		ImGui::Text(BaseObject::GetLog().c_str());
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
 			1000.0f / io.Framerate, io.Framerate);
 		ImGui::Text("Elapsed seconds: %.3f", elapsedSeconds);

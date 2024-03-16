@@ -1,12 +1,14 @@
 #pragma once
 #include "IVertexArray.h"
-class PCVertexArray :  public IVertexArray
+class PCIVertexArray :   public IVertexArray
 {
 protected:
 	std::vector<VertexDataPC> vertexData;
+	std::vector<glm::vec3> worldPositions;
+	unsigned int instanceVBO = 0;
 public:
-	PCVertexArray();
-	~PCVertexArray() = default;
+	PCIVertexArray(std::vector<glm::vec3> worldPositions);
+	~PCIVertexArray() = default;
 
 	void RenderObject() override;
 

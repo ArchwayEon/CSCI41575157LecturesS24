@@ -371,3 +371,127 @@ void PCTXYPlaneGenerator::GenerateIndices(int type, int steps)
 {
 	// nop
 }
+
+void PCLineCuboidGenerator::GenerateVertices(IVertexDataParams& params)
+{
+	LineCuboidParams& lcp = reinterpret_cast<LineCuboidParams&>(params);
+	float hw = lcp.width / 2.0f;
+	float hh = lcp.height / 2.0f;
+	float hd = lcp.depth / 2.0f;
+	// Front
+	VertexDataPC A = { {}, {-hw, hh, hd}, lcp.color };
+	VertexDataPC B = { {}, {-hw,-hh, hd}, lcp.color };
+	VertexDataPC C = { {}, { hw,-hh, hd}, lcp.color };
+	VertexDataPC D = { {}, { hw, hh, hd}, lcp.color };
+	// Back										  
+	VertexDataPC E = { {}, { hw, hh,-hd}, lcp.color };
+	VertexDataPC F = { {}, { hw,-hh,-hd}, lcp.color };
+	VertexDataPC G = { {}, {-hw,-hh,-hd}, lcp.color };
+	VertexDataPC H = { {}, {-hw, hh,-hd}, lcp.color };
+
+	vertexData.clear();
+	vertexData.push_back(A); // 0
+	vertexData.push_back(B); // 1
+	vertexData.push_back(C); // 2
+	vertexData.push_back(D); // 3
+	vertexData.push_back(E); // 4
+	vertexData.push_back(F); // 5
+	vertexData.push_back(G); // 6
+	vertexData.push_back(H); // 7
+	GenerateIndices();
+}
+
+void PCLineCuboidGenerator::GenerateIndices(int type, int steps)
+{
+	indexData.clear();
+	// Front
+	indexData.push_back(0);
+	indexData.push_back(1);
+	indexData.push_back(1);
+	indexData.push_back(2);
+	indexData.push_back(2);
+	indexData.push_back(3);
+	indexData.push_back(3);
+	indexData.push_back(0);
+	// Back
+	indexData.push_back(4);
+	indexData.push_back(5);
+	indexData.push_back(5);
+	indexData.push_back(6);
+	indexData.push_back(6);
+	indexData.push_back(7);
+	indexData.push_back(7);
+	indexData.push_back(4);
+	// Right
+	indexData.push_back(3);
+	indexData.push_back(4);
+	indexData.push_back(2);
+	indexData.push_back(5);
+	// Left
+	indexData.push_back(7);
+	indexData.push_back(0);
+	indexData.push_back(6);
+	indexData.push_back(1);
+}
+
+void PCILineCuboidGenerator::GenerateVertices(IVertexDataParams& params)
+{
+	LineCuboidParams& lcp = reinterpret_cast<LineCuboidParams&>(params);
+	float hw = lcp.width / 2.0f;
+	float hh = lcp.height / 2.0f;
+	float hd = lcp.depth / 2.0f;
+	// Front
+	VertexDataPCI A = { {}, {-hw, hh, hd}, lcp.color, worldPositions[0]};
+	VertexDataPCI B = { {}, {-hw,-hh, hd}, lcp.color, worldPositions[1] };
+	VertexDataPCI C = { {}, { hw,-hh, hd}, lcp.color, worldPositions[2] };
+	VertexDataPCI D = { {}, { hw, hh, hd}, lcp.color, worldPositions[3] };
+	// Back										  	, worldPositions[0]
+	VertexDataPCI E = { {}, { hw, hh,-hd}, lcp.color, worldPositions[4] };
+	VertexDataPCI F = { {}, { hw,-hh,-hd}, lcp.color, worldPositions[5] };
+	VertexDataPCI G = { {}, {-hw,-hh,-hd}, lcp.color, worldPositions[6] };
+	VertexDataPCI H = { {}, {-hw, hh,-hd}, lcp.color, worldPositions[7] };
+
+	vertexData.clear();
+	vertexData.push_back(A); // 0
+	vertexData.push_back(B); // 1
+	vertexData.push_back(C); // 2
+	vertexData.push_back(D); // 3
+	vertexData.push_back(E); // 4
+	vertexData.push_back(F); // 5
+	vertexData.push_back(G); // 6
+	vertexData.push_back(H); // 7
+	GenerateIndices();
+}
+
+void PCILineCuboidGenerator::GenerateIndices(int type, int steps)
+{
+	indexData.clear();
+	// Front
+	indexData.push_back(0);
+	indexData.push_back(1);
+	indexData.push_back(1);
+	indexData.push_back(2);
+	indexData.push_back(2);
+	indexData.push_back(3);
+	indexData.push_back(3);
+	indexData.push_back(0);
+	// Back
+	indexData.push_back(4);
+	indexData.push_back(5);
+	indexData.push_back(5);
+	indexData.push_back(6);
+	indexData.push_back(6);
+	indexData.push_back(7);
+	indexData.push_back(7);
+	indexData.push_back(4);
+	// Right
+	indexData.push_back(3);
+	indexData.push_back(4);
+	indexData.push_back(2);
+	indexData.push_back(5);
+	// Left
+	indexData.push_back(7);
+	indexData.push_back(0);
+	indexData.push_back(6);
+	indexData.push_back(1);
+}

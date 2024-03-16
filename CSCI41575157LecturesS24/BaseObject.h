@@ -10,7 +10,7 @@ protected:
     static std::stringstream _log;
 
 public:
-    inline const std::string GetLog() const {
+    static inline const std::string GetLog() {
         return _log.str();
     }
 

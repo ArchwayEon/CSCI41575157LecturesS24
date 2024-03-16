@@ -46,3 +46,10 @@ void Renderer::Render()
 		}
 	}
 }
+
+void Renderer::SetObjectsVisibility(bool visibility)
+{
+	for (const auto& object : objectMap) {
+		object->isVisible = visibility;
+	}
+}

@@ -1,9 +1,17 @@
 #include "IVertexArray.h"
 #include <glad/glad.h> 
+#include "GraphicsObject.h"
 
 IVertexArray::IVertexArray() 
 {
+}
 
+void IVertexArray::SetAsDynamicGraphicsObject(
+	int maxNumberOfVertices, int maxNumberOfIndices)
+{
+	object->isDynamic = true;
+	this->maxNumberOfVertices = maxNumberOfVertices;
+	this->maxNumberOfIndices = maxNumberOfIndices;
 }
 
 void IVertexArray::Generate(IVertexDataParams& params)

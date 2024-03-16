@@ -3,6 +3,7 @@
 #include "GraphicsStructures.h"
 #include "Shader.h"
 #include "VertexGenerators.h"
+#include <glad/glad.h>
 //#include "GraphicsObject.h"
 
 class GraphicsObject;
@@ -15,6 +16,8 @@ protected:
 	std::vector<unsigned short> indexData;
 	int numberOfVertices = 0;
 	int numberOfIndices = 0;
+	int maxNumberOfVertices = 0;
+	int maxNumberOfIndices = 0;
 
 public:
 	IVertexArray();
@@ -30,6 +33,22 @@ public:
 		this->object = object;
 	}
 
+	void SetMaxNumberOfVertices(int maxNumberOfVertices) {
+		this->numberOfVertices = maxNumberOfVertices;
+	}
+
+	void SetMaxNumberOfIndices(int maxNumberOfIndices) {
+		this->numberOfIndices = maxNumberOfIndices;
+	}
+
+	long long GetMaxSizeOfVertices(std::size_t sizeOfOneVertex) const {
+		return maxNumberOfVertices * sizeOfOneVertex;
+	}
+
+	long long GetMaxSizeOfIndices() const {
+		return maxNumberOfIndices * sizeof(unsigned short);
+	}
+
 	virtual void RenderObject() = 0;
 
 	virtual unsigned int AllocateVertexBuffer(unsigned int vao) = 0;
@@ -41,11 +60,8 @@ public:
 
 	virtual void SendObjectUniforms(std::shared_ptr<Shader> shader) = 0;
 
-	virtual void SetUpDynamicGraphicsObject(
-		std::shared_ptr<GraphicsObject> object, PCData& pcData, 
-		std::size_t maxVertexCount) {};
-	virtual void SetAsDynamicGraphicsObject(
-		std::shared_ptr<GraphicsObject> object, long long maxVertexCount) {};
+	inline virtual void SetAsDynamicGraphicsObject(
+		int maxNumberOfVertices, int maxNumberOfIndices);
 
 	virtual void Generate(IVertexDataParams& params);
 

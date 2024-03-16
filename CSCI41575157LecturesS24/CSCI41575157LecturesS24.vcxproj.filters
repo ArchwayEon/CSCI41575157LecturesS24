@@ -72,6 +72,9 @@
     <ClCompile Include="VertexGenerators.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PCIVertexArray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Timer.h">
@@ -110,6 +113,9 @@
     <ClInclude Include="GraphicsObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PCIVertexArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ambient.frag.glsl" />
@@ -121,6 +127,7 @@
     <None Include="lighting.frag.glsl" />
     <None Include="pc.vert.glsl" />
     <None Include="pc.frag.glsl" />
+    <None Include="pci.vert.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="lightbulb.png">

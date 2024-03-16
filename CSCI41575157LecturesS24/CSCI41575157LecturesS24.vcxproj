@@ -143,6 +143,7 @@
     <ClCompile Include="..\3rdparty\imgui\imgui_widgets.cpp" />
     <ClCompile Include="BaseObject.cpp" />
     <ClCompile Include="IVertexArray.cpp" />
+    <ClCompile Include="PCIVertexArray.cpp" />
     <ClCompile Include="VertexGenerators.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PCNTVertexArray.cpp" />
@@ -157,6 +158,7 @@
     <ClInclude Include="GraphicsObject.h" />
     <ClInclude Include="GraphicsStructures.h" />
     <ClInclude Include="IVertexArray.h" />
+    <ClInclude Include="PCIVertexArray.h" />
     <ClInclude Include="VertexDataParams.h" />
     <ClInclude Include="VertexGenerators.h" />
     <ClInclude Include="PCNTVertexArray.h" />
@@ -176,6 +178,7 @@
     <None Include="lighting.vert.glsl" />
     <None Include="pc.frag.glsl" />
     <None Include="pc.vert.glsl" />
+    <None Include="pci.vert.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="lightbulb.png" />

@@ -63,6 +63,12 @@ struct VertexDataPC : public IVertexData{
 	glm::vec3 color{};
 };
 
+struct VertexDataPCI : public IVertexData {
+	glm::vec3 position{};
+	glm::vec3 color{};
+	glm::vec3 worldPosition{};
+};
+
 struct VertexDataPCT : public IVertexData {
 	glm::vec3 position;
 	glm::vec3 color;

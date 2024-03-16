@@ -157,6 +157,18 @@ public:
 	void GenerateIndices(int type = 1, int steps = 0) override;
 };
 
+class PCLineCuboidGenerator : public PCGenerator
+{
+protected:
+
+public:
+	PCLineCuboidGenerator() : PCGenerator() {}
+	~PCLineCuboidGenerator() = default;
+
+	void GenerateVertices(IVertexDataParams& params) override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
+};
+
 class PCNTGenerator : public IVertexGenerator
 {
 protected:
@@ -240,6 +252,43 @@ protected:
 public:
 	PCTXYPlaneGenerator() : PCTGenerator() {}
 	~PCTXYPlaneGenerator() = default;
+
+	void GenerateVertices(IVertexDataParams& params) override;
+	void GenerateIndices(int type = 1, int steps = 0) override;
+};
+
+class PCIGenerator : public IVertexGenerator
+{
+protected:
+	std::vector<VertexDataPCI> vertexData;
+
+public:
+	PCIGenerator() : IVertexGenerator() {}
+	~PCIGenerator() = default;
+
+	std::size_t GetNumberOfVertices() override {
+		return vertexData.size();
+	}
+
+	long long GetVertexDataSize() override {
+		return vertexData.size() * sizeof(VertexDataPCI);
+	}
+
+	std::vector<IVertexData>& GetVertexData() {
+		return reinterpret_cast<std::vector<IVertexData>&>(vertexData);
+	}
+};
+
+class PCILineCuboidGenerator : public PCIGenerator
+{
+protected:
+	std::vector<glm::vec3> worldPositions;
+public:
+	PCILineCuboidGenerator(std::vector<glm::vec3> worldPositions) : 
+		PCIGenerator() {
+		this->worldPositions = worldPositions;
+	}
+	~PCILineCuboidGenerator() = default;
 
 	void GenerateVertices(IVertexDataParams& params) override;
 	void GenerateIndices(int type = 1, int steps = 0) override;
