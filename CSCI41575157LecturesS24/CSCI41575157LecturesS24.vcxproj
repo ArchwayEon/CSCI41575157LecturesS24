@@ -142,7 +142,7 @@
     <ClCompile Include="..\3rdparty\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\3rdparty\imgui\imgui_widgets.cpp" />
     <ClCompile Include="BaseObject.cpp" />
-    <ClCompile Include="Generator.cpp" />
+    <ClCompile Include="GeneratorFunctions.cpp" />
     <ClCompile Include="IVertexArray.cpp" />
     <ClCompile Include="VertexGenerators.cpp" />
     <ClCompile Include="Main.cpp" />
