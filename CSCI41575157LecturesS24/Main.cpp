@@ -26,6 +26,7 @@
 #include "PCVertexArray.h"
 #include "GraphicsObject.h"
 #include "PCIVertexArray.h"
+#include "Ray.h"
 
 // Eek! A global mouse!
 MouseParams mouse;
@@ -869,6 +870,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	bool correctGamma = false;
 	//bool showCircle = true;
 	//bool showSpirograph = true;
+	Ray ray;
+	glm::vec3 rayStart{};
+	glm::vec3 rayDir{};
+	GeometricPlane plane;
+	plane.SetDistanceFromOrigin(-5.0f);
+	Intersection intersection;
 
 	Timer timer;
 	while (!glfwWindowShouldClose(window)) {
@@ -912,9 +919,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		cameraUp = cameraFrame[1];
 		view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 
-		lightBulb->referenceFrame[3] = glm::vec4(localLight.position, 1.0f);
-		PointAt(lightBulb->referenceFrame, cameraPosition);
-
 		if (width >= height) {
 			aspectRatio = width / (height * 1.0f);
 		}
@@ -925,9 +929,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			glm::radians(mouse.fieldOfView), aspectRatio, nearPlane, farPlane);
 
 		// Set up the ray
-		//projView = projection * view;
-		//projInverse = glm::inverse(projView);
+		ray.Create((float)mouse.nsx, (float)mouse.nsy, projection, view);
+		rayStart = ray.GetStart();
+		rayDir = ray.GetDirection();
+		intersection = ray.GetIntersectionWithPlane(plane);
 
+		if (intersection.isIntersecting) {
+			localLight.position.x = intersection.point.x;
+			localLight.position.z = intersection.point.z;
+		}
+
+		lightBulb->referenceFrame[3] = glm::vec4(localLight.position, 1.0f);
+		PointAt(lightBulb->referenceFrame, cameraPosition);
 		
 		lightingRenderer->Select();
 		lightingRenderer->Send("projection", projection);
@@ -1008,6 +1021,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::Text("Elapsed seconds: %.3f", elapsedSeconds);
 		ImGui::Text("Mouse: (%.0f, %.0f) (%.3f, %.3f)", 
 			mouse.x, mouse.y, mouse.nsx, mouse.nsy);
+		ImGui::DragFloat3("Ray Start", (float*)&rayStart.x);
+		ImGui::DragFloat3("Ray Direction", (float*)&rayDir.x);
+		ImGui::DragFloat3("Intersection", (float*)&intersection.point.x);
 		ImGui::Text("Field of View: %.0f", mouse.fieldOfView);
 		ImGui::Text("Theta:%.1f, Phi:%.1f)",
 			mouse.spherical.theta, mouse.spherical.phi);
