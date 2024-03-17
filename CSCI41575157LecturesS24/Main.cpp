@@ -800,6 +800,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	lcParams.width = 0.5f;
 	lcParams.height = 0.5f;
 	lcParams.depth = 0.5f;
+	lcParams.color = { 0.0f, 0.0f, 1.0f };
 	lineCuboid->vertexArray->Generate(lcParams);
 	maxNumberOfVertices = 8;
 	maxNumberOfIndices = 24;
@@ -962,10 +963,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		lightingRenderer->Send("viewPosition", cameraPosition);
 		lightingRenderer->Render();
 
-		basicPCTRenderer->Select();
-		basicPCTRenderer->Send("projection", projection);
-		basicPCTRenderer->Send("view", view);
-		basicPCTRenderer->Render();
+		
 
 		SGraphicsObject object;
 
@@ -1016,6 +1014,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		basicPCIRenderer->Send("projection", projection);
 		basicPCIRenderer->Send("view", view);
 		basicPCIRenderer->Render();
+
+		basicPCTRenderer->Select();
+		basicPCTRenderer->Send("projection", projection);
+		basicPCTRenderer->Send("view", view);
+		basicPCTRenderer->Render();
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
