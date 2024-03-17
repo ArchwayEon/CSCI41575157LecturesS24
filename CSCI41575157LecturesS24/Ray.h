@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "GeometricLine.h"
 #include "GeometricPlane.h"
+
 class Ray
 {
 protected:

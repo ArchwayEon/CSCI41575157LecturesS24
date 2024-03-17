@@ -47,8 +47,10 @@ static void OnMouseMove(GLFWwindow* window, double mouseX, double mouseY)
 	mouse.spherical.theta = 90.0f - (xPercent * 180); // left/right
 	mouse.spherical.phi = 180.0f - (yPercent * 180); // up/down
 
-	mouse.nsx = xPercent * 2.0 - 1.0;
-	mouse.nsy = -(yPercent * 2.0 - 1.0);
+	//mouse.nsx = xPercent * 2.0 - 1.0;
+	//mouse.nsy = -(yPercent * 2.0 - 1.0);
+	mouse.nsx = (2.0f * mouse.x) / mouse.windowWidth - 1.0f;
+	mouse.nsy = 1.0f - (2.0f * mouse.y) / mouse.windowHeight;
 }
 
 static void OnScroll(GLFWwindow* window, double xoffset, double yoffset)
@@ -846,7 +848,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	lightingShader->AddUniform("globalLightIntensity");
 
 	Light localLight{};
-	localLight.position = glm::vec3(0.0f, 0.0f, -17.0f);
+	localLight.position = glm::vec3(0.0f, -3.0f, -17.0f);
 	localLight.color = glm::vec3(1.0f, 1.0f, 1.0f); // White light
 	localLight.intensity = 0.5f;
 	localLight.attenuationCoef = 0.0f;
@@ -874,7 +876,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	glm::vec3 rayStart{};
 	glm::vec3 rayDir{};
 	GeometricPlane plane;
-	plane.SetDistanceFromOrigin(-5.0f);
+	plane.SetDistanceFromOrigin(floor->referenceFrame[3].y);
 	Intersection intersection;
 
 	Timer timer;
@@ -937,6 +939,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		if (intersection.isIntersecting) {
 			localLight.position.x = intersection.point.x;
 			localLight.position.z = intersection.point.z;
+		}
+		else {
+			localLight.position.x = 0.0f;
+			localLight.position.z = 0.0f;
 		}
 
 		lightBulb->referenceFrame[3] = glm::vec4(localLight.position, 1.0f);

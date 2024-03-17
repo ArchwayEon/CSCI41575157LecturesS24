@@ -22,7 +22,7 @@ public:
 
 	void SetNormal(glm::vec3 normal) { this->normal = normal; }
 	void SetDistanceFromOrigin(float distance){ 
-		distanceFromOrigin = distance;
+		distanceFromOrigin = fabs(distance);
 	}
 
 	Intersection GetIntersectionWithLine(const GeometricLine& line) const;
