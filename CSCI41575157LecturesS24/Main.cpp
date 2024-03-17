@@ -45,6 +45,9 @@ static void OnMouseMove(GLFWwindow* window, double mouseX, double mouseY)
 
 	mouse.spherical.theta = 90.0f - (xPercent * 180); // left/right
 	mouse.spherical.phi = 180.0f - (yPercent * 180); // up/down
+
+	mouse.nsx = xPercent * 2.0 - 1.0;
+	mouse.nsy = -(yPercent * 2.0 - 1.0);
 }
 
 static void OnScroll(GLFWwindow* window, double xoffset, double yoffset)
@@ -864,8 +867,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	bool lookWithMouse = false;
 	bool resetCameraPosition = false;
 	bool correctGamma = false;
-	bool showCircle = true;
-	bool showSpirograph = true;
+	//bool showCircle = true;
+	//bool showSpirograph = true;
+
 	Timer timer;
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
@@ -919,6 +923,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 		projection = glm::perspective(
 			glm::radians(mouse.fieldOfView), aspectRatio, nearPlane, farPlane);
+
+		// Set up the ray
+		//projView = projection * view;
+		//projInverse = glm::inverse(projView);
 
 		
 		lightingRenderer->Select();
@@ -998,7 +1006,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
 			1000.0f / io.Framerate, io.Framerate);
 		ImGui::Text("Elapsed seconds: %.3f", elapsedSeconds);
-		ImGui::Text("Mouse: (%.0f, %.0f)", mouse.x, mouse.y);
+		ImGui::Text("Mouse: (%.0f, %.0f) (%.3f, %.3f)", 
+			mouse.x, mouse.y, mouse.nsx, mouse.nsy);
 		ImGui::Text("Field of View: %.0f", mouse.fieldOfView);
 		ImGui::Text("Theta:%.1f, Phi:%.1f)",
 			mouse.spherical.theta, mouse.spherical.phi);
@@ -1007,20 +1016,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::Checkbox("Use mouse to look", &lookWithMouse);
 		ImGui::Checkbox("Reset camera position", &resetCameraPosition);
 		ImGui::Checkbox("Correct gamma", &correctGamma);
-		ImGui::Checkbox("Show Circle", &showCircle);
-		ImGui::Checkbox("Show Spirograph", &showSpirograph);
-		ImGui::SliderFloat("Radius", &circleParams.radius, 1, 10);
-		ImGui::SliderInt("Steps", &circleParams.steps, 10, 120);
-		ImGui::SliderFloat("Spirograph R", &sParams.R, 1, 10);
-		ImGui::SliderFloat("Spirograph l", &sParams.l, 0, 1);
-		ImGui::SliderFloat("Spirograph k", &sParams.k, 0, 1);
-		ImGui::SliderFloat("Revolutions", &sParams.revolutions, 1, 30);
-		ImGui::DragFloat3("LB Point 1", &lbParams.p0.x, 0.1f);
-		ImGui::DragFloat3("LB Point 2", &lbParams.p1.x, 0.1f);
-		ImGui::DragFloat3("QB Point 1", &qbParams.p0.x, 0.1f);
-		ImGui::DragFloat3("QB Point 2", &qbParams.p1.x, 0.1f);
-		ImGui::DragFloat3("QB Point 3", &qbParams.p2.x, 0.1f);
-		ImGui::SliderInt("Patch Steps", &bpParams.steps, 5, 20);
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

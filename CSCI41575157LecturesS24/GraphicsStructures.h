@@ -47,6 +47,7 @@ struct MouseParams {
 	double windowX = 0, windowY = 0;
 	int windowWidth = 0, windowHeight = 0;
 	float fieldOfView = 60.0f;
+	double nsx = 0, nsy = 0;
 };
 
 struct Result {
