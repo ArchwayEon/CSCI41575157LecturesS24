@@ -18,7 +18,7 @@ void PCIVertexArray::RenderObject()
 			vertexData.data());
 	}
 	
-	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, wpVBO);
 	if (object->isDynamic) {
 		glBufferSubData(
 			GL_ARRAY_BUFFER, 0,
@@ -26,7 +26,16 @@ void PCIVertexArray::RenderObject()
 			worldPositions.data());
 	}
 
+	glBindBuffer(GL_ARRAY_BUFFER, icVBO);
+	if (object->isDynamic) {
+		glBufferSubData(
+			GL_ARRAY_BUFFER, 0,
+			instanceColors.size() * sizeof(glm::vec3) * object->instances,
+			instanceColors.data());
+	}
+
 	int indexDataSize = static_cast<int>(GetIndexDataSize());
+	int numberOfIndices = (int)indexData.size();
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object->ibo);
 	if (object->isDynamic) {
 		glBufferSubData(
@@ -36,7 +45,7 @@ void PCIVertexArray::RenderObject()
 	}
 	glDrawElementsInstanced(
 		object->primitive,
-		indexDataSize, 
+		numberOfIndices,
 		GL_UNSIGNED_SHORT, 
 		nullptr,
 		object->instances);
@@ -46,7 +55,8 @@ unsigned int PCIVertexArray::AllocateVertexBuffer(unsigned int vao)
 {
 	glBindVertexArray(vao);
 	glGenBuffers(1, &object->vbo);
-	glGenBuffers(1, &instanceVBO);
+	glGenBuffers(1, &wpVBO);
+	glGenBuffers(1, &icVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
 	if (object->isDynamic == false) {
 		glBufferData(
@@ -67,7 +77,7 @@ unsigned int PCIVertexArray::AllocateVertexBuffer(unsigned int vao)
 		// Colors
 		EnableAttribute(1, 3, sizeof(VertexDataPC), (void*)(sizeof(float) * 3));
 		
-		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, wpVBO);
 		glBufferData(
 			GL_ARRAY_BUFFER,
 			worldPositions.size() * sizeof(glm::vec3) * object->instances,
@@ -76,6 +86,16 @@ unsigned int PCIVertexArray::AllocateVertexBuffer(unsigned int vao)
 		// World Positions
 		EnableAttribute(2, 3, sizeof(glm::vec3), (void*)0);
 		glVertexAttribDivisor(2, 1);
+
+		glBindBuffer(GL_ARRAY_BUFFER, icVBO);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			instanceColors.size() * sizeof(glm::vec3) * object->instances,
+			nullptr,
+			GL_DYNAMIC_DRAW);
+		// Instance colors
+		EnableAttribute(3, 3, sizeof(glm::vec3), (void*)0);
+		glVertexAttribDivisor(3, 1);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);

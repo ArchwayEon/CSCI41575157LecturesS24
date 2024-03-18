@@ -5,10 +5,20 @@ class PCIVertexArray :   public IVertexArray
 protected:
 	std::vector<VertexDataPC> vertexData;
 	std::vector<glm::vec3> worldPositions;
-	unsigned int instanceVBO = 0;
+	std::vector<glm::vec3> instanceColors;
+	unsigned int wpVBO = 0;
+	unsigned int icVBO = 0;
 public:
 	PCIVertexArray(std::vector<glm::vec3> worldPositions);
 	~PCIVertexArray() = default;
+
+	void SetWorldPositions(std::vector<glm::vec3> worldPositions) {
+		this->worldPositions = worldPositions;
+	}
+
+	void SetInstanceColors(std::vector<glm::vec3> instanceColors) {
+		this->instanceColors = instanceColors;
+	}
 
 	void RenderObject() override;
 

@@ -410,7 +410,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	// Create the shaders
 	std::string lightingVertexSource = ReadFromFile("lighting.vert.glsl");
 	std::string lightingFragmentSource = ReadFromFile("lighting.frag.glsl");
-	std::shared_ptr<Shader> lightingShader = 
+	std::shared_ptr<Shader> lightingShader =
 		std::make_shared<Shader>(lightingVertexSource, lightingFragmentSource);
 
 	std::string basicVertexSource = ReadFromFile("basic.vert.glsl");
@@ -454,10 +454,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	// Create the texture data
 	unsigned char* textureData = new unsigned char[] {
 		0, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 0, 255,
-		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
-		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
-		0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 0, 255
-	};
+			0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+			0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+			0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 0, 255
+		};
 
 	unsigned int customTextureId = Create2DTexture(textureData, 4, 4);
 	delete[] textureData;
@@ -475,7 +475,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	lightingRenderer->SetShaderProgram(lightingShader);
 	lightingRenderer->SetVertexSize(sizeof(VertexDataPCNT));
 
-	std::shared_ptr<PCNTVertexArray> vaLitCube = 
+	std::shared_ptr<PCNTVertexArray> vaLitCube =
 		std::make_shared<PCNTVertexArray>();
 	vaLitCube->SetGenerator(std::make_shared<PCNTCuboidGenerator>());
 	SGraphicsObject litCube = std::make_shared<GraphicsObject>();
@@ -520,7 +520,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	basicPCTRenderer->SetShaderProgram(basicPCTShader);
 	basicPCTRenderer->SetVertexSize(sizeof(VertexDataPCT));
 
-	std::shared_ptr<PCTVertexArray> vaLightBulb = 
+	std::shared_ptr<PCTVertexArray> vaLightBulb =
 		std::make_shared<PCTVertexArray>();
 	vaLightBulb->SetGenerator(std::make_shared<PCTXYPlaneGenerator>());
 	SGraphicsObject lightBulb = std::make_shared<GraphicsObject>();
@@ -556,7 +556,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	allObjects["circle"] = circle;
 	basicPCRenderer->AddObject(circle);
 
-	std::shared_ptr<PCVertexArray> vaSpirograph = 
+	std::shared_ptr<PCVertexArray> vaSpirograph =
 		std::make_shared<PCVertexArray>();
 	vaSpirograph->SetGenerator(std::make_shared<PCSpirographGenerator>());
 	SGraphicsObject spirograph = std::make_shared<GraphicsObject>();
@@ -588,7 +588,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	linearBezier->primitive = GL_LINES;
 	LinearBezierParams lbParams{};
 	lbParams.steps = 10;
-	lbParams.p0 = {-5.0f, 0.0f, 0.0f };
+	lbParams.p0 = { -5.0f, 0.0f, 0.0f };
 	lbParams.p1 = { 5.0f, 0.0f, 0.0f };
 	lbParams.color = { 1.0f, 1.0f, 1.0f };
 	linearBezier->vertexArray->Generate(lbParams);
@@ -782,12 +782,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			worldPositions.push_back(bpxParams.cpBezier[row][col]);
 		}
 	}
+	std::vector<glm::vec3> instanceColors;
+	for (int i = 0; i < 16; i++) {
+		instanceColors.push_back({ 1.0f, 0.0f, 0.0f });
+	}
+	instanceColors[5] = { 1.0f, 1.0f, 1.0f };
 
 	SRenderer basicPCIRenderer = std::make_shared<Renderer>();
 	basicPCIRenderer->SetShaderProgram(basicPCIShader);
 
-	std::shared_ptr<PCIVertexArray> vaLineCuboid = 
+	std::shared_ptr<PCIVertexArray> vaLineCuboid =
 		std::make_shared<PCIVertexArray>(worldPositions);
+	vaLineCuboid->SetInstanceColors(instanceColors);
 	std::shared_ptr<PCLineCuboidGenerator> lineCuboidGenerator =
 		std::make_shared<PCLineCuboidGenerator>();
 	vaLineCuboid->SetGenerator(lineCuboidGenerator);
@@ -885,6 +891,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(window, elapsedSeconds, axis, cameraFrame, lookWithMouse);
 		glfwGetWindowSize(window, &width, &height);
+		if (width == 0 || height == 0) continue; // minimized
 		mouse.windowWidth = width;
 		mouse.windowHeight = height;
 
