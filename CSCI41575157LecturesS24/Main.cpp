@@ -47,10 +47,8 @@ static void OnMouseMove(GLFWwindow* window, double mouseX, double mouseY)
 	mouse.spherical.theta = 90.0f - (xPercent * 180); // left/right
 	mouse.spherical.phi = 180.0f - (yPercent * 180); // up/down
 
-	//mouse.nsx = xPercent * 2.0 - 1.0;
-	//mouse.nsy = -(yPercent * 2.0 - 1.0);
-	mouse.nsx = (2.0f * mouse.x) / mouse.windowWidth - 1.0f;
-	mouse.nsy = 1.0f - (2.0f * mouse.y) / mouse.windowHeight;
+	mouse.nsx = xPercent * 2.0 - 1.0;
+	mouse.nsy = -(yPercent * 2.0 - 1.0);
 }
 
 static void OnScroll(GLFWwindow* window, double xoffset, double yoffset)
