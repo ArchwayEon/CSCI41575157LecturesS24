@@ -22,7 +22,7 @@ void PCIVertexArray::RenderObject()
 	if (object->isDynamic) {
 		glBufferSubData(
 			GL_ARRAY_BUFFER, 0,
-			worldPositions.size() * sizeof(glm::vec3) * object->instances,
+			worldPositions.size() * sizeof(glm::vec3),
 			worldPositions.data());
 	}
 
@@ -30,7 +30,7 @@ void PCIVertexArray::RenderObject()
 	if (object->isDynamic) {
 		glBufferSubData(
 			GL_ARRAY_BUFFER, 0,
-			instanceColors.size() * sizeof(glm::vec3) * object->instances,
+			instanceColors.size() * sizeof(glm::vec3),
 			instanceColors.data());
 	}
 
@@ -80,7 +80,7 @@ unsigned int PCIVertexArray::AllocateVertexBuffer(unsigned int vao)
 		glBindBuffer(GL_ARRAY_BUFFER, wpVBO);
 		glBufferData(
 			GL_ARRAY_BUFFER,
-			worldPositions.size() * sizeof(glm::vec3) * object->instances,
+			worldPositions.size() * sizeof(glm::vec3),
 			nullptr,
 			GL_DYNAMIC_DRAW);
 		// World Positions
@@ -90,7 +90,7 @@ unsigned int PCIVertexArray::AllocateVertexBuffer(unsigned int vao)
 		glBindBuffer(GL_ARRAY_BUFFER, icVBO);
 		glBufferData(
 			GL_ARRAY_BUFFER,
-			instanceColors.size() * sizeof(glm::vec3) * object->instances,
+			instanceColors.size() * sizeof(glm::vec3),
 			nullptr,
 			GL_DYNAMIC_DRAW);
 		// Instance colors
