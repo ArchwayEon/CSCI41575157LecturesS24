@@ -67,5 +67,6 @@ vec4 calculateDiffuse(vec3 lightDir, vec3 unitNormal, float lightIntensity, vec3
 {
    float cosAngIncidence = dot(unitNormal, lightDir);
    cosAngIncidence = clamp(cosAngIncidence, 0.0f, 1.0f);
-   return cosAngIncidence * lightIntensity * vec4(lightColor, 1.0f);
+   vec3 diffuse = cosAngIncidence * lightIntensity * lightColor;
+   return vec4(diffuse, 1.0f);
 }
