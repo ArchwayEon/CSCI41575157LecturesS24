@@ -53,10 +53,12 @@ void main()
       spec = pow(angIncidence, materialShininess);
       specular += materialSpecularIntensity * spec * 
         globalLightIntensity * vec4(globalLightColor, 1.0f);
+      specular.a = 1.0f;
    }
 
    vec4 texFragColor = texture(tex, fragTexCoord) * fragColor;
    vec4 ambientColor = materialAmbientIntensity * vec4(1.0f, 1.0f, 1.0f, 1.0f);
+   ambientColor.a = 1.0f;
    color = (ambientColor + globalDiffuse + localDiffuse + specular) *   
             texFragColor;
 }
