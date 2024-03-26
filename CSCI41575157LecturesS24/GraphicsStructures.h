@@ -88,8 +88,6 @@ struct PCData {
 	std::vector<unsigned short> indexData;
 };
 
-
-
 struct LightingShaderLocation {
 	unsigned int worldLoc = 0;
 	unsigned int projectionLoc = 0;

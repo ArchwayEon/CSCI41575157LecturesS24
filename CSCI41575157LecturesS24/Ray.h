@@ -3,6 +3,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "GeometricLine.h"
 #include "GeometricPlane.h"
+#include <vector>
+
+class GraphicsObject;
+class BoundingBox;
 
 class Ray
 {
@@ -17,9 +21,20 @@ public:
 		float screenX, float screenY, 
 		const glm::mat4& proj, const glm::mat4& view);
 
+	void SetStart(glm::vec3 start) { rayStart = start; }
+	void SetDirection(glm::vec3 dir) { rayDir = glm::normalize(dir); }
+
 	const glm::vec3& GetStart() const { return rayStart; }
 	const glm::vec3& GetDirection() const { return rayDir; }
 
+	glm::vec3 GetPosition(float offset) const {
+		return rayStart + (offset * rayDir);
+	}
+
 	Intersection GetIntersectionWithPlane(const GeometricPlane& plane) const;
+	Intersection GetIntersectionWithBoundingBox(
+		const BoundingBox& boundingBox) const;
+	std::vector<Intersection> GetIntersectionsWithObject(
+		const GraphicsObject& object) const;
 };
 

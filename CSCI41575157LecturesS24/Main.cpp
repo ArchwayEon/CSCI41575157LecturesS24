@@ -772,7 +772,28 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	basicPCRenderer->SetObjectsVisibility(false);
 
-	allObjects["bezierPatchX"]->isVisible = true;
+	std::shared_ptr<PCLineCuboidGenerator> lineCuboidGenerator =
+		std::make_shared<PCLineCuboidGenerator>();
+
+	std::shared_ptr<PCVertexArray> vaLineCuboid =
+		std::make_shared<PCVertexArray>();
+	vaLineCuboid->SetGenerator(lineCuboidGenerator);
+	SGraphicsObject lineCuboid = std::make_shared<GraphicsObject>();
+	vaLineCuboid->SetObject(lineCuboid);
+	lineCuboid->vertexArray = vaLineCuboid;
+	lineCuboid->primitive = GL_LINES;
+	LineCuboidParams lcParams{};
+	lcParams.width = 5.0f;
+	lcParams.height = 5.0f;
+	lcParams.depth = 5.0f;
+	lcParams.color = { 1.0f, 0.0f, 1.0f };
+	lineCuboid->vertexArray->Generate(lcParams);
+	lineCuboid->vertexArray->SetAsDynamicGraphicsObject(8, 24);
+	lineCuboid->CreateBoundingBox(5.0f, 5.0f, 5.0f);
+	allObjects["lineCuboid"] = lineCuboid;
+	basicPCRenderer->AddObject(lineCuboid);
+
+	//allObjects["bezierPatchX"]->isVisible = true;
 
 	std::vector<glm::vec3> worldPositions;
 	for (int row = 0; row < 4; row++) {
@@ -789,30 +810,29 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	SRenderer basicPCIRenderer = std::make_shared<Renderer>();
 	basicPCIRenderer->SetShaderProgram(basicPCIShader);
 
-	std::shared_ptr<PCIVertexArray> vaLineCuboid =
+	std::shared_ptr<PCIVertexArray> vaInsLineCuboid =
 		std::make_shared<PCIVertexArray>(worldPositions);
-	vaLineCuboid->SetInstanceColors(instanceColors);
-	std::shared_ptr<PCLineCuboidGenerator> lineCuboidGenerator =
-		std::make_shared<PCLineCuboidGenerator>();
-	vaLineCuboid->SetGenerator(lineCuboidGenerator);
-	SGraphicsObject lineCuboid = std::make_shared<GraphicsObject>();
-	vaLineCuboid->SetObject(lineCuboid);
-	lineCuboid->vertexArray = vaLineCuboid;
-	lineCuboid->primitive = GL_LINES;
-	lineCuboid->instances = 16;
-	LineCuboidParams lcParams{};
+	vaInsLineCuboid->SetInstanceColors(instanceColors);
+	
+	vaInsLineCuboid->SetGenerator(lineCuboidGenerator);
+	SGraphicsObject insLineCuboid = std::make_shared<GraphicsObject>();
+	vaInsLineCuboid->SetObject(insLineCuboid);
+	insLineCuboid->vertexArray = vaInsLineCuboid;
+	insLineCuboid->primitive = GL_LINES;
+	insLineCuboid->instances = 16;
 	lcParams.width = 0.5f;
 	lcParams.height = 0.5f;
 	lcParams.depth = 0.5f;
 	lcParams.color = { 0.0f, 0.0f, 1.0f };
-	lineCuboid->vertexArray->Generate(lcParams);
+	insLineCuboid->vertexArray->Generate(lcParams);
 	maxNumberOfVertices = 8;
 	maxNumberOfIndices = 24;
-	lineCuboid->vertexArray->SetAsDynamicGraphicsObject(
+	insLineCuboid->vertexArray->SetAsDynamicGraphicsObject(
 		maxNumberOfVertices, maxNumberOfIndices);
-	lineCuboid->referenceFrame[3] = glm::vec4(bpxParams.cpBezier[0][0], 1.0f);
-	allObjects["lineCuboid"] = lineCuboid;
-	basicPCIRenderer->AddObject(lineCuboid);
+	insLineCuboid->referenceFrame[3] = glm::vec4(bpxParams.cpBezier[0][0], 1.0f);
+	allObjects["insLineCuboid"] = insLineCuboid;
+	basicPCIRenderer->AddObject(insLineCuboid);
+	basicPCIRenderer->SetObjectsVisibility(false);
 
 	float cubeYAngle = 0;
 	float cubeXAngle = 0;
@@ -883,7 +903,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	GeometricPlane plane;
 	plane.SetDistanceFromOrigin(floor->referenceFrame[3].y);
 	Intersection intersection;
-
+	glm::vec3 intersectionPoint{};
 	Timer timer;
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
@@ -943,13 +963,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		intersection = ray.GetIntersectionWithPlane(plane);
 
 		if (intersection.isIntersecting) {
-			localLight.position.x = intersection.point.x;
-			localLight.position.z = intersection.point.z;
+			intersectionPoint = ray.GetPosition(intersection.offset);
+			localLight.position.x = intersectionPoint.x;
+			localLight.position.z = intersectionPoint.z;
 		}
 		else {
 			localLight.position.x = 0.0f;
 			localLight.position.z = 0.0f;
 		}
+
+		auto intersections = ray.GetIntersectionsWithObject(*allObjects["lineCuboid"]);
 
 		lightBulb->referenceFrame[3] = glm::vec4(localLight.position, 1.0f);
 		PointAt(lightBulb->referenceFrame, cameraPosition);
@@ -1037,7 +1060,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			mouse.x, mouse.y, mouse.nsx, mouse.nsy);
 		ImGui::DragFloat3("Ray Start", (float*)&rayStart.x);
 		ImGui::DragFloat3("Ray Direction", (float*)&rayDir.x);
-		ImGui::DragFloat3("Intersection", (float*)&intersection.point.x);
+		ImGui::DragFloat3("Intersection", (float*)&intersectionPoint.x);
 		ImGui::Text("Field of View: %.0f", mouse.fieldOfView);
 		ImGui::Text("Theta:%.1f, Phi:%.1f)",
 			mouse.spherical.theta, mouse.spherical.phi);
@@ -1046,6 +1069,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::Checkbox("Use mouse to look", &lookWithMouse);
 		ImGui::Checkbox("Reset camera position", &resetCameraPosition);
 		ImGui::Checkbox("Correct gamma", &correctGamma);
+		ImGui::Text("Intersections: %d", intersections.size());
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

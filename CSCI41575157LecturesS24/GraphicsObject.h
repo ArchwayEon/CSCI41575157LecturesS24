@@ -1,21 +1,17 @@
 #pragma once
 #include <memory>
+#include <glm/glm.hpp>
+#include "GraphicsStructures.h"
+#include "BoundingBox.h"
 
 class IVertexArray; // Forward declaration
 
 class GraphicsObject {
+protected:
+	std::shared_ptr<BoundingBox> boundingBox = nullptr;
+
 public:
 	std::shared_ptr<IVertexArray> vertexArray = nullptr;
-	//VertexDataPCNT* vertexDataPCNT = nullptr;
-	//VertexDataPCT* vertexDataPCT = nullptr;
-	//std::vector<VertexDataPC> vertexDataPC;
-	//std::vector<unsigned short> indexData;
-	//std::size_t sizeOfVertexBuffer = 0;
-	//std::size_t maxSizeOfVertexBuffer = 0;
-	//std::size_t sizeOfIndexBuffer = 0;
-	//std::size_t maxSizeOfIndexBuffer = 0;
-	//std::size_t numberOfVertices = 0;
-	//std::size_t numberOfIndices = 0;
 	unsigned int vao = 0;
 	unsigned int vbo = 0;
 	unsigned int ibo = 0;
@@ -27,4 +23,12 @@ public:
 	unsigned int instances = 1;
 	glm::mat4 referenceFrame = glm::mat4(1.0f);
 	Material material{};
+
+public:
+	void SetPosition(glm::vec3 pos);
+	void CreateBoundingBox(float width, float height, float depth);
+	bool HasBoundingBox() const { return boundingBox != nullptr; }
+	const std::shared_ptr<BoundingBox>& GetBoundingBox() const { 
+		return boundingBox; 
+	}
 };

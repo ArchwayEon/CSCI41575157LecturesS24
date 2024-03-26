@@ -7,7 +7,7 @@ class GeometricLine;
 
 struct Intersection{
 	bool isIntersecting = false;
-	glm::vec3 point{};
+	float offset = -1.0f;
 };
 
 class GeometricPlane
@@ -23,6 +23,10 @@ public:
 	void SetNormal(glm::vec3 normal) { this->normal = normal; }
 	void SetDistanceFromOrigin(float distance){ 
 		distanceFromOrigin = fabs(distance);
+	}
+	void Set(glm::vec3 normal, float distance) {
+		SetNormal(normal);
+		SetDistanceFromOrigin(distance);
 	}
 
 	Intersection GetIntersectionWithLine(const GeometricLine& line) const;
