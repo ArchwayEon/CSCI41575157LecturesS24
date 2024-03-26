@@ -25,9 +25,9 @@ void BoundingBox::Create(float width, float height, float depth)
 	planes[BOTTOM].Set(yAxis, hh);
 }
 
-std::vector<Intersection> BoundingBox::GetRayIntersections(const Ray& ray) const
+const std::vector<Intersection>& BoundingBox::GetRayIntersections(const Ray& ray)
 {
-	std::vector<Intersection> intersections;
+	intersections.clear();
 	Intersection intersection;
 	Ray localRay;
 	glm::vec3 localStart = glm::vec3(
@@ -38,9 +38,7 @@ std::vector<Intersection> BoundingBox::GetRayIntersections(const Ray& ray) const
 	localRay.SetDirection(localDir);
 	for (int i = 0; i < 6; i++) {
 		intersection = localRay.GetIntersectionWithPlane(planes[i]);
-		if (intersection.isIntersecting) {
-			intersections.push_back(intersection);
-		}
+		intersections.push_back(intersection);
 	}
 	return intersections;
 }

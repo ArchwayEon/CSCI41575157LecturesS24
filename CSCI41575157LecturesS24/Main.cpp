@@ -14,6 +14,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Timer.h"
+#include <algorithm>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -834,9 +835,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	basicPCIRenderer->AddObject(insLineCuboid);
 	basicPCIRenderer->SetObjectsVisibility(false);
 
-	float cubeYAngle = 0;
-	float cubeXAngle = 0;
-	float cubeZAngle = 0;
+	float boxYAngle = 0;
+	float boxXAngle = 0;
+	float boxZAngle = 0;
 	float left = -20.0f;
 	float right = 20.0f;
 	float bottom = -20.0f;
@@ -897,14 +898,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	bool correctGamma = false;
 	//bool showCircle = true;
 	//bool showSpirograph = true;
-	Ray ray;
+	Ray mouseRay;
 	glm::vec3 rayStart{};
 	glm::vec3 rayDir{};
 	GeometricPlane plane;
 	plane.SetDistanceFromOrigin(floor->referenceFrame[3].y);
-	Intersection intersection;
+	Intersection floorIntersection, boxILeft, boxIRight, boxIFront, boxIBack, boxITop, boxIBottom;
 	glm::vec3 intersectionPoint{};
 	Timer timer;
+	std::stringstream log;
+	float farthestNearI = 0.0f;
+	float nearestFarI = 100000.0f;
+	float nearI = 0, farI = 0;
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(window, elapsedSeconds, axis, cameraFrame, lookWithMouse);
@@ -957,22 +962,82 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			glm::radians(mouse.fieldOfView), aspectRatio, nearPlane, farPlane);
 
 		// Set up the ray
-		ray.Create((float)mouse.nsx, (float)mouse.nsy, projection, view);
-		rayStart = ray.GetStart();
-		rayDir = ray.GetDirection();
-		intersection = ray.GetIntersectionWithPlane(plane);
+		mouseRay.Create((float)mouse.nsx, (float)mouse.nsy, projection, view);
+		rayStart = mouseRay.GetStart();
+		rayDir = mouseRay.GetDirection();
+		floorIntersection = mouseRay.GetIntersectionWithPlane(plane);
 
-		if (intersection.isIntersecting) {
-			intersectionPoint = ray.GetPosition(intersection.offset);
+		if (floorIntersection.isIntersecting) {
+			intersectionPoint = mouseRay.GetPosition(floorIntersection.offset);
 			localLight.position.x = intersectionPoint.x;
+			localLight.position.y = -3.0f;
 			localLight.position.z = intersectionPoint.z;
 		}
 		else {
 			localLight.position.x = 0.0f;
-			localLight.position.z = 0.0f;
+			localLight.position.y = -3.0f;
+			localLight.position.z = 5.0f;
 		}
 
-		auto intersections = ray.GetIntersectionsWithObject(*allObjects["lineCuboid"]);
+		allObjects["lineCuboid"]->referenceFrame = glm::mat4(1.0f);
+		allObjects["lineCuboid"]->referenceFrame = glm::rotate(
+			allObjects["lineCuboid"]->referenceFrame, glm::radians(boxXAngle), {1.0f, 0.0f, 0.0f});
+		allObjects["lineCuboid"]->referenceFrame = glm::rotate(
+			allObjects["lineCuboid"]->referenceFrame, glm::radians(boxYAngle), { 0.0f, 1.0f, 0.0f });
+		allObjects["lineCuboid"]->referenceFrame = glm::rotate(
+			allObjects["lineCuboid"]->referenceFrame, glm::radians(boxZAngle), { 0.0f, 0.0f, 1.0f });
+
+		std::string intersectionMessage = "Don't know";
+		allObjects["lineCuboid"]->CheckIntersectionsWithRay(mouseRay);
+		auto& boundingBox = allObjects["lineCuboid"]->GetBoundingBox();
+		auto& intersections = boundingBox->GetIntersections();
+		log.str(std::string()); // clear the log
+		for (int i = 0; i < intersections.size(); i++) {
+			log << "[" << i << "] " << intersections[i].offset;
+		}
+
+		// Test intersection with the 2 planes perpendicular to the OBB's X axis
+		nearestFarI = boundingBox->GetIntersection(BoundingBox::BACK).offset;
+		farthestNearI = boundingBox->GetIntersection(BoundingBox::FRONT).offset;
+		nearI = boundingBox->GetIntersection(BoundingBox::LEFT).offset;
+		farI = boundingBox->GetIntersection(BoundingBox::RIGHT).offset;
+		if (nearI > farI) {
+			std::swap(nearI, farI);
+		}
+		if(farI < nearestFarI) nearestFarI = farI;
+		if (nearI > farthestNearI) farthestNearI = nearI;
+		if (nearestFarI < farthestNearI) intersectionMessage = "No intersection";
+
+		if (intersectionMessage == "Don't know") {
+			// Test intersection with the 2 planes perpendicular to the OBB's Y axis
+			nearI = boundingBox->GetIntersection(BoundingBox::FRONT).offset;
+			farI = boundingBox->GetIntersection(BoundingBox::BACK).offset;
+			if (nearI > farI) {
+				std::swap(nearI, farI);
+			}
+			if (farI < nearestFarI) nearestFarI = farI;
+			if (nearI > farthestNearI) farthestNearI = nearI;
+			if (nearestFarI < farthestNearI) intersectionMessage = "No intersection";
+		}
+
+		if (intersectionMessage == "Don't know") {
+			// Test intersection with the 2 planes perpendicular to the OBB's Z axis
+			nearI = boundingBox->GetIntersection(BoundingBox::TOP).offset;
+			farI = boundingBox->GetIntersection(BoundingBox::BOTTOM).offset;
+			if (nearI > farI) {
+				std::swap(nearI, farI);
+			}
+			if (farI < nearestFarI) nearestFarI = farI;
+			if (nearI > farthestNearI) farthestNearI = nearI;
+			if (nearestFarI < farthestNearI) intersectionMessage = "No intersection";
+		}
+		if (intersectionMessage == "Don't know") {
+			intersectionMessage = "Intersection";
+			glm::vec3 pos = mouseRay.GetPosition(farthestNearI);
+			localLight.position.x = allObjects["lineCuboid"]->referenceFrame[3].x;
+			localLight.position.y = allObjects["lineCuboid"]->referenceFrame[3].y;
+			localLight.position.z = allObjects["lineCuboid"]->referenceFrame[3].z;
+		}
 
 		lightBulb->referenceFrame[3] = glm::vec4(localLight.position, 1.0f);
 		PointAt(lightBulb->referenceFrame, cameraPosition);
@@ -1066,10 +1131,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			mouse.spherical.theta, mouse.spherical.phi);
 		ImGui::ColorEdit3("Background color", (float*)&clearColor.r);
 		ImGui::SliderFloat("Speed", &speed, 0, 360);
+		ImGui::SliderFloat("Box X Angle", &boxXAngle, 0, 360);
+		ImGui::SliderFloat("Box Y Angle", &boxYAngle, 0, 360);
+		ImGui::SliderFloat("Box Z Angle", &boxZAngle, 0, 360);
 		ImGui::Checkbox("Use mouse to look", &lookWithMouse);
 		ImGui::Checkbox("Reset camera position", &resetCameraPosition);
 		ImGui::Checkbox("Correct gamma", &correctGamma);
-		ImGui::Text("Intersections: %d", intersections.size());
+		ImGui::Text("Intersections: %s", log.str().c_str());
+		ImGui::Text("Nearest I: %f", nearI);
+		ImGui::Text("Farthest I: %f", farI);
+		ImGui::Text("Nearest Far I: %f", nearestFarI);
+		ImGui::Text("Farthest Near I: %f", farthestNearI);
+		ImGui::Text("Intersection ?: %s", intersectionMessage.c_str());
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
