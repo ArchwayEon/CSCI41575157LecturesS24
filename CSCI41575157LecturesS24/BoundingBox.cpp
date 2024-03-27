@@ -36,7 +36,7 @@ bool BoundingBox::IsIntersectingWithRay(const Ray& ray)
 	glm::vec3 localDir = glm::vec3(
 		invReferenceFrame * glm::vec4(ray.GetDirection(), 0.0f));
 	localRay.SetDirection(localDir);
-	for (int i = 0; i < 6; i++) {
+	for (int i = FRONT; i <= BOTTOM; i++) {
 		intersection = localRay.GetIntersectionWithPlane(planes[i]);
 		intersections.push_back(intersection);
 	}
