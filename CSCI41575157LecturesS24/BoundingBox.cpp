@@ -41,6 +41,9 @@ bool BoundingBox::IsIntersectingWithRay(const Ray& ray)
 		intersections.push_back(intersection);
 	}
 
+	// Special case - check if the ray is pointing at the origin
+	// of the object
+	//if (localRay.IsPointAlongRay({ 0.0f, 0.0f, 0.0f })) return true;
 
 	// Test intersection with the 2 planes perpendicular to the OBB's X axis
 	float nearestFarI = intersections[BoundingBox::BACK].offset;
@@ -53,9 +56,11 @@ bool BoundingBox::IsIntersectingWithRay(const Ray& ray)
 	if (nearI > farI) {
 		std::swap(nearI, farI);
 	}
-	if (farI < nearestFarI) nearestFarI = farI;
-	if (nearI > farthestNearI) farthestNearI = nearI;
-	if (nearestFarI < farthestNearI) return false;
+	if (nearI != farI) {
+		if (farI < nearestFarI) nearestFarI = farI;
+		if (nearI > farthestNearI) farthestNearI = nearI;
+		if (nearestFarI < farthestNearI) return false;
+	}
 
 	// Test intersection with the 2 planes perpendicular to the OBB's Y axis
 	nearI = intersections[BoundingBox::FRONT].offset;
@@ -63,9 +68,11 @@ bool BoundingBox::IsIntersectingWithRay(const Ray& ray)
 	if (nearI > farI) {
 		std::swap(nearI, farI);
 	}
-	if (farI < nearestFarI) nearestFarI = farI;
-	if (nearI > farthestNearI) farthestNearI = nearI;
-	if (nearestFarI < farthestNearI) return false;
+	if (nearI != farI) {
+		if (farI < nearestFarI) nearestFarI = farI;
+		if (nearI > farthestNearI) farthestNearI = nearI;
+		if (nearestFarI < farthestNearI) return false;
+	}
 
 	// Test intersection with the 2 planes perpendicular to the OBB's Z axis
 	nearI = intersections[BoundingBox::TOP].offset;
@@ -73,9 +80,11 @@ bool BoundingBox::IsIntersectingWithRay(const Ray& ray)
 	if (nearI > farI) {
 		std::swap(nearI, farI);
 	}
-	if (farI < nearestFarI) nearestFarI = farI;
-	if (nearI > farthestNearI) farthestNearI = nearI;
-	if (nearestFarI < farthestNearI) return false;
+	if (nearI != farI) {
+		if (farI < nearestFarI) nearestFarI = farI;
+		if (nearI > farthestNearI) farthestNearI = nearI;
+		if (nearestFarI < farthestNearI) return false;
+	}
 
 	intersectionPoint = ray.GetPosition(farthestNearI);
 	return true;

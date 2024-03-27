@@ -45,3 +45,10 @@ bool Ray::IsIntersectingObject(
 	auto& boundingBox = object.GetBoundingBox();
 	return boundingBox->IsIntersectingWithRay(*this);
 }
+
+//bool Ray::IsPointAlongRay(glm::vec3 point) const
+//{
+//	glm::vec3 dirToPoint = glm::normalize(point - rayStart);
+//	glm::bvec3 bv = glm::equal(rayDir, dirToPoint);
+//	return bv.x == true && bv.y == true && bv.z == true;
+//}
