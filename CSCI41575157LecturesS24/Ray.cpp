@@ -38,11 +38,10 @@ Intersection Ray::GetIntersectionWithBoundingBox(
 	return Intersection();
 }
 
-std::vector<Intersection> Ray::GetIntersectionsWithObject(
+bool Ray::IsIntersectingObject(
 	const GraphicsObject& object) const
 {
-	std::vector<Intersection> intersections;
-	if (object.HasBoundingBox() == false) return intersections;
+	if (object.HasBoundingBox() == false) return false;
 	auto& boundingBox = object.GetBoundingBox();
-	return boundingBox->GetRayIntersections(*this);
+	return boundingBox->IsIntersectingWithRay(*this);
 }

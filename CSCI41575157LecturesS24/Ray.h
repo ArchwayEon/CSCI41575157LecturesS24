@@ -34,7 +34,7 @@ public:
 	Intersection GetIntersectionWithPlane(const GeometricPlane& plane) const;
 	Intersection GetIntersectionWithBoundingBox(
 		const BoundingBox& boundingBox) const;
-	std::vector<Intersection> GetIntersectionsWithObject(
+	bool IsIntersectingObject(
 		const GraphicsObject& object) const;
 };
 

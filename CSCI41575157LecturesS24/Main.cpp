@@ -491,6 +491,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	litCube->material.specularIntensity = 0.5f;
 	litCube->material.shininess = 16.0f;
 	litCube->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
+	litCube->CreateBoundingBox(10.1f, 10.1f, 10.1f);
 	allObjects["litCube"] = litCube;
 	lightingRenderer->AddObject(litCube);
 
@@ -904,12 +905,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	GeometricPlane plane;
 	plane.SetDistanceFromOrigin(floor->referenceFrame[3].y);
 	Intersection floorIntersection, boxILeft, boxIRight, boxIFront, boxIBack, boxITop, boxIBottom;
-	glm::vec3 intersectionPoint{};
+	glm::vec3 floorIntersectionPoint{};
+	glm::vec3 boxIntersectionPoint{};
 	Timer timer;
 	std::stringstream log;
-	float farthestNearI = 0.0f;
-	float nearestFarI = 100000.0f;
-	float nearI = 0, farI = 0;
+	float litCubeAmbient = allObjects["litCube"]->material.ambientIntensity;
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(window, elapsedSeconds, axis, cameraFrame, lookWithMouse);
@@ -968,10 +968,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		floorIntersection = mouseRay.GetIntersectionWithPlane(plane);
 
 		if (floorIntersection.isIntersecting) {
-			intersectionPoint = mouseRay.GetPosition(floorIntersection.offset);
-			localLight.position.x = intersectionPoint.x;
+			floorIntersectionPoint = mouseRay.GetPosition(floorIntersection.offset);
+			localLight.position.x = floorIntersectionPoint.x;
 			localLight.position.y = -3.0f;
-			localLight.position.z = intersectionPoint.z;
+			localLight.position.z = floorIntersectionPoint.z;
 		}
 		else {
 			localLight.position.x = 0.0f;
@@ -988,7 +988,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			allObjects["lineCuboid"]->referenceFrame, glm::radians(boxZAngle), { 0.0f, 0.0f, 1.0f });
 
 		std::string intersectionMessage = "Don't know";
-		allObjects["lineCuboid"]->CheckIntersectionsWithRay(mouseRay);
+		bool isIntersectingBox = 
+			allObjects["lineCuboid"]->IsIntersectingWithRay(mouseRay);
 		auto& boundingBox = allObjects["lineCuboid"]->GetBoundingBox();
 		auto& intersections = boundingBox->GetIntersections();
 		log.str(std::string()); // clear the log
@@ -996,47 +997,27 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			log << "[" << i << "] " << intersections[i].offset;
 		}
 
-		// Test intersection with the 2 planes perpendicular to the OBB's X axis
-		nearestFarI = boundingBox->GetIntersection(BoundingBox::BACK).offset;
-		farthestNearI = boundingBox->GetIntersection(BoundingBox::FRONT).offset;
-		nearI = boundingBox->GetIntersection(BoundingBox::LEFT).offset;
-		farI = boundingBox->GetIntersection(BoundingBox::RIGHT).offset;
-		if (nearI > farI) {
-			std::swap(nearI, farI);
-		}
-		if(farI < nearestFarI) nearestFarI = farI;
-		if (nearI > farthestNearI) farthestNearI = nearI;
-		if (nearestFarI < farthestNearI) intersectionMessage = "No intersection";
-
-		if (intersectionMessage == "Don't know") {
-			// Test intersection with the 2 planes perpendicular to the OBB's Y axis
-			nearI = boundingBox->GetIntersection(BoundingBox::FRONT).offset;
-			farI = boundingBox->GetIntersection(BoundingBox::BACK).offset;
-			if (nearI > farI) {
-				std::swap(nearI, farI);
-			}
-			if (farI < nearestFarI) nearestFarI = farI;
-			if (nearI > farthestNearI) farthestNearI = nearI;
-			if (nearestFarI < farthestNearI) intersectionMessage = "No intersection";
-		}
-
-		if (intersectionMessage == "Don't know") {
-			// Test intersection with the 2 planes perpendicular to the OBB's Z axis
-			nearI = boundingBox->GetIntersection(BoundingBox::TOP).offset;
-			farI = boundingBox->GetIntersection(BoundingBox::BOTTOM).offset;
-			if (nearI > farI) {
-				std::swap(nearI, farI);
-			}
-			if (farI < nearestFarI) nearestFarI = farI;
-			if (nearI > farthestNearI) farthestNearI = nearI;
-			if (nearestFarI < farthestNearI) intersectionMessage = "No intersection";
-		}
-		if (intersectionMessage == "Don't know") {
+		if (isIntersectingBox == true) {
 			intersectionMessage = "Intersection";
-			glm::vec3 pos = mouseRay.GetPosition(farthestNearI);
+			boxIntersectionPoint = boundingBox->GetIntersectionPoint();
 			localLight.position.x = allObjects["lineCuboid"]->referenceFrame[3].x;
 			localLight.position.y = allObjects["lineCuboid"]->referenceFrame[3].y;
 			localLight.position.z = allObjects["lineCuboid"]->referenceFrame[3].z;
+		}
+		else {
+			boxIntersectionPoint = { -1000, -1000, -1000 };
+			intersectionMessage = "No Intersection";
+		}
+
+		bool isIntersectingCube =
+			allObjects["litCube"]->IsIntersectingWithRay(mouseRay);
+
+		if (isIntersectingCube) {
+			//litCubeAmbient = allObjects["litCube"]->material.ambientIntensity;
+			allObjects["litCube"]->material.ambientIntensity = 1.0f;
+		}
+		else {
+			allObjects["litCube"]->material.ambientIntensity = litCubeAmbient;
 		}
 
 		lightBulb->referenceFrame[3] = glm::vec4(localLight.position, 1.0f);
@@ -1125,7 +1106,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			mouse.x, mouse.y, mouse.nsx, mouse.nsy);
 		ImGui::DragFloat3("Ray Start", (float*)&rayStart.x);
 		ImGui::DragFloat3("Ray Direction", (float*)&rayDir.x);
-		ImGui::DragFloat3("Intersection", (float*)&intersectionPoint.x);
 		ImGui::Text("Field of View: %.0f", mouse.fieldOfView);
 		ImGui::Text("Theta:%.1f, Phi:%.1f)",
 			mouse.spherical.theta, mouse.spherical.phi);
@@ -1138,10 +1118,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		ImGui::Checkbox("Reset camera position", &resetCameraPosition);
 		ImGui::Checkbox("Correct gamma", &correctGamma);
 		ImGui::Text("Intersections: %s", log.str().c_str());
-		ImGui::Text("Nearest I: %f", nearI);
-		ImGui::Text("Farthest I: %f", farI);
-		ImGui::Text("Nearest Far I: %f", nearestFarI);
-		ImGui::Text("Farthest Near I: %f", farthestNearI);
+		ImGui::Text("Floor Intersection: (%.3f %.3f %.3f)", 
+			floorIntersectionPoint.x, floorIntersectionPoint.y, floorIntersectionPoint.z);
+		ImGui::Text("Box Intersection: (%.3f %.3f %.3f)",
+			boxIntersectionPoint.x, boxIntersectionPoint.y, boxIntersectionPoint.z);
 		ImGui::Text("Intersection ?: %s", intersectionMessage.c_str());
 		ImGui::End();
 		ImGui::Render();

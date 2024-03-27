@@ -21,6 +21,7 @@ protected:
 	glm::mat4 invReferenceFrame;
 	GeometricPlane planes[6];
 	std::vector<Intersection> intersections;
+	glm::vec3 intersectionPoint{};
 
 public:
 	BoundingBox();
@@ -36,7 +37,10 @@ public:
 
 	void Create(float width = 1.0f, float height = 1.0f, float depth = 1.0f);
 	
-	const std::vector<Intersection>& GetRayIntersections(const Ray& ray);
+	bool IsIntersectingWithRay(const Ray& ray);
+	const glm::vec3& GetIntersectionPoint() const {
+		return intersectionPoint;
+	}
 
 	const Intersection& GetIntersection(int whichPlane) {
 		return intersections[whichPlane];

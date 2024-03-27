@@ -25,7 +25,7 @@ void BoundingBox::Create(float width, float height, float depth)
 	planes[BOTTOM].Set(yAxis, hh);
 }
 
-const std::vector<Intersection>& BoundingBox::GetRayIntersections(const Ray& ray)
+bool BoundingBox::IsIntersectingWithRay(const Ray& ray)
 {
 	intersections.clear();
 	Intersection intersection;
@@ -34,11 +34,49 @@ const std::vector<Intersection>& BoundingBox::GetRayIntersections(const Ray& ray
 		invReferenceFrame * glm::vec4(ray.GetStart(), 1.0f));
 	localRay.SetStart(localStart);
 	glm::vec3 localDir = glm::vec3(
-		invReferenceFrame * glm::vec4(ray.GetDirection(), 1.0f));
+		invReferenceFrame * glm::vec4(ray.GetDirection(), 0.0f));
 	localRay.SetDirection(localDir);
 	for (int i = 0; i < 6; i++) {
 		intersection = localRay.GetIntersectionWithPlane(planes[i]);
 		intersections.push_back(intersection);
 	}
-	return intersections;
+
+
+	// Test intersection with the 2 planes perpendicular to the OBB's X axis
+	float nearestFarI = intersections[BoundingBox::BACK].offset;
+	float farthestNearI = intersections[BoundingBox::FRONT].offset;
+	if (nearestFarI < farthestNearI) {
+		std::swap(nearestFarI, farthestNearI);
+	}
+	float nearI = intersections[BoundingBox::LEFT].offset;
+	float farI = intersections[BoundingBox::RIGHT].offset;
+	if (nearI > farI) {
+		std::swap(nearI, farI);
+	}
+	if (farI < nearestFarI) nearestFarI = farI;
+	if (nearI > farthestNearI) farthestNearI = nearI;
+	if (nearestFarI < farthestNearI) return false;
+
+	// Test intersection with the 2 planes perpendicular to the OBB's Y axis
+	nearI = intersections[BoundingBox::FRONT].offset;
+	farI = intersections[BoundingBox::BACK].offset;
+	if (nearI > farI) {
+		std::swap(nearI, farI);
+	}
+	if (farI < nearestFarI) nearestFarI = farI;
+	if (nearI > farthestNearI) farthestNearI = nearI;
+	if (nearestFarI < farthestNearI) return false;
+
+	// Test intersection with the 2 planes perpendicular to the OBB's Z axis
+	nearI = intersections[BoundingBox::TOP].offset;
+	farI = intersections[BoundingBox::BOTTOM].offset;
+	if (nearI > farI) {
+		std::swap(nearI, farI);
+	}
+	if (farI < nearestFarI) nearestFarI = farI;
+	if (nearI > farthestNearI) farthestNearI = nearI;
+	if (nearestFarI < farthestNearI) return false;
+
+	intersectionPoint = ray.GetPosition(farthestNearI);
+	return true;
 }

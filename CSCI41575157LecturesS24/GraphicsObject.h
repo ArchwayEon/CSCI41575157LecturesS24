@@ -32,5 +32,5 @@ public:
 	const std::shared_ptr<BoundingBox>& GetBoundingBox() const { 
 		return boundingBox; 
 	}
-	void CheckIntersectionsWithRay(const Ray& ray);
+	bool IsIntersectingWithRay(const Ray& ray);
 };

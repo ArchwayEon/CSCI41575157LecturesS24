@@ -15,9 +15,9 @@ void GraphicsObject::CreateBoundingBox(float width, float height, float depth)
 	boundingBox->SetReferenceFrame(referenceFrame);
 }
 
-void GraphicsObject::CheckIntersectionsWithRay(const Ray& ray)
+bool GraphicsObject::IsIntersectingWithRay(const Ray& ray)
 {
-	if (boundingBox == nullptr) return;
+	if (boundingBox == nullptr) return false;
 	boundingBox->SetReferenceFrame(referenceFrame);
-	boundingBox->GetRayIntersections(ray);
+	return boundingBox->IsIntersectingWithRay(ray);
 }
