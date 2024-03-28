@@ -16,8 +16,8 @@
 #include "Timer.h"
 #include <algorithm>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "stb_image.h"
 #include "GraphicsStructures.h"
 #include <unordered_map>
 #include "Renderer.h"
@@ -28,6 +28,7 @@
 #include "GraphicsObject.h"
 #include "PCIVertexArray.h"
 #include "Ray.h"
+#include "Create.h"
 
 // Eek! A global mouse!
 MouseParams mouse;
@@ -293,14 +294,14 @@ static std::string ReadFromFile(const std::string& filePath)
 	return ss.str();
 }
 
-static unsigned char* LoadTextureDataFromFile(
-	const std::string& filePath, int& width, int& height, int& numChannels)
-{
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data =
-		stbi_load(filePath.c_str(), &width, &height, &numChannels, 0);
-	return data;
-}
+//static unsigned char* LoadTextureDataFromFile(
+//	const std::string& filePath, int& width, int& height, int& numChannels)
+//{
+//	//stbi_set_flip_vertically_on_load(true);
+//	//unsigned char* data =
+//	//	stbi_load(filePath.c_str(), &width, &height, &numChannels, 0);
+//	//return data;
+//}
 
 static unsigned int Create2DTexture(
 	unsigned char* textureData, unsigned int width, unsigned int height)
@@ -323,18 +324,18 @@ static unsigned int Create2DTexture(
 	return textureId;
 }
 
-static unsigned int CreateTextureFromFile(const std::string& filePath)
-{
-	int textureWidth, textureHeight, numChannels;
-	unsigned char* textureData =
-		LoadTextureDataFromFile(
-			filePath, textureWidth, textureHeight, numChannels);
-	unsigned int textureId =
-		Create2DTexture(textureData, textureWidth, textureHeight);
-	stbi_image_free(textureData);
-	textureData = nullptr;
-	return textureId;
-}
+//static unsigned int CreateTextureFromFile(const std::string& filePath)
+//{
+//	int textureWidth, textureHeight, numChannels;
+//	unsigned char* textureData =
+//		LoadTextureDataFromFile(
+//			filePath, textureWidth, textureHeight, numChannels);
+//	unsigned int textureId =
+//		Create2DTexture(textureData, textureWidth, textureHeight);
+//	stbi_image_free(textureData);
+//	textureData = nullptr;
+//	return textureId;
+//}
 
 void PointAt(glm::mat4& referenceFrame, const glm::vec3& point)
 {
@@ -450,71 +451,71 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	basicPCIShader->AddUniform("view");
 	basicPCIShader->AddUniform("world");
 
-	// Create the texture data
-	unsigned char* textureData = new unsigned char[] {
-		0, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 0, 255,
-			0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
-			0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
-			0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 0, 255
-		};
+	typedef std::shared_ptr<Renderer> SRenderer;
+	typedef std::shared_ptr<GraphicsObject> SGraphicsObject;
+	std::unordered_map<std::string, SGraphicsObject> allObjects;
 
-	unsigned int customTextureId = Create2DTexture(textureData, 4, 4);
-	delete[] textureData;
-	textureData = nullptr;
+	// Create the texture data
+	//unsigned char* textureData = new unsigned char[] {
+	//	0, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 0, 255,
+	//		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+	//		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+	//		0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 0, 255
+	//	};
+
+	//unsigned int customTextureId = Create2DTexture(textureData, 4, 4);
+	//delete[] textureData;
+	//textureData = nullptr;
 
 	int maxNumberOfVertices = 0;
 	int maxNumberOfIndices = 0;
 
-	typedef std::shared_ptr<Renderer> SRenderer;
-	typedef std::shared_ptr<GraphicsObject> SGraphicsObject;
-
-	std::unordered_map<std::string, SGraphicsObject> allObjects;
-
 	SRenderer lightingRenderer = std::make_shared<Renderer>();
-	lightingRenderer->SetShaderProgram(lightingShader);
-	lightingRenderer->SetVertexSize(sizeof(VertexDataPCNT));
+	Create::PCNTScene1(allObjects, lightingRenderer, lightingShader);
+	//lightingRenderer->SetShaderProgram(lightingShader);
+	//lightingRenderer->SetVertexSize(sizeof(VertexDataPCNT));
 
-	std::shared_ptr<PCNTVertexArray> vaLitCube =
-		std::make_shared<PCNTVertexArray>();
-	vaLitCube->SetGenerator(std::make_shared<PCNTCuboidGenerator>());
-	SGraphicsObject litCube = std::make_shared<GraphicsObject>();
-	vaLitCube->SetObject(litCube);
-	litCube->vertexArray = vaLitCube;
-	litCube->primitive = GL_TRIANGLES;
-	CuboidParams cParams{};
-	cParams.width = 10.0f;
-	cParams.height = 10.0f;
-	cParams.depth = 10.0f;
-	litCube->vertexArray->Generate(cParams);
-	litCube->textureId = customTextureId;
-	litCube->material.ambientIntensity = 0.1f;
-	litCube->material.specularIntensity = 0.5f;
-	litCube->material.shininess = 16.0f;
-	litCube->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
-	litCube->CreateBoundingBox(10.1f, 10.1f, 10.1f);
-	allObjects["litCube"] = litCube;
-	lightingRenderer->AddObject(litCube);
+	//std::shared_ptr<PCNTVertexArray> vaLitCube =
+	//	std::make_shared<PCNTVertexArray>();
+	//vaLitCube->SetGenerator(std::make_shared<PCNTCuboidGenerator>());
+	//SGraphicsObject litCube = std::make_shared<GraphicsObject>();
+	//vaLitCube->SetObject(litCube);
+	//litCube->vertexArray = vaLitCube;
+	//litCube->primitive = GL_TRIANGLES;
+	//CuboidParams cParams{};
+	//cParams.width = 10.0f;
+	//cParams.height = 10.0f;
+	//cParams.depth = 10.0f;
+	//litCube->vertexArray->Generate(cParams);
+	//litCube->textureId = customTextureId;
+	//litCube->material.ambientIntensity = 0.1f;
+	//litCube->material.specularIntensity = 0.5f;
+	//litCube->material.shininess = 16.0f;
+	//litCube->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
+	//litCube->CreateBoundingBox(10.1f, 10.1f, 10.1f);
+	//allObjects["litCube"] = litCube;
+	//lightingRenderer->AddObject(litCube);
 
-	std::shared_ptr<PCNTVertexArray> vaFloor =
-		std::make_shared<PCNTVertexArray>();
-	vaFloor->SetGenerator(std::make_shared<PCNTXZPlaneGenerator>());
-	SGraphicsObject floor = std::make_shared<GraphicsObject>();
-	vaFloor->SetObject(floor);
-	floor->vertexArray = vaFloor;
-	floor->primitive = GL_TRIANGLES;
-	XZPlaneParams xzpParams{};
-	xzpParams.width = 50.0f;
-	xzpParams.depth = 50.0f;
-	xzpParams.repeatS = 5.0f;
-	xzpParams.repeatT = 5.0f;
-	floor->vertexArray->Generate(xzpParams);
-	floor->textureId = CreateTextureFromFile("stone-road-texture.jpg");
-	floor->referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
-	floor->material.ambientIntensity = 0.1f;
-	floor->material.specularIntensity = 0.5f;
-	floor->material.shininess = 16.0f;
-	allObjects["floor"] = floor;
-	lightingRenderer->AddObject(floor);
+	//std::shared_ptr<PCNTVertexArray> vaFloor =
+	//	std::make_shared<PCNTVertexArray>();
+	//vaFloor->SetGenerator(std::make_shared<PCNTXZPlaneGenerator>());
+	//SGraphicsObject floor = std::make_shared<GraphicsObject>();
+	//vaFloor->SetObject(floor);
+	//floor->vertexArray = vaFloor;
+	//floor->primitive = GL_TRIANGLES;
+	//XZPlaneParams xzpParams{};
+	//xzpParams.width = 50.0f;
+	//xzpParams.depth = 50.0f;
+	//xzpParams.repeatS = 5.0f;
+	//xzpParams.repeatT = 5.0f;
+	//floor->vertexArray->Generate(xzpParams);
+	//floor->textureId = CreateTextureFromFile("stone-road-texture.jpg");
+	//floor->referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
+	//floor->material.ambientIntensity = 0.1f;
+	//floor->material.specularIntensity = 0.5f;
+	//floor->material.shininess = 16.0f;
+	//allObjects["floor"] = floor;
+	//lightingRenderer->AddObject(floor);
 
 	SRenderer basicPCTRenderer = std::make_shared<Renderer>();
 	basicPCTRenderer->SetShaderProgram(basicPCTShader);
@@ -529,7 +530,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	lightBulb->primitive = GL_TRIANGLES;
 	XYPlaneParams xypParams{};
 	lightBulb->vertexArray->Generate(xypParams);
-	lightBulb->textureId = CreateTextureFromFile("lightbulb.png");
+	lightBulb->textureId = Create::TextureFromFile("lightbulb.png");
 	allObjects["lightBulb"] = lightBulb;
 	basicPCTRenderer->AddObject(lightBulb);
 
@@ -903,7 +904,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	glm::vec3 rayStart{};
 	glm::vec3 rayDir{};
 	GeometricPlane plane;
-	plane.SetDistanceFromOrigin(floor->referenceFrame[3].y);
+	plane.SetDistanceFromOrigin(allObjects["floor"]->referenceFrame[3].y);
 	Intersection floorIntersection, boxILeft, boxIRight, boxIFront, boxIBack, boxITop, boxIBottom;
 	glm::vec3 floorIntersectionPoint{};
 	glm::vec3 boxIntersectionPoint{};
@@ -930,8 +931,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			GL_STENCIL_BUFFER_BIT);
 
 		deltaAngle = static_cast<float>(speed * elapsedSeconds);
-		litCube->referenceFrame = glm::rotate(
-			litCube->referenceFrame, glm::radians(deltaAngle), axis);
+		allObjects["litCube"]->referenceFrame = glm::rotate(
+			allObjects["litCube"]->referenceFrame, glm::radians(deltaAngle), axis);
 
 		if (resetCameraPosition) {
 			cameraFrame = glm::mat4(1.0f);

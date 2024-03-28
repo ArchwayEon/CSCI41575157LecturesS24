@@ -149,6 +149,7 @@
     <ClCompile Include="IVertexArray.cpp" />
     <ClCompile Include="PCIVertexArray.cpp" />
     <ClCompile Include="Ray.cpp" />
+    <ClCompile Include="Create.cpp" />
     <ClCompile Include="VertexGenerators.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PCNTVertexArray.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="IVertexArray.h" />
     <ClInclude Include="PCIVertexArray.h" />
     <ClInclude Include="Ray.h" />
+    <ClInclude Include="Create.h" />
     <ClInclude Include="VertexDataParams.h" />
     <ClInclude Include="VertexGenerators.h" />
     <ClInclude Include="PCNTVertexArray.h" />

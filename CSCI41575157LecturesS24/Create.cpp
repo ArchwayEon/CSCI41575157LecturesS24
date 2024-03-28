@@ -1,0 +1,106 @@
+#include "Create.h"
+#include "PCNTVertexArray.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+unsigned int Create::Texture2D(
+	unsigned char* textureData, unsigned int width, unsigned int height)
+{
+	// Generate the texture id
+	unsigned int textureId;
+	glGenTextures(1, &textureId);
+	// Select the texture 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	// Apply texture parameters 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	// Send the texture to the GPU 
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
+	// Generate mipmaps
+	glGenerateMipmap(GL_TEXTURE_2D);
+	return textureId;
+}
+
+unsigned int Create::TextureFromFile(const std::string& filePath)
+{
+	int textureWidth, textureHeight, numChannels;
+	unsigned char* textureData =
+		Create::TextureDataFromFile(
+			filePath, textureWidth, textureHeight, numChannels);
+	unsigned int textureId =
+		Create::Texture2D(textureData, textureWidth, textureHeight);
+	stbi_image_free(textureData);
+	textureData = nullptr;
+	return textureId;
+}
+
+unsigned char* Create::TextureDataFromFile(
+	const std::string& filePath, int& width, int& height, int& numChannels)
+{
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* data =
+		stbi_load(filePath.c_str(), &width, &height, &numChannels, 0);
+	return data;
+}
+
+void Create::PCNTScene1(
+    std::unordered_map<std::string, std::shared_ptr<GraphicsObject>>& allObjects,
+    std::shared_ptr<Renderer>& renderer, std::shared_ptr<Shader>& shader)
+{
+	unsigned char* textureData = new unsigned char[] {
+		0, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 0, 255,
+		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
+		0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 0, 255
+	};
+	unsigned int customTextureId = Create::Texture2D(textureData, 4, 4);
+	delete[] textureData;
+	textureData = nullptr;
+
+    renderer->SetShaderProgram(shader);
+
+	std::shared_ptr<PCNTVertexArray> vaLitCube =
+		std::make_shared<PCNTVertexArray>();
+	vaLitCube->SetGenerator(std::make_shared<PCNTCuboidGenerator>());
+	std::shared_ptr<GraphicsObject> litCube = std::make_shared<GraphicsObject>();
+	vaLitCube->SetObject(litCube);
+	litCube->vertexArray = vaLitCube;
+	litCube->primitive = GL_TRIANGLES;
+	CuboidParams cParams{};
+	cParams.width = 10.0f;
+	cParams.height = 10.0f;
+	cParams.depth = 10.0f;
+	litCube->vertexArray->Generate(cParams);
+	litCube->textureId = customTextureId;
+	litCube->material.ambientIntensity = 0.1f;
+	litCube->material.specularIntensity = 0.5f;
+	litCube->material.shininess = 16.0f;
+	litCube->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
+	litCube->CreateBoundingBox(10.1f, 10.1f, 10.1f);
+	allObjects["litCube"] = litCube;
+	renderer->AddObject(litCube);
+
+	std::shared_ptr<PCNTVertexArray> vaFloor =
+		std::make_shared<PCNTVertexArray>();
+	vaFloor->SetGenerator(std::make_shared<PCNTXZPlaneGenerator>());
+	std::shared_ptr<GraphicsObject> floor = std::make_shared<GraphicsObject>();
+	vaFloor->SetObject(floor);
+	floor->vertexArray = vaFloor;
+	floor->primitive = GL_TRIANGLES;
+	XZPlaneParams xzpParams{};
+	xzpParams.width = 50.0f;
+	xzpParams.depth = 50.0f;
+	xzpParams.repeatS = 5.0f;
+	xzpParams.repeatT = 5.0f;
+	floor->vertexArray->Generate(xzpParams);
+	floor->textureId = Create::TextureFromFile("stone-road-texture.jpg");
+	floor->referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
+	floor->material.ambientIntensity = 0.1f;
+	floor->material.specularIntensity = 0.5f;
+	floor->material.shininess = 16.0f;
+	allObjects["floor"] = floor;
+	renderer->AddObject(floor);
+}
