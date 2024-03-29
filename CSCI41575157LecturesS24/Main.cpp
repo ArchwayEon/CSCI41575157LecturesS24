@@ -470,139 +470,39 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	// The various curve objects
 	Create::PCScene1(allObjects, basicPCRenderer, basicPCShader);
 
-	std::shared_ptr<PCVertexArray> vaQuadraticBezier =
-		std::make_shared<PCVertexArray>();
-	vaQuadraticBezier->SetGenerator(
-		std::make_shared<PCQuadraticBezierGenerator>());
-	SGraphicsObject quadraticBezier = std::make_shared<GraphicsObject>();
-	vaQuadraticBezier->SetObject(quadraticBezier);
-	quadraticBezier->vertexArray = vaQuadraticBezier;
-	quadraticBezier->primitive = GL_LINES;
-	QuadraticBezierParams qbParams{};
-	qbParams.steps = 10;
-	qbParams.p0 = { -5.0f, 0.0f, 0.0f };
-	qbParams.p1 = { 0.0f, 8.0f, 0.0f };
-	qbParams.p2 = { 5.0f, -8.0f, 0.0f };
-	qbParams.color = { 1.0f, 0.0f, 1.0f };
-	quadraticBezier->vertexArray->Generate(qbParams);
-	maxNumberOfVertices = 50;
-	maxNumberOfIndices = maxNumberOfVertices * 2;
-	quadraticBezier->vertexArray->SetAsDynamicGraphicsObject(
-		maxNumberOfVertices, maxNumberOfIndices);
-	//quadraticBezier->vertexArray->SetAsDynamicGraphicsObject(quadraticBezier, 50);
-	quadraticBezier->referenceFrame[3] = glm::vec4(10.0f, 0.0f, -10.0f, 1.0f);
-	allObjects["quadraticBezier"] = quadraticBezier;
-	basicPCRenderer->AddObject(quadraticBezier);
-
-	std::shared_ptr<PCVertexArray> vaQuadraticBezierM =
-		std::make_shared<PCVertexArray>();
-	vaQuadraticBezierM->SetGenerator(
-		std::make_shared<PCQuadraticBezierMGenerator>());
-	SGraphicsObject quadraticBezierM = std::make_shared<GraphicsObject>();
-	vaQuadraticBezierM->SetObject(quadraticBezierM);
-	quadraticBezierM->vertexArray = vaQuadraticBezierM;
-	quadraticBezierM->primitive = GL_LINES;
-	QuadraticBezierMParams qbmParams{};
-	qbmParams.steps = 10;
-	qbmParams.color = { 0.0f, 0.8f, 1.0f };
-	qbmParams.pM[0] = { -5.0f, 0.0f, 0.0f };
-	qbmParams.pM[1] = { 0.0f, 8.0f, 0.0f };
-	qbmParams.pM[2] = { 5.0f, -8.0f, 0.0f };
-	quadraticBezierM->vertexArray->Generate(qbmParams);
-	maxNumberOfVertices = 50;
-	maxNumberOfIndices = maxNumberOfVertices * 2;
-	quadraticBezierM->vertexArray->SetAsDynamicGraphicsObject(
-		maxNumberOfVertices, maxNumberOfIndices);
-	//quadraticBezierM->vertexArray->SetAsDynamicGraphicsObject(
-	//	quadraticBezierM, 50);
-	quadraticBezierM->referenceFrame[3] = glm::vec4(20.0f, 0.0f, -10.0f, 1.0f);
-	allObjects["quadraticBezierM"] = quadraticBezierM;
-	basicPCRenderer->AddObject(quadraticBezierM);
-
-	std::shared_ptr<PCVertexArray> vaCubicBezier =
-		std::make_shared<PCVertexArray>();
-	vaCubicBezier->SetGenerator(
-		std::make_shared<PCCubicBezierGenerator>());
-	SGraphicsObject cubicBezier = std::make_shared<GraphicsObject>();
-	vaCubicBezier->SetObject(cubicBezier);
-	cubicBezier->vertexArray = vaCubicBezier;
-	cubicBezier->primitive = GL_LINES;
-	CubicBezierParams cbParams{};
-	cbParams.steps = 20;
-	cbParams.color = { 0.7f, 0.8f, 0.0f };
-	cbParams.p0 = { -5.0f, 0.0f, 0.0f };
-	cbParams.p1 = { 0.0f, 8.0f, 0.0f };
-	cbParams.p2 = { 5.0f, -8.0f, 0.0f };
-	cbParams.p3 = { 5.0f, 0.0f, 0.0f };
-	cubicBezier->vertexArray->Generate(cbParams);
-	maxNumberOfVertices = 50;
-	maxNumberOfIndices = maxNumberOfVertices * 2;
-	cubicBezier->vertexArray->SetAsDynamicGraphicsObject(
-		maxNumberOfVertices, maxNumberOfIndices);
-	cubicBezier->referenceFrame[3] = glm::vec4(-20.0f, 0.0f, 0.0f, 1.0f);
-	allObjects["cubicBezier"] = cubicBezier;
-	basicPCRenderer->AddObject(cubicBezier);
-
-	std::shared_ptr<PCVertexArray> vaCubicBezierM =
-		std::make_shared<PCVertexArray>();
-	vaCubicBezierM->SetGenerator(
-		std::make_shared<PCCubicBezierMGenerator>());
-	SGraphicsObject cubicBezierM = std::make_shared<GraphicsObject>();
-	vaCubicBezierM->SetObject(cubicBezierM);
-	cubicBezierM->vertexArray = vaCubicBezierM;
-	cubicBezierM->primitive = GL_LINES;
-	CubicBezierMParams cbmParams{};
-	cbmParams.steps = 20;
-	cbmParams.color = { 0.2f, 0.8f, 0.1f };
-	cbmParams.pM[0] = { -5.0f, 0.0f, 0.0f, 1.0f };
-	cbmParams.pM[1] = { 0.0f, 8.0f, 0.0f, 1.0f };
-	cbmParams.pM[2] = { 5.0f, -8.0f, 0.0f, 1.0f };
-	cbmParams.pM[3] = { 5.0f, 0.0f, 0.0f, 1.0f };
-	cubicBezierM->vertexArray->Generate(cbmParams);
-	maxNumberOfVertices = 50;
-	maxNumberOfIndices = maxNumberOfVertices * 2;
-	cubicBezierM->vertexArray->SetAsDynamicGraphicsObject(
-		maxNumberOfVertices, maxNumberOfIndices);
-	cubicBezierM->referenceFrame[3] = glm::vec4(-8.0f, 0.0f, 0.0f, 1.0f);
-	allObjects["cubicBezierM"] = cubicBezierM;
-	basicPCRenderer->AddObject(cubicBezierM);
-
-	std::shared_ptr<PCVertexArray> vaBezierPatch =
-		std::make_shared<PCVertexArray>();
-	vaBezierPatch->SetGenerator(
-		std::make_shared<PCBezierPatchGenerator>());
-	SGraphicsObject bezierPatch = std::make_shared<GraphicsObject>();
-	vaBezierPatch->SetObject(bezierPatch);
-	bezierPatch->vertexArray = vaBezierPatch;
-	bezierPatch->primitive = GL_LINES;
-	BezierPatchParams bpParams{};
-	bpParams.steps = 20;
-	bpParams.color = { 0.0f, 0.8f, 0.0f };
-	bpParams.indexType = 1;
-	bpParams.cpBezier[0][0] = { -10, 1,-10 };
-	bpParams.cpBezier[0][1] = { -5,  3,-10 };
-	bpParams.cpBezier[0][2] = { 5, -3,-10 };
-	bpParams.cpBezier[0][3] = { 10, 2,-10 };
-	bpParams.cpBezier[1][0] = { -10, 0,-5 };
-	bpParams.cpBezier[1][1] = { -5,  3,-5 };
-	bpParams.cpBezier[1][2] = { 5, -3,-5 };
-	bpParams.cpBezier[1][3] = { 10,-3,-5 };
-	bpParams.cpBezier[2][0] = { -10, 2, 5 };
-	bpParams.cpBezier[2][1] = { -5,  3, 5 };
-	bpParams.cpBezier[2][2] = { 5, -3, 5 };
-	bpParams.cpBezier[2][3] = { 10, 1, 5 };
-	bpParams.cpBezier[3][0] = { -10,-2, 10 };
-	bpParams.cpBezier[3][1] = { -5,  3, 10 };
-	bpParams.cpBezier[3][2] = { 5, -3, 10 };
-	bpParams.cpBezier[3][3] = { 10,-2, 10 };
-	bezierPatch->vertexArray->Generate(bpParams);
-	maxNumberOfVertices = 500;
-	maxNumberOfIndices = maxNumberOfVertices * 2;
-	cubicBezierM->vertexArray->SetAsDynamicGraphicsObject(
-		maxNumberOfVertices, maxNumberOfIndices);
-	bezierPatch->referenceFrame[3] = glm::vec4(-15.0f, 2.0f, 15.0f, 1.0f);
-	allObjects["bezierPatch"] = bezierPatch;
-	basicPCRenderer->AddObject(bezierPatch);
+	//std::shared_ptr<PCVertexArray> vaBezierPatch =
+	//	std::make_shared<PCVertexArray>();
+	//vaBezierPatch->SetGenerator(
+	//	std::make_shared<PCBezierPatchGenerator>());
+	//SGraphicsObject bezierPatch = std::make_shared<GraphicsObject>();
+	//vaBezierPatch->SetObject(bezierPatch);
+	//bezierPatch->vertexArray = vaBezierPatch;
+	//bezierPatch->primitive = GL_LINES;
+	//BezierPatchParams bpParams{};
+	//bpParams.steps = 20;
+	//bpParams.color = { 0.0f, 0.8f, 0.0f };
+	//bpParams.indexType = 1;
+	//bpParams.cpBezier[0][0] = { -10, 1,-10 };
+	//bpParams.cpBezier[0][1] = { -5,  3,-10 };
+	//bpParams.cpBezier[0][2] = { 5, -3,-10 };
+	//bpParams.cpBezier[0][3] = { 10, 2,-10 };
+	//bpParams.cpBezier[1][0] = { -10, 0,-5 };
+	//bpParams.cpBezier[1][1] = { -5,  3,-5 };
+	//bpParams.cpBezier[1][2] = { 5, -3,-5 };
+	//bpParams.cpBezier[1][3] = { 10,-3,-5 };
+	//bpParams.cpBezier[2][0] = { -10, 2, 5 };
+	//bpParams.cpBezier[2][1] = { -5,  3, 5 };
+	//bpParams.cpBezier[2][2] = { 5, -3, 5 };
+	//bpParams.cpBezier[2][3] = { 10, 1, 5 };
+	//bpParams.cpBezier[3][0] = { -10,-2, 10 };
+	//bpParams.cpBezier[3][1] = { -5,  3, 10 };
+	//bpParams.cpBezier[3][2] = { 5, -3, 10 };
+	//bpParams.cpBezier[3][3] = { 10,-2, 10 };
+	//bezierPatch->vertexArray->Generate(bpParams);
+	//bezierPatch->vertexArray->SetAsDynamicGraphicsObject(500, 500 * 2);
+	//bezierPatch->referenceFrame[3] = glm::vec4(-15.0f, 2.0f, 15.0f, 1.0f);
+	//allObjects["bezierPatch"] = bezierPatch;
+	//basicPCRenderer->AddObject(bezierPatch);
 
 	std::shared_ptr<PCVertexArray> vaBezierPatchX =
 		std::make_shared<PCVertexArray>();
@@ -633,11 +533,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	bpxParams.cpBezier[3][2] = { 5, -3, 10 };
 	bpxParams.cpBezier[3][3] = { 10,-2, 10 };
 	bezierPatchX->vertexArray->Generate(bpxParams);
-	maxNumberOfVertices = 500;
-	maxNumberOfIndices = maxNumberOfVertices * 2;
-	cubicBezierM->vertexArray->SetAsDynamicGraphicsObject(
-		maxNumberOfVertices, maxNumberOfIndices);
-	//bezierPatchX->referenceFrame[3] = glm::vec4(15.0f, 2.0f, 15.0f, 1.0f);
+	bezierPatchX->vertexArray->SetAsDynamicGraphicsObject(500, 500 * 2);
 	allObjects["bezierPatchX"] = bezierPatchX;
 	basicPCRenderer->AddObject(bezierPatchX);
 
@@ -925,23 +821,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 		object = allObjects["quadraticBezier"];
 		if (object->isVisible) {
-			object->vertexArray->Generate(qbParams);
+			object->vertexArray->Generate();
 		}
 		object = allObjects["quadraticBezierM"];
 		if (object->isVisible) {
-			object->vertexArray->Generate(qbmParams);
+			object->vertexArray->Generate();
 		}
 		object = allObjects["cubicBezier"];
 		if (object->isVisible) {
-			object->vertexArray->Generate(cbParams);
+			object->vertexArray->Generate();
 		}
 		object = allObjects["cubicBezierM"];
 		if (object->isVisible) {
-			object->vertexArray->Generate(cbmParams);
+			object->vertexArray->Generate();
 		}
 		object = allObjects["bezierPatch"];
 		if (object->isVisible) {
-			object->vertexArray->Generate(bpParams);
+			object->vertexArray->Generate();
 		}
 		object = allObjects["bezierPatchX"];
 		if (object->isVisible) {

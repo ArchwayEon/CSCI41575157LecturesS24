@@ -127,8 +127,12 @@ void PCLinearBezierGenerator::GenerateIndices(int type, int steps)
 
 void PCQuadraticBezierGenerator::GenerateVertices(IVertexDataParams& params)
 {
-	QuadraticBezierParams& qbp = 
-		reinterpret_cast<QuadraticBezierParams&>(params);
+	qbp = reinterpret_cast<QuadraticBezierParams&>(params);
+	GenerateVertices();
+}
+
+void PCQuadraticBezierGenerator::GenerateVertices()
+{
 	vertexData.clear();
 	glm::vec3 q{};
 	float tick = 1.0f / qbp.steps;
@@ -148,8 +152,12 @@ void PCQuadraticBezierGenerator::GenerateIndices(int type, int steps)
 
 void PCQuadraticBezierMGenerator::GenerateVertices(IVertexDataParams& params)
 {
-	QuadraticBezierMParams& qbp =
-		reinterpret_cast<QuadraticBezierMParams&>(params);
+	qbmp =	reinterpret_cast<QuadraticBezierMParams&>(params);
+	GenerateVertices();
+}
+
+void PCQuadraticBezierMGenerator::GenerateVertices()
+{
 	vertexData.clear();
 	glm::mat3 CM{};
 	CM[0] = glm::vec3(1, -2, 1);
@@ -157,14 +165,14 @@ void PCQuadraticBezierMGenerator::GenerateVertices(IVertexDataParams& params)
 	CM[2] = glm::vec3(1, 0, 0);
 	glm::vec3 tv = { 0, 0, 1 };
 	glm::vec3 q{};
-	float tick = 1.0f / qbp.steps;
+	float tick = 1.0f / qbmp.steps;
 	for (float t = 0; t <= 1; t += tick) {
 		tv[0] = t * t;
 		tv[1] = t;
 		float coef = 1 - t;
 		float coefSq = coef * coef;
-		q = qbp.pM * CM * tv;
-		vertexData.push_back({ {}, {q.x, q.y, q.z}, qbp.color });
+		q = qbmp.pM * CM * tv;
+		vertexData.push_back({ {}, {q.x, q.y, q.z}, qbmp.color });
 	}
 	GenerateIndices();
 }
@@ -176,8 +184,12 @@ void PCQuadraticBezierMGenerator::GenerateIndices(int type, int steps)
 
 void PCCubicBezierGenerator::GenerateVertices(IVertexDataParams& params)
 {
-	CubicBezierParams& cbp =
-		reinterpret_cast<CubicBezierParams&>(params);
+	cbp = reinterpret_cast<CubicBezierParams&>(params);
+	GenerateVertices();
+}
+
+void PCCubicBezierGenerator::GenerateVertices()
+{
 	vertexData.clear();
 	glm::vec3 c{};
 	float tick = 1.0f / cbp.steps;
@@ -201,8 +213,12 @@ void PCCubicBezierGenerator::GenerateIndices(int type, int steps)
 
 void PCCubicBezierMGenerator::GenerateVertices(IVertexDataParams& params)
 {
-	CubicBezierMParams& cbmp =
-		reinterpret_cast<CubicBezierMParams&>(params);
+	cbmp = reinterpret_cast<CubicBezierMParams&>(params);
+	GenerateVertices();
+}
+
+void PCCubicBezierMGenerator::GenerateVertices()
+{
 	vertexData.clear();
 	glm::mat4 CM{};
 	CM[0] = glm::vec4(-1, 3, -3, 1);
@@ -229,8 +245,12 @@ void PCCubicBezierMGenerator::GenerateIndices(int type, int steps)
 
 void PCBezierPatchGenerator::GenerateVertices(IVertexDataParams& params)
 {
-	BezierPatchParams& bpp =
-		reinterpret_cast<BezierPatchParams&>(params);
+	bpp = reinterpret_cast<BezierPatchParams&>(params);
+	GenerateVertices();
+}
+
+void PCBezierPatchGenerator::GenerateVertices()
+{
 	vertexData.clear();
 	glm::mat4 CM{};
 	CM[0] = glm::vec4(-1, 3, -3, 1);
