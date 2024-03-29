@@ -23,5 +23,8 @@ public:
     static void PCScene1(
         std::unordered_map<std::string, std::shared_ptr<GraphicsObject>>& allObjects,
         std::shared_ptr<Renderer>& renderer, std::shared_ptr<Shader>& shader);
+    static void PCIScene1(
+        std::unordered_map<std::string, std::shared_ptr<GraphicsObject>>& allObjects,
+        std::shared_ptr<Renderer>& renderer, std::shared_ptr<Shader>& shader);
 };
 

@@ -44,7 +44,7 @@ void PCTVertexArray::EnableAttributes()
 
 void PCTVertexArray::SendObjectUniforms(std::shared_ptr<Shader> shader)
 {
-	shader->SendMat4Uniform("world", object->referenceFrame);
+	shader->SendMat4Uniform("world", object->referenceFrame.GetMatrix());
 }
 
 void PCTVertexArray::Generate(IVertexDataParams& params)

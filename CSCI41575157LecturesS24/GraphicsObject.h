@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include "GraphicsStructures.h"
 #include "BoundingBox.h"
+#include "ReferenceFrame.h"
 
 class IVertexArray; // Forward declaration
 class Ray;
@@ -22,7 +23,7 @@ public:
 	unsigned int textureId = 0;
 	unsigned int primitive = 0;
 	unsigned int instances = 1;
-	glm::mat4 referenceFrame = glm::mat4(1.0f);
+	ReferenceFrame referenceFrame;
 	Material material{};
 
 public:

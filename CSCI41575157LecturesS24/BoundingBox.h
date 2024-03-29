@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include "GeometricPlane.h"
 #include <vector>
+#include "ReferenceFrame.h"
 
 class Ray;
 
@@ -17,8 +18,8 @@ public:
 
 protected:
 	float width = 1.0f, height = 1.0f, depth = 1.0f;
-	glm::mat4 referenceFrame;
-	glm::mat4 invReferenceFrame;
+	ReferenceFrame referenceFrame;
+	glm::mat4 inverseMat;
 	GeometricPlane planes[6];
 	std::vector<Intersection> intersections;
 	glm::vec3 intersectionPoint{};
@@ -26,9 +27,9 @@ protected:
 public:
 	BoundingBox();
 
-	void SetReferenceFrame(glm::mat4 referenceFrame) {
-		this->referenceFrame = referenceFrame;
-		invReferenceFrame = glm::inverse(this->referenceFrame);
+	void SetReferenceFrame(const ReferenceFrame& referenceFrame) {
+		this->referenceFrame.SetMatrix4(referenceFrame.GetMatrix());
+		inverseMat = this->referenceFrame.GetInverseMatrix();
 	}
 
 	const std::vector<Intersection>& GetIntersections() const {

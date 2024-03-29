@@ -4,6 +4,7 @@
 #include "stb_image.h"
 #include "PCTVertexArray.h"
 #include "PCVertexArray.h"
+#include "PCIVertexArray.h"
 
 unsigned int Create::Texture2D(
 	unsigned char* textureData, unsigned int width, unsigned int height)
@@ -80,7 +81,7 @@ void Create::PCNTScene1(
 	litCube->material.ambientIntensity = 0.1f;
 	litCube->material.specularIntensity = 0.5f;
 	litCube->material.shininess = 16.0f;
-	litCube->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
+	litCube->referenceFrame.SetPosition(glm::vec3(0.0f, 0.0f, -25.0f));
 	litCube->CreateBoundingBox(10.1f, 10.1f, 10.1f);
 	allObjects["litCube"] = litCube;
 	renderer->AddObject(litCube);
@@ -99,7 +100,7 @@ void Create::PCNTScene1(
 	xzpParams.repeatT = 5.0f;
 	floor->vertexArray->Generate(xzpParams);
 	floor->textureId = Create::TextureFromFile("stone-road-texture.jpg");
-	floor->referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
+	floor->referenceFrame.SetPosition(glm::vec3(0.0f, -5.0f, 0.0f));
 	floor->material.ambientIntensity = 0.1f;
 	floor->material.specularIntensity = 0.5f;
 	floor->material.shininess = 16.0f;
@@ -145,7 +146,7 @@ void Create::PCScene1(
 	circleParams.steps = 10;
 	circle->vertexArray->Generate(circleParams);
 	circle->vertexArray->SetAsDynamicGraphicsObject(360, 360 * 2);
-	circle->referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -10.0f, 1.0f);
+	circle->referenceFrame.SetPosition(glm::vec3(-20.0f, 0.0f, -10.0f));
 	allObjects["circle"] = circle;
 	renderer->AddObject(circle);
 	// Spirograph
@@ -168,7 +169,7 @@ void Create::PCScene1(
 	int maxNumberOfIndices = maxNumberOfVertices * 2;
 	spirograph->vertexArray->SetAsDynamicGraphicsObject(
 		maxNumberOfVertices, maxNumberOfIndices);
-	spirograph->referenceFrame[3] = glm::vec4(-10.0f, 0.0f, -10.0f, 1.0f);
+	spirograph->referenceFrame.SetPosition(glm::vec3(-10.0f, 0.0f, -10.0f));
 	allObjects["spirograph"] = spirograph;
 	renderer->AddObject(spirograph);
 	// Linear Bezier
@@ -186,7 +187,7 @@ void Create::PCScene1(
 	lbParams.color = { 1.0f, 1.0f, 1.0f };
 	linearBezier->vertexArray->Generate(lbParams);
 	linearBezier->vertexArray->SetAsDynamicGraphicsObject(50, 50 * 2);
-	linearBezier->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -10.0f, 1.0f);
+	linearBezier->referenceFrame.SetPosition(glm::vec3(0.0f, 0.0f, -10.0f));
 	allObjects["linearBezier"] = linearBezier;
 	renderer->AddObject(linearBezier);
 	// Quadratic Bezier
@@ -206,7 +207,7 @@ void Create::PCScene1(
 	qbParams.color = { 1.0f, 0.0f, 1.0f };
 	quadraticBezier->vertexArray->Generate(qbParams);
 	quadraticBezier->vertexArray->SetAsDynamicGraphicsObject(50, 50 * 2);
-	quadraticBezier->referenceFrame[3] = glm::vec4(10.0f, 0.0f, -10.0f, 1.0f);
+	quadraticBezier->referenceFrame.SetPosition(glm::vec3(10.0f, 0.0f, -10.0f));
 	allObjects["quadraticBezier"] = quadraticBezier;
 	renderer->AddObject(quadraticBezier);
 	// Quadratic Bezier using a matrix
@@ -226,7 +227,7 @@ void Create::PCScene1(
 	qbmParams.pM[2] = { 5.0f, -8.0f, 0.0f };
 	quadraticBezierM->vertexArray->Generate(qbmParams);
 	quadraticBezierM->vertexArray->SetAsDynamicGraphicsObject(50, 50 * 2);
-	quadraticBezierM->referenceFrame[3] = glm::vec4(20.0f, 0.0f, -10.0f, 1.0f);
+	quadraticBezierM->referenceFrame.SetPosition(glm::vec3(20.0f, 0.0f, -10.0f));
 	allObjects["quadraticBezierM"] = quadraticBezierM;
 	renderer->AddObject(quadraticBezierM);
 	// Cubic Bezier
@@ -250,7 +251,7 @@ void Create::PCScene1(
 	maxNumberOfIndices = maxNumberOfVertices * 2;
 	cubicBezier->vertexArray->SetAsDynamicGraphicsObject(
 		maxNumberOfVertices, maxNumberOfIndices);
-	cubicBezier->referenceFrame[3] = glm::vec4(-20.0f, 0.0f, 0.0f, 1.0f);
+	cubicBezier->referenceFrame.SetPosition(glm::vec3(-20.0f, 0.0f, 0.0f));
 	allObjects["cubicBezier"] = cubicBezier;
 	renderer->AddObject(cubicBezier);
 	// Cubix Bezier using a matrix
@@ -271,14 +272,13 @@ void Create::PCScene1(
 	cbmParams.pM[3] = { 5.0f, 0.0f, 0.0f, 1.0f };
 	cubicBezierM->vertexArray->Generate(cbmParams);
 	cubicBezierM->vertexArray->SetAsDynamicGraphicsObject(50, 50 * 2);
-	cubicBezierM->referenceFrame[3] = glm::vec4(-8.0f, 0.0f, 0.0f, 1.0f);
+	cubicBezierM->referenceFrame.SetPosition(glm::vec3(-8.0f, 0.0f, 0.0f));
 	allObjects["cubicBezierM"] = cubicBezierM;
 	renderer->AddObject(cubicBezierM);
 	// Bezier Patch
 	std::shared_ptr<PCVertexArray> vaBezierPatch =
 		std::make_shared<PCVertexArray>();
-	vaBezierPatch->SetGenerator(
-		std::make_shared<PCBezierPatchGenerator>());
+	vaBezierPatch->SetGenerator(std::make_shared<PCBezierPatchGenerator>());
 	std::shared_ptr<GraphicsObject> bezierPatch = std::make_shared<GraphicsObject>();
 	vaBezierPatch->SetObject(bezierPatch);
 	bezierPatch->vertexArray = vaBezierPatch;
@@ -305,7 +305,105 @@ void Create::PCScene1(
 	bpParams.cpBezier[3][3] = { 10,-2, 10 };
 	bezierPatch->vertexArray->Generate(bpParams);
 	bezierPatch->vertexArray->SetAsDynamicGraphicsObject(500, 500 * 2);
-	bezierPatch->referenceFrame[3] = glm::vec4(-15.0f, 2.0f, 15.0f, 1.0f);
+	bezierPatch->referenceFrame.SetPosition(glm::vec3(-15.0f, 2.0f, 15.0f));
 	allObjects["bezierPatch"] = bezierPatch;
 	renderer->AddObject(bezierPatch);
+	// Bezier Patch criss cross
+	std::shared_ptr<PCVertexArray> vaBezierPatchX =
+		std::make_shared<PCVertexArray>();
+	vaBezierPatchX->SetGenerator(std::make_shared<PCBezierPatchGenerator>());
+	std::shared_ptr<GraphicsObject> bezierPatchX = std::make_shared<GraphicsObject>();
+	vaBezierPatchX->SetObject(bezierPatchX);
+	bezierPatchX->vertexArray = vaBezierPatchX;
+	bezierPatchX->primitive = GL_LINES;
+	BezierPatchParams bpxParams{};
+	bpxParams.steps = 20;
+	bpxParams.color = { 0.0f, 0.8f, 0.0f };
+	bpxParams.indexType = 2;
+	bpxParams.cpBezier[0][0] = { -10, 1,-10 };
+	bpxParams.cpBezier[0][1] = { -5,  3,-10 };
+	bpxParams.cpBezier[0][2] = { 5, -3,-10 };
+	bpxParams.cpBezier[0][3] = { 10, 2,-10 };
+	bpxParams.cpBezier[1][0] = { -10, 0,-5 };
+	bpxParams.cpBezier[1][1] = { -5,  3,-5 };
+	bpxParams.cpBezier[1][2] = { 5, -3,-5 };
+	bpxParams.cpBezier[1][3] = { 10,-3,-5 };
+	bpxParams.cpBezier[2][0] = { -10, 2, 5 };
+	bpxParams.cpBezier[2][1] = { -5,  3, 5 };
+	bpxParams.cpBezier[2][2] = { 5, -3, 5 };
+	bpxParams.cpBezier[2][3] = { 10, 1, 5 };
+	bpxParams.cpBezier[3][0] = { -10,-2, 10 };
+	bpxParams.cpBezier[3][1] = { -5,  3, 10 };
+	bpxParams.cpBezier[3][2] = { 5, -3, 10 };
+	bpxParams.cpBezier[3][3] = { 10,-2, 10 };
+	bezierPatchX->vertexArray->Generate(bpxParams);
+	bezierPatchX->vertexArray->SetAsDynamicGraphicsObject(500, 500 * 2);
+	allObjects["bezierPatchX"] = bezierPatchX;
+	renderer->AddObject(bezierPatchX);
+	// Line Cuboid
+	std::shared_ptr<PCLineCuboidGenerator> lineCuboidGenerator =
+		std::make_shared<PCLineCuboidGenerator>();
+	std::shared_ptr<PCVertexArray> vaLineCuboid =
+		std::make_shared<PCVertexArray>();
+	vaLineCuboid->SetGenerator(lineCuboidGenerator);
+	std::shared_ptr<GraphicsObject> lineCuboid = std::make_shared<GraphicsObject>();
+	vaLineCuboid->SetObject(lineCuboid);
+	lineCuboid->vertexArray = vaLineCuboid;
+	lineCuboid->primitive = GL_LINES;
+	LineCuboidParams lcParams{};
+	lcParams.width = 5.0f;
+	lcParams.height = 5.0f;
+	lcParams.depth = 5.0f;
+	lcParams.color = { 1.0f, 0.0f, 1.0f };
+	lineCuboid->vertexArray->Generate(lcParams);
+	lineCuboid->vertexArray->SetAsDynamicGraphicsObject(8, 24);
+	lineCuboid->CreateBoundingBox(5.0f, 5.0f, 5.0f);
+	allObjects["lineCuboid"] = lineCuboid;
+	renderer->AddObject(lineCuboid);
+
+}
+
+void Create::PCIScene1(
+	std::unordered_map<std::string, std::shared_ptr<GraphicsObject>>& allObjects, 
+	std::shared_ptr<Renderer>& renderer, std::shared_ptr<Shader>& shader)
+{
+	auto& generator = reinterpret_cast<PCBezierPatchGenerator&>(
+		allObjects["bezierPatchX"]->vertexArray->GetGenerator());
+	auto& bpxParams = generator.GetParameters();
+
+	std::vector<glm::vec3> worldPositions;
+	for (int row = 0; row < 4; row++) {
+		for (int col = 0; col < 4; col++) {
+			worldPositions.push_back(bpxParams.cpBezier[row][col]);
+		}
+	}
+	std::vector<glm::vec3> instanceColors;
+	for (int i = 0; i < 16; i++) {
+		instanceColors.push_back({ 1.0f, 0.0f, 0.0f });
+	}
+	instanceColors[5] = { 1.0f, 1.0f, 1.0f };
+
+	renderer->SetShaderProgram(shader);
+
+	std::shared_ptr<PCIVertexArray> vaInsLineCuboid =
+		std::make_shared<PCIVertexArray>(worldPositions);
+	vaInsLineCuboid->SetInstanceColors(instanceColors);
+
+	vaInsLineCuboid->SetGenerator(std::make_shared<PCLineCuboidGenerator>());
+	std::shared_ptr<GraphicsObject> insLineCuboid = std::make_shared<GraphicsObject>();
+	vaInsLineCuboid->SetObject(insLineCuboid);
+	insLineCuboid->vertexArray = vaInsLineCuboid;
+	insLineCuboid->primitive = GL_LINES;
+	insLineCuboid->instances = 16;
+	LineCuboidParams lcParams{};
+	lcParams.width = 0.5f;
+	lcParams.height = 0.5f;
+	lcParams.depth = 0.5f;
+	lcParams.color = { 0.0f, 0.0f, 1.0f };
+	insLineCuboid->vertexArray->Generate(lcParams);
+	insLineCuboid->vertexArray->SetAsDynamicGraphicsObject(8, 24);
+	insLineCuboid->referenceFrame.SetPosition(glm::vec3(bpxParams.cpBezier[0][0]));
+	allObjects["insLineCuboid"] = insLineCuboid;
+	renderer->AddObject(insLineCuboid);
+	renderer->SetObjectsVisibility(false);
 }

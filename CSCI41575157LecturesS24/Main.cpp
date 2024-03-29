@@ -29,6 +29,7 @@
 #include "PCIVertexArray.h"
 #include "Ray.h"
 #include "Create.h"
+#include "Utility.h"
 
 // Eek! A global mouse!
 MouseParams mouse;
@@ -227,127 +228,33 @@ static Result CreateShaderProgram(
 	return result;
 }
 
-static glm::mat4 CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up)
-{
-	glm::vec3 right = glm::cross(direction, up);
-	right = glm::normalize(right);
-
-	glm::vec3 vUp = glm::cross(right, direction);
-	vUp = glm::normalize(vUp);
-
-	glm::mat4 view(1.0f);
-	view[0] = glm::vec4(right, 0.0f);
-	view[1] = glm::vec4(up, 0.0f);
-	view[2] = glm::vec4(direction, 0.0f);
-	view[3] = glm::vec4(position, 1.0f);
-	return glm::inverse(view);
-}
-
-static void EnableAttribute(
-	int attribIndex, int elementCount, int sizeInBytes, void* offset)
-{
-	glEnableVertexAttribArray(attribIndex);
-	glVertexAttribPointer(
-		attribIndex,
-		elementCount,
-		GL_FLOAT,
-		GL_FALSE,
-		sizeInBytes, // The number of bytes to the next element
-		offset       // Byte offset of the first position in the array
-	);
-}
-
-static void EnablePCAttributes()
-{
-	// Positions
-	EnableAttribute(0, 3, sizeof(VertexDataPC), (void*)0);
-	// Colors
-	EnableAttribute(1, 3, sizeof(VertexDataPC), (void*)(sizeof(float) * 3));
-}
-
-static void Trim(std::string& str)
-{
-	const std::string delimiters = " \f\n\r\t\v";
-	str.erase(str.find_last_not_of(delimiters) + 1);
-	str.erase(0, str.find_first_not_of(delimiters));
-}
-
-static std::string ReadFromFile(const std::string& filePath)
-{
-	std::stringstream ss;
-	std::ifstream fin{};
-	fin.open(filePath.c_str());
-	if (fin.fail()) {
-		ss << "Could not open: " << filePath << std::endl;
-		return ss.str();
-	}
-
-	std::string line;
-	while (!fin.eof()) {
-		getline(fin, line);
-		Trim(line);
-		if (line != "") { // Skip blank lines
-			ss << line << std::endl;
-		}
-	}
-	fin.close();
-	return ss.str();
-}
-
-//static unsigned char* LoadTextureDataFromFile(
-//	const std::string& filePath, int& width, int& height, int& numChannels)
+//static glm::mat4 CreateViewMatrix(const glm::vec3& position, const glm::vec3& direction, const glm::vec3& up)
 //{
-//	//stbi_set_flip_vertically_on_load(true);
-//	//unsigned char* data =
-//	//	stbi_load(filePath.c_str(), &width, &height, &numChannels, 0);
-//	//return data;
+//	glm::vec3 right = glm::cross(direction, up);
+//	right = glm::normalize(right);
+//
+//	glm::vec3 vUp = glm::cross(right, direction);
+//	vUp = glm::normalize(vUp);
+//
+//	glm::mat4 view(1.0f);
+//	view[0] = glm::vec4(right, 0.0f);
+//	view[1] = glm::vec4(up, 0.0f);
+//	view[2] = glm::vec4(direction, 0.0f);
+//	view[3] = glm::vec4(position, 1.0f);
+//	return glm::inverse(view);
 //}
 
-static unsigned int Create2DTexture(
-	unsigned char* textureData, unsigned int width, unsigned int height)
-{
-	// Generate the texture id
-	unsigned int textureId;
-	glGenTextures(1, &textureId);
-	// Select the texture 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureId);
-	// Apply texture parameters 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	// Send the texture to the GPU 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
-	// Generate mipmaps
-	glGenerateMipmap(GL_TEXTURE_2D);
-	return textureId;
-}
-
-//static unsigned int CreateTextureFromFile(const std::string& filePath)
+//void PointAt(glm::mat4& referenceFrame, const glm::vec3& point)
 //{
-//	int textureWidth, textureHeight, numChannels;
-//	unsigned char* textureData =
-//		LoadTextureDataFromFile(
-//			filePath, textureWidth, textureHeight, numChannels);
-//	unsigned int textureId =
-//		Create2DTexture(textureData, textureWidth, textureHeight);
-//	stbi_image_free(textureData);
-//	textureData = nullptr;
-//	return textureId;
+//	glm::vec3 position = referenceFrame[3];
+//	glm::vec3 zAxis = glm::normalize(point - position);
+//	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+//	glm::vec3 xAxis = glm::normalize(glm::cross(up, zAxis));
+//	glm::vec3 yAxis = glm::cross(zAxis, xAxis);
+//	referenceFrame[0] = glm::vec4(xAxis, 0.0f);
+//	referenceFrame[1] = glm::vec4(yAxis, 0.0f);
+//	referenceFrame[2] = glm::vec4(zAxis, 0.0f);
 //}
-
-void PointAt(glm::mat4& referenceFrame, const glm::vec3& point)
-{
-	glm::vec3 position = referenceFrame[3];
-	glm::vec3 zAxis = glm::normalize(point - position);
-	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::vec3 xAxis = glm::normalize(glm::cross(up, zAxis));
-	glm::vec3 yAxis = glm::cross(zAxis, xAxis);
-	referenceFrame[0] = glm::vec4(xAxis, 0.0f);
-	referenceFrame[1] = glm::vec4(yAxis, 0.0f);
-	referenceFrame[2] = glm::vec4(zAxis, 0.0f);
-}
 
 std::string GetOpenGLError()
 {
@@ -408,23 +315,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	glDepthRange(0.0f, 1.0f);
 
 	// Create the shaders
-	std::string lightingVertexSource = ReadFromFile("lighting.vert.glsl");
-	std::string lightingFragmentSource = ReadFromFile("lighting.frag.glsl");
+	std::string lightingVertexSource = Utility::ReadFromFile("lighting.vert.glsl");
+	std::string lightingFragmentSource = Utility::ReadFromFile("lighting.frag.glsl");
 	std::shared_ptr<Shader> lightingShader =
 		std::make_shared<Shader>(lightingVertexSource, lightingFragmentSource);
 
-	std::string basicVertexSource = ReadFromFile("basic.vert.glsl");
-	std::string basicFragmentSource = ReadFromFile("basic.frag.glsl");
+	std::string basicVertexSource = Utility::ReadFromFile("basic.vert.glsl");
+	std::string basicFragmentSource = Utility::ReadFromFile("basic.frag.glsl");
 	std::shared_ptr<Shader> basicPCTShader =
 		std::make_shared<Shader>(basicVertexSource, basicFragmentSource);
 
-	std::string pcVertexSource = ReadFromFile("pc.vert.glsl");
-	std::string pcFragmentSource = ReadFromFile("pc.frag.glsl");
+	std::string pcVertexSource = Utility::ReadFromFile("pc.vert.glsl");
+	std::string pcFragmentSource = Utility::ReadFromFile("pc.frag.glsl");
 	std::shared_ptr<Shader> basicPCShader =
 		std::make_shared<Shader>(pcVertexSource, pcFragmentSource);
 
-	std::string pciVertexSource = ReadFromFile("pci.vert.glsl");
-	std::string pciFragmentSource = ReadFromFile("pc.frag.glsl");
+	std::string pciVertexSource = Utility::ReadFromFile("pci.vert.glsl");
+	std::string pciFragmentSource = Utility::ReadFromFile("pc.frag.glsl");
 	std::shared_ptr<Shader> basicPCIShader =
 		std::make_shared<Shader>(pciVertexSource, pciFragmentSource);
 
@@ -451,155 +358,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	basicPCIShader->AddUniform("view");
 	basicPCIShader->AddUniform("world");
 
-	typedef std::shared_ptr<Renderer> SRenderer;
-	typedef std::shared_ptr<GraphicsObject> SGraphicsObject;
-	std::unordered_map<std::string, SGraphicsObject> allObjects;
+	std::unordered_map<std::string, std::shared_ptr<GraphicsObject>> allObjects;
 
-	int maxNumberOfVertices = 0;
-	int maxNumberOfIndices = 0;
-
-	SRenderer lightingRenderer = std::make_shared<Renderer>();
+	std::shared_ptr<Renderer> lightingRenderer = std::make_shared<Renderer>();
 	// The textured cube and the floor.
 	Create::PCNTScene1(allObjects, lightingRenderer, lightingShader);
 
-	SRenderer basicPCTRenderer = std::make_shared<Renderer>();
+	std::shared_ptr<Renderer> basicPCTRenderer = std::make_shared<Renderer>();
 	// The lightbulb
 	Create::PCTScene1(allObjects, basicPCTRenderer, basicPCTShader);
 
-	SRenderer basicPCRenderer = std::make_shared<Renderer>();
+	std::shared_ptr<Renderer> basicPCRenderer = std::make_shared<Renderer>();
 	// The various curve objects
 	Create::PCScene1(allObjects, basicPCRenderer, basicPCShader);
-
-	//std::shared_ptr<PCVertexArray> vaBezierPatch =
-	//	std::make_shared<PCVertexArray>();
-	//vaBezierPatch->SetGenerator(
-	//	std::make_shared<PCBezierPatchGenerator>());
-	//SGraphicsObject bezierPatch = std::make_shared<GraphicsObject>();
-	//vaBezierPatch->SetObject(bezierPatch);
-	//bezierPatch->vertexArray = vaBezierPatch;
-	//bezierPatch->primitive = GL_LINES;
-	//BezierPatchParams bpParams{};
-	//bpParams.steps = 20;
-	//bpParams.color = { 0.0f, 0.8f, 0.0f };
-	//bpParams.indexType = 1;
-	//bpParams.cpBezier[0][0] = { -10, 1,-10 };
-	//bpParams.cpBezier[0][1] = { -5,  3,-10 };
-	//bpParams.cpBezier[0][2] = { 5, -3,-10 };
-	//bpParams.cpBezier[0][3] = { 10, 2,-10 };
-	//bpParams.cpBezier[1][0] = { -10, 0,-5 };
-	//bpParams.cpBezier[1][1] = { -5,  3,-5 };
-	//bpParams.cpBezier[1][2] = { 5, -3,-5 };
-	//bpParams.cpBezier[1][3] = { 10,-3,-5 };
-	//bpParams.cpBezier[2][0] = { -10, 2, 5 };
-	//bpParams.cpBezier[2][1] = { -5,  3, 5 };
-	//bpParams.cpBezier[2][2] = { 5, -3, 5 };
-	//bpParams.cpBezier[2][3] = { 10, 1, 5 };
-	//bpParams.cpBezier[3][0] = { -10,-2, 10 };
-	//bpParams.cpBezier[3][1] = { -5,  3, 10 };
-	//bpParams.cpBezier[3][2] = { 5, -3, 10 };
-	//bpParams.cpBezier[3][3] = { 10,-2, 10 };
-	//bezierPatch->vertexArray->Generate(bpParams);
-	//bezierPatch->vertexArray->SetAsDynamicGraphicsObject(500, 500 * 2);
-	//bezierPatch->referenceFrame[3] = glm::vec4(-15.0f, 2.0f, 15.0f, 1.0f);
-	//allObjects["bezierPatch"] = bezierPatch;
-	//basicPCRenderer->AddObject(bezierPatch);
-
-	std::shared_ptr<PCVertexArray> vaBezierPatchX =
-		std::make_shared<PCVertexArray>();
-	vaBezierPatchX->SetGenerator(
-		std::make_shared<PCBezierPatchGenerator>());
-	SGraphicsObject bezierPatchX = std::make_shared<GraphicsObject>();
-	vaBezierPatchX->SetObject(bezierPatchX);
-	bezierPatchX->vertexArray = vaBezierPatchX;
-	bezierPatchX->primitive = GL_LINES;
-	BezierPatchParams bpxParams{};
-	bpxParams.steps = 20;
-	bpxParams.color = { 0.0f, 0.8f, 0.0f };
-	bpxParams.indexType = 2;
-	bpxParams.cpBezier[0][0] = { -10, 1,-10 };
-	bpxParams.cpBezier[0][1] = { -5,  3,-10 };
-	bpxParams.cpBezier[0][2] = { 5, -3,-10 };
-	bpxParams.cpBezier[0][3] = { 10, 2,-10 };
-	bpxParams.cpBezier[1][0] = { -10, 0,-5 };
-	bpxParams.cpBezier[1][1] = { -5,  3,-5 };
-	bpxParams.cpBezier[1][2] = { 5, -3,-5 };
-	bpxParams.cpBezier[1][3] = { 10,-3,-5 };
-	bpxParams.cpBezier[2][0] = { -10, 2, 5 };
-	bpxParams.cpBezier[2][1] = { -5,  3, 5 };
-	bpxParams.cpBezier[2][2] = { 5, -3, 5 };
-	bpxParams.cpBezier[2][3] = { 10, 1, 5 };
-	bpxParams.cpBezier[3][0] = { -10,-2, 10 };
-	bpxParams.cpBezier[3][1] = { -5,  3, 10 };
-	bpxParams.cpBezier[3][2] = { 5, -3, 10 };
-	bpxParams.cpBezier[3][3] = { 10,-2, 10 };
-	bezierPatchX->vertexArray->Generate(bpxParams);
-	bezierPatchX->vertexArray->SetAsDynamicGraphicsObject(500, 500 * 2);
-	allObjects["bezierPatchX"] = bezierPatchX;
-	basicPCRenderer->AddObject(bezierPatchX);
-
 	basicPCRenderer->SetObjectsVisibility(false);
+	allObjects["lineCuboid"]->isVisible = true;
 
-	std::shared_ptr<PCLineCuboidGenerator> lineCuboidGenerator =
-		std::make_shared<PCLineCuboidGenerator>();
-
-	std::shared_ptr<PCVertexArray> vaLineCuboid =
-		std::make_shared<PCVertexArray>();
-	vaLineCuboid->SetGenerator(lineCuboidGenerator);
-	SGraphicsObject lineCuboid = std::make_shared<GraphicsObject>();
-	vaLineCuboid->SetObject(lineCuboid);
-	lineCuboid->vertexArray = vaLineCuboid;
-	lineCuboid->primitive = GL_LINES;
-	LineCuboidParams lcParams{};
-	lcParams.width = 5.0f;
-	lcParams.height = 5.0f;
-	lcParams.depth = 5.0f;
-	lcParams.color = { 1.0f, 0.0f, 1.0f };
-	lineCuboid->vertexArray->Generate(lcParams);
-	lineCuboid->vertexArray->SetAsDynamicGraphicsObject(8, 24);
-	lineCuboid->CreateBoundingBox(5.0f, 5.0f, 5.0f);
-	allObjects["lineCuboid"] = lineCuboid;
-	basicPCRenderer->AddObject(lineCuboid);
-
-	//allObjects["circle"]->isVisible = true;
-
-	std::vector<glm::vec3> worldPositions;
-	for (int row = 0; row < 4; row++) {
-		for (int col = 0; col < 4; col++) {
-			worldPositions.push_back(bpxParams.cpBezier[row][col]);
-		}
-	}
-	std::vector<glm::vec3> instanceColors;
-	for (int i = 0; i < 16; i++) {
-		instanceColors.push_back({ 1.0f, 0.0f, 0.0f });
-	}
-	instanceColors[5] = { 1.0f, 1.0f, 1.0f };
-
-	SRenderer basicPCIRenderer = std::make_shared<Renderer>();
-	basicPCIRenderer->SetShaderProgram(basicPCIShader);
-
-	std::shared_ptr<PCIVertexArray> vaInsLineCuboid =
-		std::make_shared<PCIVertexArray>(worldPositions);
-	vaInsLineCuboid->SetInstanceColors(instanceColors);
-	
-	vaInsLineCuboid->SetGenerator(lineCuboidGenerator);
-	SGraphicsObject insLineCuboid = std::make_shared<GraphicsObject>();
-	vaInsLineCuboid->SetObject(insLineCuboid);
-	insLineCuboid->vertexArray = vaInsLineCuboid;
-	insLineCuboid->primitive = GL_LINES;
-	insLineCuboid->instances = 16;
-	lcParams.width = 0.5f;
-	lcParams.height = 0.5f;
-	lcParams.depth = 0.5f;
-	lcParams.color = { 0.0f, 0.0f, 1.0f };
-	insLineCuboid->vertexArray->Generate(lcParams);
-	maxNumberOfVertices = 8;
-	maxNumberOfIndices = 24;
-	insLineCuboid->vertexArray->SetAsDynamicGraphicsObject(
-		maxNumberOfVertices, maxNumberOfIndices);
-	insLineCuboid->referenceFrame[3] = glm::vec4(bpxParams.cpBezier[0][0], 1.0f);
-	allObjects["insLineCuboid"] = insLineCuboid;
-	basicPCIRenderer->AddObject(insLineCuboid);
-	basicPCIRenderer->SetObjectsVisibility(false);
+	std::shared_ptr<Renderer> basicPCIRenderer = std::make_shared<Renderer>();
+	Create::PCIScene1(allObjects, basicPCIRenderer, basicPCIShader);
 
 	float boxYAngle = 0;
 	float boxXAngle = 0;
@@ -623,7 +399,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	glm::mat4 projection;
 
 	glm::vec3 clearColor = { 0.0f, 0.0f, 0.0f };
-
 
 	lightingShader->AddUniform("materialAmbientIntensity");
 	lightingShader->AddUniform("materialSpecularIntensity");
@@ -662,24 +437,29 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	bool lookWithMouse = false;
 	bool resetCameraPosition = false;
 	bool correctGamma = false;
-	//bool showCircle = true;
-	//bool showSpirograph = true;
+
 	Ray mouseRay;
 	glm::vec3 rayStart{};
 	glm::vec3 rayDir{};
-	GeometricPlane plane;
-	plane.SetDistanceFromOrigin(allObjects["floor"]->referenceFrame[3].y);
+	GeometricPlane floorPlane;
+	float floorDistance = allObjects["floor"]->referenceFrame.GetPosition().y;
+	floorPlane.SetDistanceFromOrigin(floorDistance);
 	Intersection floorIntersection, boxILeft, boxIRight, boxIFront, boxIBack, boxITop, boxIBottom;
 	glm::vec3 floorIntersectionPoint{};
 	glm::vec3 boxIntersectionPoint{};
 	Timer timer;
 	std::stringstream log;
+	std::shared_ptr<GraphicsObject> object;
 	float litCubeAmbient = allObjects["litCube"]->material.ambientIntensity;
 	while (!glfwWindowShouldClose(window)) {
 		elapsedSeconds = timer.GetElapsedTimeInSeconds();
 		ProcessInput(window, elapsedSeconds, axis, cameraFrame, lookWithMouse);
 		glfwGetWindowSize(window, &width, &height);
-		if (width == 0 || height == 0) continue; // minimized
+		if (width == 0 || height == 0) {
+			glfwSwapBuffers(window);
+			glfwPollEvents();
+			continue; // minimized
+		}
 		mouse.windowWidth = width;
 		mouse.windowHeight = height;
 
@@ -695,8 +475,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			GL_STENCIL_BUFFER_BIT);
 
 		deltaAngle = static_cast<float>(speed * elapsedSeconds);
-		allObjects["litCube"]->referenceFrame = glm::rotate(
-			allObjects["litCube"]->referenceFrame, glm::radians(deltaAngle), axis);
+		allObjects["litCube"]->referenceFrame.RotateY(deltaAngle);
+		//= glm::rotate(
+		//	allObjects["litCube"]->referenceFrame, glm::radians(deltaAngle), axis);
 
 		if (resetCameraPosition) {
 			cameraFrame = glm::mat4(1.0f);
@@ -730,7 +511,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		mouseRay.Create((float)mouse.nsx, (float)mouse.nsy, projection, view);
 		rayStart = mouseRay.GetStart();
 		rayDir = mouseRay.GetDirection();
-		floorIntersection = mouseRay.GetIntersectionWithPlane(plane);
+		floorIntersection = mouseRay.GetIntersectionWithPlane(floorPlane);
 
 		if (floorIntersection.isIntersecting) {
 			floorIntersectionPoint = mouseRay.GetPosition(floorIntersection.offset);
@@ -744,13 +525,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			localLight.position.z = 5.0f;
 		}
 
-		allObjects["lineCuboid"]->referenceFrame = glm::mat4(1.0f);
-		allObjects["lineCuboid"]->referenceFrame = glm::rotate(
-			allObjects["lineCuboid"]->referenceFrame, glm::radians(boxXAngle), {1.0f, 0.0f, 0.0f});
-		allObjects["lineCuboid"]->referenceFrame = glm::rotate(
-			allObjects["lineCuboid"]->referenceFrame, glm::radians(boxYAngle), { 0.0f, 1.0f, 0.0f });
-		allObjects["lineCuboid"]->referenceFrame = glm::rotate(
-			allObjects["lineCuboid"]->referenceFrame, glm::radians(boxZAngle), { 0.0f, 0.0f, 1.0f });
+		allObjects["lineCuboid"]->referenceFrame.Reset();
+		allObjects["lineCuboid"]->referenceFrame.RotateX(boxXAngle);
+		//= glm::rotate(
+		//	allObjects["lineCuboid"]->referenceFrame, glm::radians(boxXAngle), {1.0f, 0.0f, 0.0f});
+		allObjects["lineCuboid"]->referenceFrame.RotateY(boxYAngle);
+		//= glm::rotate(
+		//	allObjects["lineCuboid"]->referenceFrame, glm::radians(boxYAngle), { 0.0f, 1.0f, 0.0f });
+		allObjects["lineCuboid"]->referenceFrame.RotateZ(boxZAngle);
+		//= glm::rotate(
+		//	allObjects["lineCuboid"]->referenceFrame, glm::radians(boxZAngle), { 0.0f, 0.0f, 1.0f });
 
 		std::string intersectionMessage = "Don't know";
 		bool isIntersectingBox = 
@@ -765,9 +549,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		if (isIntersectingBox == true) {
 			intersectionMessage = "Intersection";
 			boxIntersectionPoint = boundingBox->GetIntersectionPoint();
-			localLight.position.x = allObjects["lineCuboid"]->referenceFrame[3].x;
-			localLight.position.y = allObjects["lineCuboid"]->referenceFrame[3].y;
-			localLight.position.z = allObjects["lineCuboid"]->referenceFrame[3].z;
+			localLight.position = allObjects["lineCuboid"]->referenceFrame.GetPosition();
 		}
 		else {
 			boxIntersectionPoint = { -1000, -1000, -1000 };
@@ -784,8 +566,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			allObjects["litCube"]->material.ambientIntensity = litCubeAmbient;
 		}
 
-		allObjects["lightBulb"]->referenceFrame[3] = glm::vec4(localLight.position, 1.0f);
-		PointAt(allObjects["lightBulb"]->referenceFrame, cameraPosition);
+		allObjects["lightBulb"]->referenceFrame.SetPosition(localLight.position);
+		allObjects["lightBulb"]->referenceFrame.PointAt(cameraPosition);
 		
 		lightingRenderer->Select();
 		lightingRenderer->Send("projection", projection);
@@ -801,7 +583,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		lightingRenderer->Send("viewPosition", cameraPosition);
 		lightingRenderer->Render();
 
-		SGraphicsObject object;
+		
 
 		basicPCRenderer->Select();
 		basicPCRenderer->Send("projection", projection);
@@ -841,7 +623,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 		object = allObjects["bezierPatchX"];
 		if (object->isVisible) {
-			object->vertexArray->Generate(bpxParams);
+			object->vertexArray->Generate();
 		}
 
 		basicPCRenderer->Render();

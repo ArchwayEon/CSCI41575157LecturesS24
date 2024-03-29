@@ -1,7 +1,7 @@
 #include "BoundingBox.h"
 #include "Ray.h"
 
-BoundingBox::BoundingBox() : referenceFrame(1.0f)
+BoundingBox::BoundingBox() : referenceFrame()
 {
 	Create(1.0f, 1.0f, 1.0f);
 }
@@ -14,9 +14,9 @@ void BoundingBox::Create(float width, float height, float depth)
 	float hw = this->width / 2;
 	float hh = this->height / 2;
 	float hd = this->depth / 2;
-	glm::vec3 xAxis = glm::vec3(referenceFrame[0]);
-	glm::vec3 yAxis = glm::vec3(referenceFrame[1]);
-	glm::vec3 zAxis = glm::vec3(referenceFrame[2]);
+	glm::vec3 xAxis = referenceFrame.GetXAxis();
+	glm::vec3 yAxis = referenceFrame.GetYAxis();
+	glm::vec3 zAxis = referenceFrame.GetZAxis();
 	planes[FRONT].Set(-zAxis, hd);
 	planes[BACK].Set(zAxis, hd);
 	planes[RIGHT].Set(-xAxis, hw);
@@ -31,10 +31,10 @@ bool BoundingBox::IsIntersectingWithRay(const Ray& ray)
 	Intersection intersection;
 	Ray localRay;
 	glm::vec3 localStart = glm::vec3(
-		invReferenceFrame * glm::vec4(ray.GetStart(), 1.0f));
+		inverseMat * glm::vec4(ray.GetStart(), 1.0f));
 	localRay.SetStart(localStart);
 	glm::vec3 localDir = glm::vec3(
-		invReferenceFrame * glm::vec4(ray.GetDirection(), 0.0f));
+		inverseMat * glm::vec4(ray.GetDirection(), 0.0f));
 	localRay.SetDirection(localDir);
 	for (int i = FRONT; i <= BOTTOM; i++) {
 		intersection = localRay.GetIntersectionWithPlane(planes[i]);

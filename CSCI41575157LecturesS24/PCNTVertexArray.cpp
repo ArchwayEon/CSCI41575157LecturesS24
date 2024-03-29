@@ -48,7 +48,7 @@ void PCNTVertexArray::EnableAttributes()
 
 void PCNTVertexArray::SendObjectUniforms(std::shared_ptr<Shader> shader)
 {
-	shader->SendMat4Uniform("world", object->referenceFrame);
+	shader->SendMat4Uniform("world", object->referenceFrame.GetMatrix());
 	shader->SendFloatUniform(
 		"materialAmbientIntensity", object->material.ambientIntensity);
 	shader->SendFloatUniform(

@@ -3,9 +3,7 @@
 
 void GraphicsObject::SetPosition(glm::vec3 pos)
 {
-	referenceFrame[3].x = pos.x;
-	referenceFrame[3].y = pos.y;
-	referenceFrame[3].z = pos.z;
+	referenceFrame.SetPosition(pos);
 }
 
 void GraphicsObject::CreateBoundingBox(float width, float height, float depth)

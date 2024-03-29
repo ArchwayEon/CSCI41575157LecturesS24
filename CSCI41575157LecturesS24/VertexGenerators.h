@@ -165,6 +165,7 @@ public:
 	void GenerateVertices(IVertexDataParams& params) override;
 	void GenerateVertices() override;
 	void GenerateIndices(int type = 1, int steps = 0) override;
+	BezierPatchParams& GetParameters() { return bpp; }
 };
 
 class PCLineCuboidGenerator : public PCGenerator

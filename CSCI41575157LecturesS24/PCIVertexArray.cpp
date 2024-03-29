@@ -134,7 +134,7 @@ void PCIVertexArray::EnableAttributes()
 
 void PCIVertexArray::SendObjectUniforms(std::shared_ptr<Shader> shader)
 {
-	shader->SendMat4Uniform("world", object->referenceFrame);
+	shader->SendMat4Uniform("world", object->referenceFrame.GetMatrix());
 }
 
 void PCIVertexArray::Generate(IVertexDataParams& params)
