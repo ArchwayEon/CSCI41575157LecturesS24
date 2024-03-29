@@ -49,7 +49,12 @@ void IVertexGenerator::GenerateLinesIndexDataForBezierSurface(int steps)
 
 void PCCircleGenerator::GenerateVertices(IVertexDataParams& params)
 {
-	CircleParams& cp = reinterpret_cast<CircleParams&>(params);
+	cp = reinterpret_cast<CircleParams&>(params);
+	GenerateVertices();
+}
+
+void PCCircleGenerator::GenerateVertices()
+{
 	vertexData.clear();
 	float x, y, thetaRadians;
 	for (float theta = 0; theta < 360; theta += cp.steps) {
@@ -69,7 +74,12 @@ void PCCircleGenerator::GenerateIndices(int type, int steps)
 
 void PCSpirographGenerator::GenerateVertices(IVertexDataParams& params)
 {
-	SpirographParams& sp = reinterpret_cast<SpirographParams&>(params);
+	sp = reinterpret_cast<SpirographParams&>(params);
+	GenerateVertices();
+}
+
+void PCSpirographGenerator::GenerateVertices()
+{
 	vertexData.clear();
 	float x, y, thetaRadians;
 	float totalDegrees = 360.0f * sp.revolutions;
@@ -77,9 +87,9 @@ void PCSpirographGenerator::GenerateVertices(IVertexDataParams& params)
 	float q = (1 - sp.k) / sp.k;
 	for (float theta = 1; theta < totalDegrees; theta += sp.steps) {
 		thetaRadians = glm::radians(theta);
-		x = sp.R * (((1 - sp.k) * cosf(thetaRadians)) + 
+		x = sp.R * (((1 - sp.k) * cosf(thetaRadians)) +
 			(sp.l * sp.k * cosf(q * thetaRadians)));
-		y = sp.R * (((1 - sp.k) * sinf(thetaRadians)) - 
+		y = sp.R * (((1 - sp.k) * sinf(thetaRadians)) -
 			(sp.l * sp.k * sinf(q * thetaRadians)));
 		vertexData.push_back({ {}, {x, y, 0.0f}, sp.color });
 	}
@@ -93,7 +103,12 @@ void PCSpirographGenerator::GenerateIndices(int type, int steps)
 
 void PCLinearBezierGenerator::GenerateVertices(IVertexDataParams& params)
 {
-	LinearBezierParams& lbp = reinterpret_cast<LinearBezierParams&>(params);
+	lbp = reinterpret_cast<LinearBezierParams&>(params);
+	GenerateVertices();
+}
+
+void PCLinearBezierGenerator::GenerateVertices()
+{
 	vertexData.clear();
 	glm::vec3 l{};
 	float tick = 1.0f / lbp.steps;

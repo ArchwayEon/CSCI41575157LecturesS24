@@ -2,6 +2,8 @@
 #include "PCNTVertexArray.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "PCTVertexArray.h"
+#include "PCVertexArray.h"
 
 unsigned int Create::Texture2D(
 	unsigned char* textureData, unsigned int width, unsigned int height)
@@ -103,4 +105,88 @@ void Create::PCNTScene1(
 	floor->material.shininess = 16.0f;
 	allObjects["floor"] = floor;
 	renderer->AddObject(floor);
+}
+
+void Create::PCTScene1(
+	std::unordered_map<std::string, std::shared_ptr<GraphicsObject>>& allObjects, 
+	std::shared_ptr<Renderer>& renderer, std::shared_ptr<Shader>& shader)
+{
+	renderer->SetShaderProgram(shader);
+
+	std::shared_ptr<PCTVertexArray> vaLightBulb =
+		std::make_shared<PCTVertexArray>();
+	vaLightBulb->SetGenerator(std::make_shared<PCTXYPlaneGenerator>());
+	std::shared_ptr<GraphicsObject> lightBulb = std::make_shared<GraphicsObject>();
+	vaLightBulb->SetObject(lightBulb);
+	lightBulb->vertexArray = vaLightBulb;
+	lightBulb->primitive = GL_TRIANGLES;
+	XYPlaneParams xypParams{};
+	lightBulb->vertexArray->Generate(xypParams);
+	lightBulb->textureId = Create::TextureFromFile("lightbulb.png");
+	allObjects["lightBulb"] = lightBulb;
+	renderer->AddObject(lightBulb);
+}
+
+void Create::PCScene1(
+	std::unordered_map<std::string, std::shared_ptr<GraphicsObject>>& allObjects, 
+	std::shared_ptr<Renderer>& renderer, std::shared_ptr<Shader>& shader)
+{
+	renderer->SetShaderProgram(shader);
+	// Circle
+	std::shared_ptr<PCVertexArray> vaCircle = std::make_shared<PCVertexArray>();
+	vaCircle->SetGenerator(std::make_shared<PCCircleGenerator>());
+	std::shared_ptr<GraphicsObject> circle = std::make_shared<GraphicsObject>();
+	vaCircle->SetObject(circle);
+	circle->vertexArray = vaCircle;
+	circle->primitive = GL_LINES;
+	CircleParams circleParams{};
+	circleParams.radius = 5.0f;
+	circleParams.color = { 1.0f, 1.0f, 1.0f };
+	circleParams.steps = 10;
+	circle->vertexArray->Generate(circleParams);
+	circle->vertexArray->SetAsDynamicGraphicsObject(360, 360 * 2);
+	circle->referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -10.0f, 1.0f);
+	allObjects["circle"] = circle;
+	renderer->AddObject(circle);
+	// Spirograph
+	std::shared_ptr<PCVertexArray> vaSpirograph =
+		std::make_shared<PCVertexArray>();
+	vaSpirograph->SetGenerator(std::make_shared<PCSpirographGenerator>());
+	std::shared_ptr<GraphicsObject> spirograph = std::make_shared<GraphicsObject>();
+	vaSpirograph->SetObject(spirograph);
+	spirograph->vertexArray = vaSpirograph;
+	spirograph->primitive = GL_LINES;
+	SpirographParams sParams{};
+	sParams.color = { 1.0f, 1.0f, 1.0f };
+	sParams.k = 0.55f;
+	sParams.l = 0.955f;
+	sParams.R = 4.0f;
+	sParams.revolutions = 20.0f;
+	sParams.steps = 10;
+	spirograph->vertexArray->Generate(sParams);
+	int maxNumberOfVertices = static_cast<int>(360 * sParams.revolutions);
+	int maxNumberOfIndices = maxNumberOfVertices * 2;
+	spirograph->vertexArray->SetAsDynamicGraphicsObject(
+		maxNumberOfVertices, maxNumberOfIndices);
+	spirograph->referenceFrame[3] = glm::vec4(-10.0f, 0.0f, -10.0f, 1.0f);
+	allObjects["spirograph"] = spirograph;
+	renderer->AddObject(spirograph);
+	// Linear Bezier
+	std::shared_ptr<PCVertexArray> vaLinearBezier =
+		std::make_shared<PCVertexArray>();
+	vaLinearBezier->SetGenerator(std::make_shared<PCLinearBezierGenerator>());
+	std::shared_ptr<GraphicsObject> linearBezier = std::make_shared<GraphicsObject>();
+	vaLinearBezier->SetObject(linearBezier);
+	linearBezier->vertexArray = vaLinearBezier;
+	linearBezier->primitive = GL_LINES;
+	LinearBezierParams lbParams{};
+	lbParams.steps = 10;
+	lbParams.p0 = { -5.0f, 0.0f, 0.0f };
+	lbParams.p1 = { 5.0f, 0.0f, 0.0f };
+	lbParams.color = { 1.0f, 1.0f, 1.0f };
+	linearBezier->vertexArray->Generate(lbParams);
+	linearBezier->vertexArray->SetAsDynamicGraphicsObject(50, 50 * 2);
+	linearBezier->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -10.0f, 1.0f);
+	allObjects["linearBezier"] = linearBezier;
+	renderer->AddObject(linearBezier);
 }

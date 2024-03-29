@@ -15,6 +15,7 @@ public:
 
 	virtual std::size_t GetNumberOfVertices() = 0;
 	virtual void GenerateVertices(IVertexDataParams& params) = 0;
+	virtual void GenerateVertices() {}
 	virtual void GenerateIndices(int type=1, int steps=0) {}
 
 	std::vector<unsigned short>& GetIndexData() {
@@ -64,36 +65,40 @@ public:
 class PCCircleGenerator : public PCGenerator
 {
 protected:
+	CircleParams cp{};
 
 public:
 	PCCircleGenerator() : PCGenerator() {}
 	~PCCircleGenerator() = default;
 
 	void GenerateVertices(IVertexDataParams& params) override;
+	void GenerateVertices() override;
 	void GenerateIndices(int type = 1, int steps = 0) override;
 };
 
 class PCSpirographGenerator : public PCGenerator
 {
 protected:
-
+	SpirographParams sp{};
 public:
 	PCSpirographGenerator() : PCGenerator() {}
 	~PCSpirographGenerator() = default;
 
 	void GenerateVertices(IVertexDataParams& params) override;
+	void GenerateVertices() override;
 	void GenerateIndices(int type = 1, int steps = 0) override;
 };
 
 class PCLinearBezierGenerator : public PCGenerator
 {
 protected:
-
+	LinearBezierParams lbp{};
 public:
 	PCLinearBezierGenerator() : PCGenerator() {}
 	~PCLinearBezierGenerator() = default;
 
 	void GenerateVertices(IVertexDataParams& params) override;
+	void GenerateVertices() override;
 	void GenerateIndices(int type = 1, int steps = 0) override;
 };
 

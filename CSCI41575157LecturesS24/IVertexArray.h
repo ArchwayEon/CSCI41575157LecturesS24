@@ -64,6 +64,7 @@ public:
 		int maxNumberOfVertices, int maxNumberOfIndices);
 
 	virtual void Generate(IVertexDataParams& params);
+	virtual void Generate();
 
 	virtual std::size_t GetNumberOfVertices() {
 		if (generator != nullptr) {

@@ -455,152 +455,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	typedef std::shared_ptr<GraphicsObject> SGraphicsObject;
 	std::unordered_map<std::string, SGraphicsObject> allObjects;
 
-	// Create the texture data
-	//unsigned char* textureData = new unsigned char[] {
-	//	0, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 0, 255,
-	//		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
-	//		0, 255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 255, 0, 255,
-	//		0, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 0, 255
-	//	};
-
-	//unsigned int customTextureId = Create2DTexture(textureData, 4, 4);
-	//delete[] textureData;
-	//textureData = nullptr;
-
 	int maxNumberOfVertices = 0;
 	int maxNumberOfIndices = 0;
 
 	SRenderer lightingRenderer = std::make_shared<Renderer>();
+	// The textured cube and the floor.
 	Create::PCNTScene1(allObjects, lightingRenderer, lightingShader);
-	//lightingRenderer->SetShaderProgram(lightingShader);
-	//lightingRenderer->SetVertexSize(sizeof(VertexDataPCNT));
-
-	//std::shared_ptr<PCNTVertexArray> vaLitCube =
-	//	std::make_shared<PCNTVertexArray>();
-	//vaLitCube->SetGenerator(std::make_shared<PCNTCuboidGenerator>());
-	//SGraphicsObject litCube = std::make_shared<GraphicsObject>();
-	//vaLitCube->SetObject(litCube);
-	//litCube->vertexArray = vaLitCube;
-	//litCube->primitive = GL_TRIANGLES;
-	//CuboidParams cParams{};
-	//cParams.width = 10.0f;
-	//cParams.height = 10.0f;
-	//cParams.depth = 10.0f;
-	//litCube->vertexArray->Generate(cParams);
-	//litCube->textureId = customTextureId;
-	//litCube->material.ambientIntensity = 0.1f;
-	//litCube->material.specularIntensity = 0.5f;
-	//litCube->material.shininess = 16.0f;
-	//litCube->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -25.0f, 1.0f);
-	//litCube->CreateBoundingBox(10.1f, 10.1f, 10.1f);
-	//allObjects["litCube"] = litCube;
-	//lightingRenderer->AddObject(litCube);
-
-	//std::shared_ptr<PCNTVertexArray> vaFloor =
-	//	std::make_shared<PCNTVertexArray>();
-	//vaFloor->SetGenerator(std::make_shared<PCNTXZPlaneGenerator>());
-	//SGraphicsObject floor = std::make_shared<GraphicsObject>();
-	//vaFloor->SetObject(floor);
-	//floor->vertexArray = vaFloor;
-	//floor->primitive = GL_TRIANGLES;
-	//XZPlaneParams xzpParams{};
-	//xzpParams.width = 50.0f;
-	//xzpParams.depth = 50.0f;
-	//xzpParams.repeatS = 5.0f;
-	//xzpParams.repeatT = 5.0f;
-	//floor->vertexArray->Generate(xzpParams);
-	//floor->textureId = CreateTextureFromFile("stone-road-texture.jpg");
-	//floor->referenceFrame[3] = glm::vec4(0.0f, -5.0f, 0.0f, 1.0f);
-	//floor->material.ambientIntensity = 0.1f;
-	//floor->material.specularIntensity = 0.5f;
-	//floor->material.shininess = 16.0f;
-	//allObjects["floor"] = floor;
-	//lightingRenderer->AddObject(floor);
 
 	SRenderer basicPCTRenderer = std::make_shared<Renderer>();
-	basicPCTRenderer->SetShaderProgram(basicPCTShader);
-	basicPCTRenderer->SetVertexSize(sizeof(VertexDataPCT));
-
-	std::shared_ptr<PCTVertexArray> vaLightBulb =
-		std::make_shared<PCTVertexArray>();
-	vaLightBulb->SetGenerator(std::make_shared<PCTXYPlaneGenerator>());
-	SGraphicsObject lightBulb = std::make_shared<GraphicsObject>();
-	vaLightBulb->SetObject(lightBulb);
-	lightBulb->vertexArray = vaLightBulb;
-	lightBulb->primitive = GL_TRIANGLES;
-	XYPlaneParams xypParams{};
-	lightBulb->vertexArray->Generate(xypParams);
-	lightBulb->textureId = Create::TextureFromFile("lightbulb.png");
-	allObjects["lightBulb"] = lightBulb;
-	basicPCTRenderer->AddObject(lightBulb);
+	// The lightbulb
+	Create::PCTScene1(allObjects, basicPCTRenderer, basicPCTShader);
 
 	SRenderer basicPCRenderer = std::make_shared<Renderer>();
-	basicPCRenderer->SetShaderProgram(basicPCShader);
-	basicPCRenderer->SetVertexSize(sizeof(VertexDataPC));
-
-	std::shared_ptr<PCVertexArray> vaCircle = std::make_shared<PCVertexArray>();
-	vaCircle->SetGenerator(std::make_shared<PCCircleGenerator>());
-	SGraphicsObject circle = std::make_shared<GraphicsObject>();
-	vaCircle->SetObject(circle);
-	circle->vertexArray = vaCircle;
-	circle->primitive = GL_LINES;
-	CircleParams circleParams{};
-	circleParams.radius = 5.0f;
-	circleParams.color = { 1.0f, 1.0f, 1.0f };
-	circleParams.steps = 10;
-	circle->vertexArray->Generate(circleParams);
-	maxNumberOfVertices = 360;
-	maxNumberOfIndices = maxNumberOfVertices * 2;
-	circle->vertexArray->SetAsDynamicGraphicsObject(
-		maxNumberOfVertices, maxNumberOfIndices);
-	circle->referenceFrame[3] = glm::vec4(-20.0f, 0.0f, -10.0f, 1.0f);
-	allObjects["circle"] = circle;
-	basicPCRenderer->AddObject(circle);
-
-	std::shared_ptr<PCVertexArray> vaSpirograph =
-		std::make_shared<PCVertexArray>();
-	vaSpirograph->SetGenerator(std::make_shared<PCSpirographGenerator>());
-	SGraphicsObject spirograph = std::make_shared<GraphicsObject>();
-	vaSpirograph->SetObject(spirograph);
-	spirograph->vertexArray = vaSpirograph;
-	spirograph->primitive = GL_LINES;
-	SpirographParams sParams{};
-	sParams.color = { 1.0f, 1.0f, 1.0f };
-	sParams.k = 0.55f;
-	sParams.l = 0.955f;
-	sParams.R = 4.0f;
-	sParams.revolutions = 20.0f;
-	sParams.steps = 10;
-	spirograph->vertexArray->Generate(sParams);
-	maxNumberOfVertices = static_cast<int>(360 * sParams.revolutions);
-	maxNumberOfIndices = maxNumberOfVertices * 2;
-	spirograph->vertexArray->SetAsDynamicGraphicsObject(
-		maxNumberOfVertices, maxNumberOfIndices);
-	spirograph->referenceFrame[3] = glm::vec4(-10.0f, 0.0f, -10.0f, 1.0f);
-	allObjects["spirograph"] = spirograph;
-	basicPCRenderer->AddObject(spirograph);
-
-	std::shared_ptr<PCVertexArray> vaLinearBezier =
-		std::make_shared<PCVertexArray>();
-	vaLinearBezier->SetGenerator(std::make_shared<PCLinearBezierGenerator>());
-	SGraphicsObject linearBezier = std::make_shared<GraphicsObject>();
-	vaLinearBezier->SetObject(linearBezier);
-	linearBezier->vertexArray = vaLinearBezier;
-	linearBezier->primitive = GL_LINES;
-	LinearBezierParams lbParams{};
-	lbParams.steps = 10;
-	lbParams.p0 = { -5.0f, 0.0f, 0.0f };
-	lbParams.p1 = { 5.0f, 0.0f, 0.0f };
-	lbParams.color = { 1.0f, 1.0f, 1.0f };
-	linearBezier->vertexArray->Generate(lbParams);
-	maxNumberOfVertices = 50;
-	maxNumberOfIndices = maxNumberOfVertices * 2;
-	linearBezier->vertexArray->SetAsDynamicGraphicsObject(
-		maxNumberOfVertices, maxNumberOfIndices);
-	//linearBezier->vertexArray->SetAsDynamicGraphicsObject(linearBezier, 50);
-	linearBezier->referenceFrame[3] = glm::vec4(0.0f, 0.0f, -10.0f, 1.0f);
-	allObjects["linearBezier"] = linearBezier;
-	basicPCRenderer->AddObject(linearBezier);
+	// The various curve objects
+	Create::PCScene1(allObjects, basicPCRenderer, basicPCShader);
 
 	std::shared_ptr<PCVertexArray> vaQuadraticBezier =
 		std::make_shared<PCVertexArray>();
@@ -796,7 +664,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	allObjects["lineCuboid"] = lineCuboid;
 	basicPCRenderer->AddObject(lineCuboid);
 
-	//allObjects["bezierPatchX"]->isVisible = true;
+	//allObjects["circle"]->isVisible = true;
 
 	std::vector<glm::vec3> worldPositions;
 	for (int row = 0; row < 4; row++) {
@@ -1014,15 +882,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			allObjects["litCube"]->IsIntersectingWithRay(mouseRay);
 
 		if (isIntersectingCube) {
-			//litCubeAmbient = allObjects["litCube"]->material.ambientIntensity;
 			allObjects["litCube"]->material.ambientIntensity = 1.0f;
 		}
 		else {
 			allObjects["litCube"]->material.ambientIntensity = litCubeAmbient;
 		}
 
-		lightBulb->referenceFrame[3] = glm::vec4(localLight.position, 1.0f);
-		PointAt(lightBulb->referenceFrame, cameraPosition);
+		allObjects["lightBulb"]->referenceFrame[3] = glm::vec4(localLight.position, 1.0f);
+		PointAt(allObjects["lightBulb"]->referenceFrame, cameraPosition);
 		
 		lightingRenderer->Select();
 		lightingRenderer->Send("projection", projection);
@@ -1038,8 +905,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		lightingRenderer->Send("viewPosition", cameraPosition);
 		lightingRenderer->Render();
 
-		
-
 		SGraphicsObject object;
 
 		basicPCRenderer->Select();
@@ -1048,15 +913,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 		object = allObjects["circle"];
 		if (object->isVisible) {
-			object->vertexArray->Generate(circleParams);
+			object->vertexArray->Generate();
 		}
 		object = allObjects["spirograph"];
 		if (object->isVisible) {
-			object->vertexArray->Generate(sParams);
+			object->vertexArray->Generate();
 		}
 		object = allObjects["linearBezier"];
 		if (object->isVisible) {
-			object->vertexArray->Generate(lbParams);
+			object->vertexArray->Generate();
 		}
 		object = allObjects["quadraticBezier"];
 		if (object->isVisible) {
